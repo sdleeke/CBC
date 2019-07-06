@@ -455,7 +455,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
                     // By using cache this only looks at mismatches if they are loaded
-                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
+                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.result {
                         var dict = [String:(String,String)]()
                         for mismatch in mismatches {
                             let parts = mismatch.components(separatedBy: " ")
@@ -480,7 +480,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
                     // By using cache this only looks at mismatches if they are loaded
-                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
+                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.result {
                         var dict = [String:(String,String)]()
                         for mismatch in mismatches {
                             let parts = mismatch.components(separatedBy: " ")
@@ -503,7 +503,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
                     // By using cache this only looks at mismatches if they are loaded
-                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.cache {
+                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.result {
                         var dict = [String:(String,String)]()
                         for mismatch in mismatches {
                             let parts = mismatch.components(separatedBy: " ")

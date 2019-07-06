@@ -81,18 +81,63 @@ class JSON
         guard Globals.shared.reachability.isReachable else {
             return filename?.fileSystemURL?.data?.json
         }
-        
+
+        // Network first
         guard let data = urlString?.url?.data else {
             return filename?.fileSystemURL?.data?.json
         }
-        
-        if data.json != nil {
+
+        if let json = data.json {
             operationQueue.addOperation {
                 _ = data.save(to: filename?.fileSystemURL)
             }
+            
+            return json
+        } else {
+            return nil
+        }
+    }
+    
+    func loadURL(urlString:String?, filename:String?, completion:(([String:Any]?)->())?)
+    {
+        guard let data = urlString?.url?.data else {
+            return
         }
         
-        return data.json
+        guard let json = data.json as? [String:Any] else {
+            return
+        }
+        
+        operationQueue.addOperation {
+            _ = data.save(to: filename?.fileSystemURL)
+        }
+        
+        completion?(json)
+    }
+    
+    func load(urlString:String?, filename:String?, completion:(([String:Any]?)->())?)
+    {
+        if Globals.shared.isRefreshing {
+            if Globals.shared.reachability.isReachable {
+                loadURL(urlString:urlString, filename:filename, completion:completion)
+            } else {
+                if let json = filename?.fileSystemURL?.data?.json as? [String:Any] {
+                    completion?(json)
+                }
+            }
+        } else {
+            // FileSystem first
+            guard let json = filename?.fileSystemURL?.data?.json as? [String:Any] else {
+                loadURL(urlString:urlString, filename:filename, completion:completion)
+                return
+            }
+            
+            completion?(json)
+            
+            operationQueue.addOperation {
+                self.loadURL(urlString:urlString, filename:filename, completion:nil)
+            }
+        }
     }
     
     func load(urlString:String?, key:String, filename:String?) -> [[String:Any]]?

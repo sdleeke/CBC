@@ -793,16 +793,26 @@ class Fetch<T>
         return operationQueue
     }()
     
+    func block(_ block:((T?)->())?)
+    {
+        operationQueue.addOperation {
+            block?(self.result)
+        }
+    }
+
     deinit {
         debug(self)
         operationQueue.cancelAllOperations()
     }
     
-    init(name:String? = nil,fetch:(()->(T?))? = nil)
+    init(name:String? = nil,useCache:Bool = false, fetch:(()->(T?))? = nil)
     {
         self.name = name
+        self.useCache = useCache
         self.fetch = fetch
     }
+
+    var useCache = false
     
     var interrupt : (()->Bool)?
     
@@ -814,7 +824,7 @@ class Fetch<T>
     var name : String?
     
     var didSet : ((T?)->())?
-    var cache : T?
+    private var cache : T?
     {
         didSet {
             didSet?(cache)
@@ -832,38 +842,61 @@ class Fetch<T>
         return DispatchQueue(label: name ?? UUID().uuidString)
     }()
     
-    func load()
-    {
-        queue.sync {
-            guard cache == nil else {
-                return
-            }
-            
-            cache = retrieve?()
-            
-            guard cache == nil else {
-                return
-            }
-            
-            self.cache = self.fetch?()
-            
-            store?(self.cache)
-        }
-    }
-    
+//    func load() -> T?
+//    {
+//        queue.sync {
+//            guard cache == nil else {
+//                return
+//            }
+//
+//            cache = retrieve?()
+//
+//            guard cache == nil else {
+//                return
+//            }
+//
+//            self.cache = self.fetch?()
+//
+//            store?(self.cache)
+//        }
+//    }
+
     func fill()
     {
         operationQueue.addOperation {
-            self.load()
+            _ = self.result
         }
     }
     
-    var result:T?
+    var result : T?
     {
         get {
-            load()
-            
-            return cache
+            return queue.sync {
+                if useCache, cache != nil {
+                    return cache
+                }
+                
+                var result = retrieve?()
+                
+                if result != nil {
+                    if useCache {
+                        cache = result
+                    }
+                    return result
+                }
+                
+                result = self.fetch?()
+                
+                operationQueue.addOperation {
+                    self.store?(result)
+                }
+                
+                if useCache {
+                    cache = result
+                }
+                
+                return result
+            }
         }
     }
 }
@@ -928,9 +961,9 @@ class FetchCodable<T:Codable> : Fetch<T>, Size
     }
     
     // name MUST be unique to every INSTANCE, not just the class!
-    override init(name: String?, fetch: (() -> (T?))? = nil)
+    override init(name: String?, useCache:Bool = false, fetch: (() -> (T?))? = nil)
     {
-        super.init(name: name, fetch: fetch)
+        super.init(name:name, useCache:useCache, fetch:fetch)
 
         store = { [weak self] (t:T?) in
             guard Globals.shared.settings.cacheDownloads else {

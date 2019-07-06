@@ -763,8 +763,9 @@ class MediaPlayer : NSObject
         
         mediaItem?.atEnd = true
         
-        if Globals.shared.settings.autoAdvance, let mediaItem = mediaItem, mediaItem.playing == Playing.audio, mediaItem.atEnd, mediaItem.multiPartMediaItems?.count > 1,
-            let mediaItems = mediaItem.multiPartMediaItems,
+        if Globals.shared.settings.autoAdvance, let mediaItem = mediaItem, mediaItem.playing == Playing.audio, mediaItem.atEnd,
+            let mediaItems = Globals.shared.media.multiPartMediaItems(mediaItem),
+            mediaItems.count > 1,
             let index = mediaItems.firstIndex(of: mediaItem), index < (mediaItems.count - 1) {
             let nextMediaItem = mediaItems[index + 1]
             
@@ -1263,13 +1264,15 @@ class MediaPlayer : NSObject
                     nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = mediaItem.multiPartName
                     nowPlayingInfo[MPMediaItemPropertyAlbumArtist] = mediaItem.speaker
                     
-                    if let index = mediaItem.multiPartMediaItems?.firstIndex(of: mediaItem) {
-                        nowPlayingInfo[MPMediaItemPropertyAlbumTrackNumber]  = index + 1
-                    } else {
-                        print(mediaItem as Any," not found in ",mediaItem.multiPartMediaItems as Any)
+                    if let multiPartMediaItems = Globals.shared.media.multiPartMediaItems(mediaItem) {
+                        if let index = multiPartMediaItems.firstIndex(of: mediaItem) {
+                            nowPlayingInfo[MPMediaItemPropertyAlbumTrackNumber]  = index + 1
+                        } else {
+                            print(mediaItem as Any," not found in ",multiPartMediaItems as Any)
+                        }
+                        
+                        nowPlayingInfo[MPMediaItemPropertyAlbumTrackCount]   = multiPartMediaItems.count
                     }
-                    
-                    nowPlayingInfo[MPMediaItemPropertyAlbumTrackCount]   = mediaItem.multiPartMediaItems?.count
                 }
                 
                 nowPlayingInfo[MPMediaItemPropertyPlaybackDuration]          = duration?.seconds

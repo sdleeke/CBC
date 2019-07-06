@@ -411,6 +411,14 @@ class MediaList // : Sequence
         updateIndex() // didSets are not called during init
     }
     
+    init(_ list:[MediaItem?]? = nil)
+    {
+        self.list = list?.compactMap({ (mediaItem:MediaItem?) -> MediaItem? in
+            return mediaItem
+        })
+        updateIndex() // didSets are not called during init
+    }
+    
     func updateIndex()
     {
         index.clear()

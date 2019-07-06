@@ -112,7 +112,7 @@ extension MediaItem : UIActivityItemSource
 {
     func share(viewController:UIViewController)
     {
-        guard let html = self.multiPartMediaItems?.html() else {
+        guard let html = Globals.shared.media.multiPartMediaItems(self)?.html() else {
             return
         }
         
@@ -143,14 +143,14 @@ extension MediaItem : UIActivityItemSource
             return nil
         }
         
-        guard let series = self.multiPartMediaItems?.html() else {
+        guard let html = Globals.shared.media.multiPartMediaItems(self)?.html() else {
             return nil
         }
         
         if activityType == UIActivity.ActivityType.mail {
-            return series
+            return html
         } else if activityType == UIActivity.ActivityType.print {
-            return series
+            return html
         }
 
         var string : String!
@@ -204,11 +204,21 @@ class MediaItem : NSObject //, Downloader
         }
     }
     
-    var multiPartMediaItems:[MediaItem]?
+    var _multiPartMediaItems:[MediaItem?]?
+    {
+        didSet {
+            
+        }
+    }
+    var multiPartMediaItems:[MediaItem?]?
     {
         get {
             guard hasMultipleParts else {
                 return [self]
+            }
+            
+            guard _multiPartMediaItems == nil else {
+                return _multiPartMediaItems
             }
             
             var mediaItemParts:[MediaItem]?
@@ -283,10 +293,12 @@ class MediaItem : NSObject //, Downloader
                     }
                 }
                 
-                return mediaList.count > 0 ? mediaList : nil
+                _multiPartMediaItems = mediaList.count > 0 ? mediaList : nil
             } else {
-                return mediaItemParts
+                _multiPartMediaItems = mediaItemParts
             }
+            
+            return _multiPartMediaItems
         }
     }
     
@@ -1486,7 +1498,7 @@ class MediaItem : NSObject //, Downloader
     func loadTokenCountMarkCountMismatches()
     {
         self.operationQueue.addOperation {
-            self.notesTokensMarkMismatches?.load()
+            _ = self.notesTokensMarkMismatches?.result
         }
     }
     
@@ -3615,7 +3627,7 @@ class MediaItem : NSObject //, Downloader
 
             // test:(()->(Bool))?
             mtvc.process(work: { [weak self] () -> (Any?) in
-                self?.notesTokens?.load() // Have to do this because transcriptTokens has UI.
+                _ = self?.notesTokens?.result // Have to do this because transcriptTokens has UI.
             }, completion: { [weak self, weak mtvc] (data:Any?) in
                 guard let tokens = self?.notesTokens?.result?.map({ (string:String,count:Int) -> String in
                     return "\(string) (\(count))"
@@ -3643,7 +3655,7 @@ class MediaItem : NSObject //, Downloader
                     transcript = AlertAction(title: Constants.Strings.HTML_Transcript, style: .default) { [weak self] in
                         // test:(()->(Bool))?
                         viewController.process(work: { [weak self] () -> (Any?) in
-                            self?.notesHTML?.load()
+                            _ = self?.notesHTML?.result
                         }, completion: { [weak self] (data:Any?) in
                             self?.view(viewController:viewController, bodyHTML:self?.notesHTML?.result)
                         })

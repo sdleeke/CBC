@@ -28,14 +28,16 @@ extension MediaViewController : UIActivityItemSource
 
             }
 
-            activityViewController = CBCActivityViewController(activityItems: [self.document?.fetchData.result, self.selectedMediaItem], applicationActivities: nil)
-
-            // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
-            activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
-            
-            activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
-            
-            Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
+            self.document?.fetchData.block { (result) in
+                activityViewController = CBCActivityViewController(activityItems: [result, self.selectedMediaItem], applicationActivities: nil)
+                
+                // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+                activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
+                
+                activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+                
+                Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
+            }
         }
     }
     
@@ -752,13 +754,13 @@ class MediaViewController : MediaItemsViewController
             
         }
         didSet {
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: oldValue)
-            
-            NotificationCenter.default.addObserver(self, selector: #selector(updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: selectedMediaItem)
-            
             guard Thread.isMainThread else {
                 return
             }
+            
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: oldValue)
+            
+            NotificationCenter.default.addObserver(self, selector: #selector(updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: selectedMediaItem)
             
             if isViewLoaded {
                 Thread.onMain {
@@ -771,6 +773,7 @@ class MediaViewController : MediaItemsViewController
                         
                         self.layoutAspectRatio = self.layoutAspectRatio.setMultiplier(multiplier: ratio)
                         self.logo.image = logo
+                        self.mediaItemNotesAndSlides.bringSubviewToFront(self.logo)
                     }
                 }
             }
@@ -781,10 +784,16 @@ class MediaViewController : MediaItemsViewController
 
             // This causes the old MediaList to be deallocated, stopping any downloads that were occuring on it.
             // Is that what we want? No, not unless the value of multiPartMediaItems should really change
-            if selectedMediaItem?.multiPartMediaItems != mediaList?.list {
-                mediaList = MediaList(selectedMediaItem?.multiPartMediaItems)
+            if let selectedMediaItem = selectedMediaItem {
+                if mediaList?.list?.contains(selectedMediaItem) != true {
+                    operationQueue.addOperation {
+                        self.mediaList = MediaList(Globals.shared.media.multiPartMediaItems(selectedMediaItem))
+                    }
+                }
+            } else {
+                self.mediaList = nil
             }
-            
+
 //            if selectedMediaItem?.multiPartMediaItems?.count != mediaItems?.list?.count {
 //                mediaItems = MediaList(selectedMediaItem?.multiPartMediaItems)
 //            } else {
@@ -827,8 +836,14 @@ class MediaViewController : MediaItemsViewController
     {
         didSet {
             if mediaList?.list != oldValue?.list {
-                mediaList?.list?.loadDocuments()
-                tableView?.reloadData()
+                operationQueue.addOperation {
+                    self.mediaList?.list?.loadDocuments()
+                }
+                Thread.onMain {
+                    self.tableView?.reloadData()
+                    self.updateUI()
+//                    self.setupVerticalSplit()
+                }
             }
             
 //            guard self.isViewLoaded else {
@@ -1117,7 +1132,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem else {
+        guard let selectedMediaItem = selectedMediaItem, mediaList != nil else {
             stvControl.isEnabled = false
             stvControl.isHidden = true
             stvWidthConstraint.constant = 0
@@ -2446,10 +2461,8 @@ class MediaViewController : MediaItemsViewController
         
         setupSpinner()
         
-        setupSliderAndTimes()
-        setupPlayPauseButton()
-
-        setupSegmentControls()
+        setupControlView()
+        
         setupSwapVideoButton()
     }
     
@@ -2511,7 +2524,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard   let mediaItem = Globals.shared.mediaPlayer.mediaItem,
-                let _ = selectedMediaItem?.multiPartMediaItems?.firstIndex(of: mediaItem) else {
+                let _ = Globals.shared.media.multiPartMediaItems(selectedMediaItem)?.firstIndex(of: mediaItem) else {
             return
         }
         
@@ -2745,10 +2758,10 @@ class MediaViewController : MediaItemsViewController
         
 //        if #available(iOS 9.0, *) {
         
-        guard document.fetchData?.cache == nil else {
-            loadWeb()
-            return
-        }
+//        guard document.fetchData?.result == nil else {
+//            loadWeb()
+//            return
+//        }
         
         guard Globals.shared.settings.cacheDownloads else {
             loadWeb()
@@ -3082,7 +3095,7 @@ class MediaViewController : MediaItemsViewController
         
         if var showing = selectedMediaItem.showing {            
             if !Globals.shared.reachability.isReachable {
-                if document?.fetchData.cache == nil, !Globals.shared.settings.cacheDownloads || (download?.exists == false) {
+                if document?.fetchData.result == nil, !Globals.shared.settings.cacheDownloads || (download?.exists == false) {
                     switch showing {
                     case Showing.slides:
                         self.alert(title: "Slides Not Available")
@@ -3257,7 +3270,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem else {
+        guard let selectedMediaItem = selectedMediaItem, mediaList != nil else {
             playPauseButton.setTitle(Constants.FA.PLAY)
             playPauseButton.isEnabled = false
             playPauseButton.isHidden = true
@@ -3809,7 +3822,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.hasAudio, selectedMediaItem.hasVideo else {
+        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.hasAudio, selectedMediaItem.hasVideo, mediaList != nil else {
             self.audioOrVideoControl.isEnabled = false
             self.audioOrVideoControl.isHidden = true
             self.audioOrVideoWidthConstraint.constant = 0
@@ -3954,16 +3967,20 @@ class MediaViewController : MediaItemsViewController
         setupSpinner()
         
         setupDocumentsAndVideo()
+        setupSwapVideoButton()
 
+        setupControlView()
+        
+        setupActionAndTagsButtons()
+        
+        scrollToMediaItem(selectedMediaItem, select: true, position: .top)
+    }
+
+    func setupControlView()
+    {
         setupSliderAndTimes()
         setupPlayPauseButton()
-        setupActionAndTagsButtons()
-
         setupSegmentControls()
-        
-        setupSwapVideoButton()
-        
-        scrollToMediaItem(selectedMediaItem, select: true, position: .none)
     }
     
     func setupSegmentControls()
@@ -4305,15 +4322,20 @@ class MediaViewController : MediaItemsViewController
             Globals.shared.mediaPlayer.seek(to: Double(currentTime))
         }
         
-        updateUI()
+        activityIndicator.startAnimating()
+        progressIndicator.isHidden = true
+        setupVerticalSplit()
+        setupControlView()
 
-        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
-        // Delay so UI works as desired.
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            Thread.onMain {
-                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
-            }
-        }
+//        updateUI()
+//
+//        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
+//        // Delay so UI works as desired.
+//        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//            Thread.onMain {
+//                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
+//            }
+//        }
     }
     
 //    func setupSplitViewController()
@@ -4778,7 +4800,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard (selectedMediaItem != nil) else {
+        guard selectedMediaItem != nil, mediaList != nil else {
             elapsed.isHidden = true
             remaining.isHidden = true
             slider.isHidden = true
@@ -5014,12 +5036,11 @@ class MediaViewController : MediaItemsViewController
         }
         
         addSliderTimer()
+
+        setupControlView()
         
-        setupSliderAndTimes()
-        setupPlayPauseButton()
         setupActionAndTagsButtons()
 
-        setupSegmentControls()
         setupSwapVideoButton()
     }
     
@@ -5101,30 +5122,32 @@ class MediaViewController : MediaItemsViewController
             
         }
         
-        Thread.onMain {
-            if #available(iOS 11.0, *) {
-                if zoomScale == nil {
-                    if let data = document?.fetchData.result, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
-                        // 0.95 worked on an iPad but 0.75 was required to make the entire width of the PDF fit on an iPhone.
-                        // I have no idea why these magic numbers are required.
-                        // It should be noted that the inequality depends on the devices as self.mediaItemNotesAndSlides.frame.width
-                        // varies by device.
-                        if page.bounds(for: .mediaBox).width > self.mediaItemNotesAndSlides.frame.width {
-                            zoomScale = (self.mediaItemNotesAndSlides.frame.width * 0.75) / page.bounds(for: .mediaBox).width
-                        } else {
-                            zoomScale = (page.bounds(for: .mediaBox).width * 0.75) / self.mediaItemNotesAndSlides.frame.width
+        document?.fetchData.block { (result) in
+            Thread.onMain {
+                if #available(iOS 11.0, *) {
+                    if zoomScale == nil {
+                        if let data = result, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
+                            // 0.95 worked on an iPad but 0.75 was required to make the entire width of the PDF fit on an iPhone.
+                            // I have no idea why these magic numbers are required.
+                            // It should be noted that the inequality depends on the devices as self.mediaItemNotesAndSlides.frame.width
+                            // varies by device.
+                            if page.bounds(for: .mediaBox).width > self.mediaItemNotesAndSlides.frame.width {
+                                zoomScale = (self.mediaItemNotesAndSlides.frame.width * 0.75) / page.bounds(for: .mediaBox).width
+                            } else {
+                                zoomScale = (page.bounds(for: .mediaBox).width * 0.75) / self.mediaItemNotesAndSlides.frame.width
+                            }
                         }
                     }
                 }
-            }
-            
-            guard let zoomScale = zoomScale else {
-                return
-            }
-            
-            if !zoomScale.isNaN {
-                self.document?.setZoom = true
-                wkWebView.scrollView.setZoomScale(zoomScale, animated: false)
+                
+                guard let zoomScale = zoomScale else {
+                    return
+                }
+                
+                if !zoomScale.isNaN {
+                    self.document?.setZoom = true
+                    wkWebView.scrollView.setZoomScale(zoomScale, animated: false)
+                }
             }
         }
     }

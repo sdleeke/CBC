@@ -314,7 +314,7 @@ extension TextViewController : PopoverPickerControllerDelegate
             
             let text = self.textView.attributedText.string
             
-            if let words = self.wordRangeTiming?.cache?.sorted(by: { (first, second) -> Bool in
+            if let words = self.wordRangeTiming?.result?.sorted(by: { (first, second) -> Bool in
                 if let first = first["gap"] as? Double, let second = second["gap"] as? Double {
                     return first > second
                 }
@@ -957,7 +957,7 @@ class TextViewController : CBCViewController
         
         let tapPos = textView.closestPosition(to: pos)
         
-        if isTracking, let wordRangeTiming = wordRangeTiming?.cache, let tapPos = tapPos {
+        if isTracking, let wordRangeTiming = wordRangeTiming?.result, let tapPos = tapPos {
             let range = Range(uncheckedBounds: (lower: textView.offset(from: textView.beginningOfDocument, to: tapPos), upper: textView.offset(from: textView.beginningOfDocument, to: tapPos)))
             
             var closest : [String:Any]?
@@ -1031,7 +1031,7 @@ class TextViewController : CBCViewController
         }
         
         fetch.didSet = { (array:[[String:Any]]?) in
-            if fetch.cache != nil {
+            if fetch.result != nil {
                 self?.checkSync()
             }
             Thread.onMain {
@@ -1148,7 +1148,7 @@ class TextViewController : CBCViewController
             return
         }
         
-        guard let wordRangeTiming = wordRangeTiming?.cache else {
+        guard let wordRangeTiming = wordRangeTiming?.result else {
             return
         }
         
@@ -1366,7 +1366,7 @@ class TextViewController : CBCViewController
                         // Multiply the gap time by the frequency of the word that appears after it and sort
                         // in descending order to suggest the most likely paragraph breaks.
                         
-                        if let words = self?.wordRangeTiming?.cache?.sorted(by: { (first, second) -> Bool in
+                        if let words = self?.wordRangeTiming?.result?.sorted(by: { (first, second) -> Bool in
                             if let firstGap = first["gap"] as? Double, let secondGap = second["gap"] as? Double {
                                 if let firstWord = first["text"] as? String, let secondWord = second["text"] as? String {
                                     return (firstGap * Double(speakerNotesParagraphWords?[firstWord.lowercased()] ?? 1)) > (secondGap * Double(speakerNotesParagraphWords?[secondWord.lowercased()] ?? 1))
@@ -1447,7 +1447,7 @@ class TextViewController : CBCViewController
                             speakerNotesParagraph?.words?.interrupt = test
                             let speakerNotesParagraphWords = speakerNotesParagraph?.words?.result
                             
-                            self?.wordRangeTiming?.load() // ?? self?.transcript?.wordRangeTiming
+                            _ = self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
                             
                             return (speakerNotesParagraphWords,tooClose)
                         }, completion: { (data:Any?,test:(()->(Bool))?) in
@@ -1557,7 +1557,7 @@ class TextViewController : CBCViewController
                         // Multiply the gap time by the frequency of the word that appears after it and sort
                         // in descending order to suggest the most likely paragraph breaks.
                         
-                        if let words = self?.wordRangeTiming?.cache?.sorted(by: { (first, second) -> Bool in
+                        if let words = self?.wordRangeTiming?.result?.sorted(by: { (first, second) -> Bool in
                             if let firstGap = first["gap"] as? Double, let secondGap = second["gap"] as? Double {
                                 if let firstWord = first["text"] as? String, let secondWord = second["text"] as? String {
                                     return (firstGap * Double(speakerNotesParagraphWords?[firstWord.lowercased()] ?? 1)) > (secondGap * Double(speakerNotesParagraphWords?[secondWord.lowercased()] ?? 1))
@@ -1593,7 +1593,7 @@ class TextViewController : CBCViewController
                                         
                                         // test:(()->(Bool))?
                                         popover?.process(work: { () -> (Any?) in
-                                            guard var words = self?.wordRangeTiming?.cache?.sorted(by: { (first, second) -> Bool in
+                                            guard var words = self?.wordRangeTiming?.result?.sorted(by: { (first, second) -> Bool in
                                                 if let first = first["gap"] as? Double, let second = second["gap"] as? Double {
                                                     return first > second
                                                 }
@@ -1781,7 +1781,7 @@ class TextViewController : CBCViewController
                             speakerNotesParagraph?.words?.interrupt = test
                             let speakerNotesParagraphWords = speakerNotesParagraph?.words?.result
                             
-                            self?.wordRangeTiming?.load() // ?? self?.transcript?.wordRangeTiming
+                            _ = self?.wordRangeTiming?.result // ?? self?.transcript?.wordRangeTiming
                             
                             return (speakerNotesParagraphWords,tooClose)
                         }, completion: { (data:Any?,test:(()->(Bool))?) in
@@ -2239,7 +2239,7 @@ class TextViewController : CBCViewController
             return
         }
         
-        guard let wordRangeTiming = self.wordRangeTiming?.cache else {
+        guard let wordRangeTiming = self.wordRangeTiming?.result else {
             return
         }
         
@@ -2310,7 +2310,7 @@ class TextViewController : CBCViewController
         }
         
         if track {
-            wordRangeTiming?.fill()
+            _ = wordRangeTiming?.result
         }
         
         updateBarButtons()

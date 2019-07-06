@@ -52,10 +52,10 @@ enum PopoverPurpose {
     case editingTags
 }
 
-enum JSONSource {
-    case direct
-    case download
-}
+//enum JSONSource {
+//    case direct
+//    case download
+//}
 
 extension MediaTableViewController : UIScrollViewDelegate
 {
@@ -474,7 +474,7 @@ class MediaTableViewController : MediaItemsViewController
     
     var changesPending = false
     
-    var jsonSource:JSONSource = .direct
+//    var jsonSource:JSONSource = .direct
     
     override var canBecomeFirstResponder : Bool
     {
@@ -1051,130 +1051,134 @@ class MediaTableViewController : MediaItemsViewController
                 self?.navigationItem.title = Constants.Title.Loading_Media
             }
             
-            if let jsonSource = self?.jsonSource {
-                switch jsonSource {
-                case .download:
-                    // From Caches Directory
-                    if let categoryDicts = Globals.shared.media.json.load(filename: Constants.JSON.FILENAME.CATEGORIES,key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES) {
-                        
-                        for categoryDict in categoryDicts {
-                            if let name = categoryDict["category_name"] as? String {
-                                Globals.shared.media.categories[name] = Category(categoryDict)
-                            }
-                        }
-                    }
-                    
-                    if let groupDicts = Globals.shared.media.json.load(filename: Constants.JSON.FILENAME.CATEGORIES,key:Constants.JSON.ARRAY_KEY.GROUP_ENTRIES) {
-                        
-                        for groupDict in groupDicts {
-                            if let name = groupDict["name"] as? String {
-                                Globals.shared.media.groups[name] = Group(groupDict) // name:name,title:teachersDict["status"]
-                            }
-                        }
-                    }
-                    
-                    if let teacherDicts = Globals.shared.media.json.load(filename: Constants.JSON.FILENAME.TEACHERS,key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES) {
-                        
-                        for teacherDict in teacherDicts {
-                            if let name = teacherDict["name"] as? String {
-                                Globals.shared.media.teachers[name] = Teacher(teacherDict) // name:name,title:teachersDict["status"]
-                            }
-                        }
-                    }
-                    
-                    if  let mediaItemDicts = Globals.shared.media.json.load(filename:Globals.shared.media.json.filename,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES) {
-                        Globals.shared.media.repository.list = mediaItemDicts.map({ (mediaItemDict:[String : Any]) -> MediaItem in
-                            return MediaItem(storage: mediaItemDict)
-                        })
-                    } else {
-                        Globals.shared.media.repository.list = nil
-                        print("FAILED TO LOAD")
-                    }
-                    break
-                    
-                case .direct:
-                    Globals.shared.media.json.load(urlString: Constants.JSON.URL.GROUPS, key:Constants.JSON.ARRAY_KEY.GROUP_ENTRIES, filename: Constants.JSON.FILENAME.GROUPS)?.forEach({ (dict:[String : Any]) in
-                        if let name = dict["name"] as? String {
-                            Globals.shared.media.groups[name] = Group(dict)
-                        }
-                    })
-                    
-                    Globals.shared.media.json.load(urlString: Constants.JSON.URL.TEACHERS, key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES, filename: Constants.JSON.FILENAME.TEACHERS)?.forEach({ (dict:[String : Any]) in
-                        if let name = dict["name"] as? String {
-                            Globals.shared.media.teachers[name] = Teacher(dict)
-                        }
-                    })
-                    
-                    Globals.shared.media.json.load(urlString: Constants.JSON.URL.CATEGORIES, key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES, filename: Constants.JSON.FILENAME.CATEGORIES)?.forEach({ (dict:[String : Any]) in
-                        var key = ""
-                        
-                        if Constants.JSON.URL.CATEGORIES == Constants.JSON.URL.CATEGORIES_OLD {
-                            key = "category_name"
-                        }
-                        
-                        if Constants.JSON.URL.CATEGORIES == Constants.JSON.URL.CATEGORIES_NEW {
-                            key = "name"
-                        }
-                        
-                        if let name = dict[key] as? String {
-                            Globals.shared.media.categories[name] = Category(dict)
-                        }
-                    })
-                    
-                    if  let url = Globals.shared.media.json.url,
-                        let filename = Globals.shared.media.json.filename,
-                        let json = Globals.shared.media.json.get(urlString: url, filename: filename) as? [String:Any],
-                        let mediaItemDicts = json[Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES] as? [[String:Any]] {
-                        Globals.shared.media.metadata = json[Constants.JSON.ARRAY_KEY.META_DATA] as? [String:Any]
-                        
-                        Globals.shared.media.repository.list = mediaItemDicts.filter({ (dict:[String : Any]) -> Bool in
-                            return (dict["published"] as? Bool) != false
-                        }).map({ (mediaItemDict:[String : Any]) -> MediaItem in
-                            return MediaItem(storage: mediaItemDict)
-                        })
-                        
-                        if let playing = Globals.shared.media.category.playing {
-                            Globals.shared.mediaPlayer.mediaItem = Globals.shared.media.repository.index[playing]
-                        } else {
-                            Globals.shared.mediaPlayer.mediaItem = nil
-                        }
-                    } else {
-                        Globals.shared.media.repository.list = nil
-                        print("FAILED TO LOAD")
-                    }
-                    break
-                }
-            }
+            Globals.shared.media.load()
+
+//            if let jsonSource = self?.jsonSource {
+//                switch jsonSource {
+//                case .download:
+//                    // From Caches Directory
+//                    if let categoryDicts = Globals.shared.media.json.load(filename: Constants.JSON.FILENAME.CATEGORIES,key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES) {
+//
+//                        for categoryDict in categoryDicts {
+//                            if let name = categoryDict["category_name"] as? String {
+//                                Globals.shared.media.categories[name] = Category(categoryDict)
+//                            }
+//                        }
+//                    }
+//
+//                    if let groupDicts = Globals.shared.media.json.load(filename: Constants.JSON.FILENAME.CATEGORIES,key:Constants.JSON.ARRAY_KEY.GROUP_ENTRIES) {
+//
+//                        for groupDict in groupDicts {
+//                            if let name = groupDict["name"] as? String {
+//                                Globals.shared.media.groups[name] = Group(groupDict) // name:name,title:teachersDict["status"]
+//                            }
+//                        }
+//                    }
+//
+//                    if let teacherDicts = Globals.shared.media.json.load(filename: Constants.JSON.FILENAME.TEACHERS,key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES) {
+//
+//                        for teacherDict in teacherDicts {
+//                            if let name = teacherDict["name"] as? String {
+//                                Globals.shared.media.teachers[name] = Teacher(teacherDict) // name:name,title:teachersDict["status"]
+//                            }
+//                        }
+//                    }
+//
+//                    if  let mediaItemDicts = Globals.shared.media.json.load(filename:Globals.shared.media.json.filename,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES) {
+//                        Globals.shared.media.repository.list = mediaItemDicts.map({ (mediaItemDict:[String : Any]) -> MediaItem in
+//                            return MediaItem(storage: mediaItemDict)
+//                        })
+//                    } else {
+//                        Globals.shared.media.repository.list = nil
+//                        print("FAILED TO LOAD")
+//                    }
+//                    break
+//
+//                case .direct:
+//                    Globals.shared.media.json.load(urlString: Constants.JSON.URL.GROUPS, key:Constants.JSON.ARRAY_KEY.GROUP_ENTRIES, filename: Constants.JSON.FILENAME.GROUPS)?.forEach({ (dict:[String : Any]) in
+//                        if let name = dict["name"] as? String {
+//                            Globals.shared.media.groups[name] = Group(dict)
+//                        }
+//                    })
+//
+//                    Globals.shared.media.json.load(urlString: Constants.JSON.URL.TEACHERS, key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES, filename: Constants.JSON.FILENAME.TEACHERS)?.forEach({ (dict:[String : Any]) in
+//                        if let name = dict["name"] as? String {
+//                            Globals.shared.media.teachers[name] = Teacher(dict)
+//                        }
+//                    })
+//
+//                    Globals.shared.media.json.load(urlString: Constants.JSON.URL.CATEGORIES, key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES, filename: Constants.JSON.FILENAME.CATEGORIES)?.forEach({ (dict:[String : Any]) in
+//                        var key = ""
+//
+//                        if Constants.JSON.URL.CATEGORIES == Constants.JSON.URL.CATEGORIES_OLD {
+//                            key = "category_name"
+//                        }
+//
+//                        if Constants.JSON.URL.CATEGORIES == Constants.JSON.URL.CATEGORIES_NEW {
+//                            key = "name"
+//                        }
+//
+//                        if let name = dict[key] as? String {
+//                            Globals.shared.media.categories[name] = Category(dict)
+//                        }
+//                    })
+//
+//                    if  let url = Globals.shared.media.json.url,
+//                        let filename = Globals.shared.media.json.filename,
+//                        let json = Globals.shared.media.json.get(urlString: url, filename: filename) as? [String:Any],
+//                        let mediaItemDicts = json[Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES] as? [[String:Any]] {
+//                        Globals.shared.media.metadata = json[Constants.JSON.ARRAY_KEY.META_DATA] as? [String:Any]
+//
+//                        Globals.shared.media.repository.list = mediaItemDicts.filter({ (dict:[String : Any]) -> Bool in
+//                            return (dict["published"] as? Bool) != false
+//                        }).map({ (mediaItemDict:[String : Any]) -> MediaItem in
+//                            return MediaItem(storage: mediaItemDict)
+//                        })
+//
+//                        if let playing = Globals.shared.media.category.playing {
+//                            Globals.shared.mediaPlayer.mediaItem = Globals.shared.media.repository.index[playing]
+//                        } else {
+//                            Globals.shared.mediaPlayer.mediaItem = nil
+//                        }
+//                    } else {
+//                        Globals.shared.media.repository.list = nil
+//                        print("FAILED TO LOAD")
+//                    }
+//                    break
+//                }
+//            }
 
 //            Thread.onMain {
 //                self?.navigationItem.title = Constants.Title.Loading_Settings
 //            }
 //            Globals.shared.loadSettings()
             
-            Thread.onMain {
-                self?.navigationItem.title = Constants.Title.Sorting_and_Grouping
-            }
+//            Thread.onMain {
+//                self?.navigationItem.title = Constants.Title.Sorting_and_Grouping
+//            }
+//
+//            Globals.shared.media.sortingAndGrouping()
             
-            if Globals.shared.media.category.selected == Constants.Strings.All {
-                Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.media.repository.list)
-            } else {
-                Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
-                    mediaItem.category == Globals.shared.media.category.selected
-                }))
-            }
-            
-            if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.category.tag, Globals.shared.media.tags.tagged[tag] == nil {
-                if Globals.shared.media.all == nil {
-                    //This is filtering, i.e. searching all mediaItems => s/b in background
-                    Globals.shared.media.tags.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
-                        return mediaItem.category == Globals.shared.media.category.selected
-                    }).withTag(tag: Globals.shared.media.tags.selected))
-                } else {
-                    if let sortTag = Globals.shared.media.tags.selected?.withoutPrefixes {
-                        Globals.shared.media.tags.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
-                    }
-                }
-            }            
+//            if Globals.shared.media.category.selected == Constants.Strings.All {
+//                Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.media.repository.list)
+//            } else {
+//                Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
+//                    mediaItem.category == Globals.shared.media.category.selected
+//                }))
+//            }
+//
+//            if Globals.shared.media.tags.showing == Constants.TAGGED, let tag = Globals.shared.media.category.tag, Globals.shared.media.tags.tagged[tag] == nil {
+//                if Globals.shared.media.all == nil {
+//                    //This is filtering, i.e. searching all mediaItems => s/b in background
+//                    Globals.shared.media.tags.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
+//                        return mediaItem.category == Globals.shared.media.category.selected
+//                    }).withTag(tag: Globals.shared.media.tags.selected))
+//                } else {
+//                    if let sortTag = Globals.shared.media.tags.selected?.withoutPrefixes {
+//                        Globals.shared.media.tags.tagged[tag] = MediaListGroupSort(mediaItems: Globals.shared.media.all?.tagMediaItems?[sortTag])
+//                    }
+//                }
+//            }
 
             if Globals.shared.media.search.isValid {
                 Thread.onMain {
@@ -1390,20 +1394,21 @@ class MediaTableViewController : MediaItemsViewController
                     // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
                     Globals.shared.media = Media()
 
-                    switch self.jsonSource {
-                    case .download:
-                        self.navigationItem.title = "Downloading Media List"
-                        let categoriesFileName = Constants.JSON.FILENAME.CATEGORIES
-                        self.downloadJSON(url:Constants.JSON.URL.CATEGORIES,filename:categoriesFileName)
-                        break
-                        
-                    case .direct:
+//                    switch self.jsonSource {
+//                    case .download:
+//                        // This hardly seems complete.
+//                        self.navigationItem.title = "Downloading Media List"
+//                        let categoriesFileName = Constants.JSON.FILENAME.CATEGORIES
+//                        self.downloadJSON(url:Constants.JSON.URL.CATEGORIES,filename:categoriesFileName)
+//                        break
+//
+//                    case .direct:
                         self.loadMediaItems()
                         {
                             self.loadCompletion()
                         }
-                        break
-                    }
+//                        break
+//                    }
                 }, yesStyle: .destructive, noAction: { () -> (Void) in
                     if self.refreshControl?.isRefreshing == true {
                         self.refreshControl?.endRefreshing()
@@ -1531,29 +1536,29 @@ class MediaTableViewController : MediaItemsViewController
         
         // Download or Load
         
-        switch jsonSource {
-        case .download:
-            Globals.shared.isLoading = true
-            
-            setupSearchBar()
-
-            setupBarButtons()
-            
-            setupListActivityIndicator()
-            
-            navigationItem.title = "Downloading Media List"
-            
-            let categoriesFileName = Constants.JSON.FILENAME.CATEGORIES
-            downloadJSON(url:Constants.JSON.URL.CATEGORIES,filename:categoriesFileName)
-            break
-            
-        case .direct:
+//        switch jsonSource {
+//        case .download:
+//            Globals.shared.isLoading = true
+//
+//            setupSearchBar()
+//
+//            setupBarButtons()
+//
+//            setupListActivityIndicator()
+//
+//            navigationItem.title = "Downloading Media List"
+//
+//            let categoriesFileName = Constants.JSON.FILENAME.CATEGORIES
+//            downloadJSON(url:Constants.JSON.URL.CATEGORIES,filename:categoriesFileName)
+//            break
+//
+//        case .direct:
             loadMediaItems()
             {
                 self.loadCompletion()
             }
-            break
-        }
+//            break
+//        }
     }
     
     func addNotifications()

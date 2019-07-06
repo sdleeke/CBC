@@ -748,7 +748,27 @@ class Globals : NSObject
     }
     ////////////////////////////////////////////////////////////////////////////
    
-    var media = Media()
+    lazy var mediaQueue : DispatchQueue = { [weak self] in
+        return DispatchQueue(label: UUID().uuidString)
+    }()
+
+    lazy var _media : Media? = {
+        return Media()
+    }()
+    
+    var media : Media!
+    {
+        get {
+            return mediaQueue.sync {
+                return _media
+            }
+        }
+        set {
+            mediaQueue.sync {
+                _media = newValue
+            }
+        }
+    }
     
     func freeMemory()
     {

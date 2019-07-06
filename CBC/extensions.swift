@@ -146,6 +146,82 @@ extension Set where Element == String
 
 extension Array where Element == MediaItem
 {
+    func multiPartMediaItems(_ mediaItem:MediaItem?) -> [MediaItem]?
+    {
+        guard let mediaItem = mediaItem else {
+            return nil
+        }
+        
+        guard mediaItem.hasMultipleParts else {
+            return [mediaItem]
+        }
+    
+        var mediaItemParts:[MediaItem]? = self.filter({ (testMediaItem:MediaItem) -> Bool in
+            if testMediaItem.hasMultipleParts {
+                return (testMediaItem.category == mediaItem.category) && (testMediaItem.multiPartName == mediaItem.multiPartName)
+            } else {
+                return false
+            }
+        })
+
+        // Filter for conference series
+    
+        // Second sort by title is necessary if they all fall on the same day!
+        if mediaItem.conferenceCode != nil {
+            mediaItemParts = mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
+                return testMediaItem.conferenceCode == mediaItem.conferenceCode
+            }).sortByYear(sorting: SORTING.CHRONOLOGICAL)?.sorted(by: { (first, second) -> Bool in
+                first.title?.withoutPrefixes < second.title?.withoutPrefixes
+            })
+        } else {
+            if mediaItem.hasClassName {
+                mediaItemParts = mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
+                    return testMediaItem.className == mediaItem.className
+                }).sortByYear(sorting: SORTING.CHRONOLOGICAL)?.sorted(by: { (first, second) -> Bool in
+                    first.title?.withoutPrefixes < second.title?.withoutPrefixes
+                })
+            } else {
+                mediaItemParts = mediaItemParts?.sortByYear(sorting: SORTING.CHRONOLOGICAL)?.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
+                    // In case we have multiple parts on the same day, e.g. Tom's expository preaching seminars.
+                    if first.date == second.date {
+                        if let first = first.part, let second = second.part {
+                            return first < second
+                        }
+                    }
+    
+                    return false
+                })
+            }
+        }
+    
+        // Filter for multiple series of the same name
+        var mediaList = [MediaItem]()
+    
+        if let mediaItemParts = mediaItemParts, mediaItemParts.count > 1 {
+            var number = 0
+    
+            for mediaItem in mediaItemParts {
+                if let part = mediaItem.part, let partNumber = Int(part) {
+                    if partNumber > number {
+                        mediaList.append(mediaItem)
+                        number = partNumber
+                    } else {
+                        if (mediaList.count > 0) && mediaList.contains(mediaItem) {
+                            break
+                        } else {
+                            mediaList = [mediaItem]
+                            number = partNumber
+                        }
+                    }
+                }
+            }
+
+            return mediaList.count > 0 ? mediaList : nil
+        } else {
+            return mediaItemParts
+        }
+    }
+
     /**
      Extension of Array of MediaItem to return the SpeakerNotesParagraph class for the array.
      */
@@ -4965,13 +5041,50 @@ extension UIViewController
             return
         }
 
-        if isCollapsed {
+        guard !isCollapsed else {
             navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.navigationController?.navigationItem.backBarButtonItem
-        } else {
-            navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem            
+            return
         }
+        
+        guard splitViewController?.viewControllers.count > 1 else {
+            navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+            return
+        }
+        
+        guard let navCon = splitViewController?.viewControllers[1] as? UINavigationController else {
+            navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+            return
+        }
+        
+        guard navCon.viewControllers.count > 0 else {
+            navCon.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+            return
+        }
+        
+        if navCon.topViewController == navCon.viewControllers[0] {
+            navCon.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+        } else {
+            navCon.topViewController?.navigationItem.leftBarButtonItem = self.navigationController?.navigationItem.backBarButtonItem
+        }
+
+//        switch navCon.topViewController {
+//        case is MediaViewController:
+//            navCon.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+//            break
+//            
+//        case is PopoverTableViewController:
+//            navCon.topViewController?.navigationItem.leftBarButtonItem = self.navigationController?.navigationItem.backBarButtonItem
+//            break
+//            
+//        default:
+//            break
+//        }
     }
 
+    /**
+     Calculates and returns the width of a string for a given line height.
+     - Parameter lineHeight: _Required_ the height of the line of text in points.
+    */
     func titleWidth(lineHeight: CGFloat) -> CGFloat
     {
         var width:CGFloat = 0.0
