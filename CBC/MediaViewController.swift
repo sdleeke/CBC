@@ -654,7 +654,10 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
+        Thread.onMain { [weak self] in
+            self?.progressIndicator.progress = 1.0
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
+        }
 
         loadWeb()
     }
@@ -798,6 +801,11 @@ class MediaViewController : MediaItemsViewController
                 if mediaList?.list?.contains(selectedMediaItem) != true {
                     operationQueue.addOperation { [weak self] in
                         self?.mediaList = MediaList(Globals.shared.media.multiPartMediaItems(selectedMediaItem))
+                        if oldValue == nil {
+                            Thread.onMain {
+                                self?.scrollToMediaItem(selectedMediaItem, select: true, position: .top)
+                            }
+                        }
                     }
                 }
             } else {
@@ -2540,15 +2548,15 @@ class MediaViewController : MediaItemsViewController
         
         selectedMediaItem = Globals.shared.mediaPlayer.mediaItem
         
-        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
-        // Delay so UI works as desired.
-        DispatchQueue.global(qos: .background).async { [weak self] in
-            Thread.onMain { [weak self] in
-                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
-            }
-        }
-        
-        updateUI()
+//        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
+//        // Delay so UI works as desired.
+//        DispatchQueue.global(qos: .background).async { [weak self] in
+//            Thread.onMain { [weak self] in
+//                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
+//            }
+//        }
+//
+//        updateUI()
     }
     
     @objc func updateView()
@@ -2563,7 +2571,7 @@ class MediaViewController : MediaItemsViewController
 //        // Delay so UI works as desired.
 //        DispatchQueue.global(qos: .background).async { [weak self] in
 //            Thread.onMain { [weak self] in
-//                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
+//                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.top)
 //            }
 //        }
 //
@@ -3987,7 +3995,7 @@ class MediaViewController : MediaItemsViewController
         
         setupActionAndTagsButtons()
         
-        scrollToMediaItem(selectedMediaItem, select: true, position: .top)
+        scrollToMediaItem(selectedMediaItem, select: true, position: .none)
     }
 
     func setupControlView()
@@ -4381,20 +4389,20 @@ class MediaViewController : MediaItemsViewController
     {
         super.viewDidAppear(animated)
         
-        if selectedMediaItem == nil, Globals.shared.media.selected.detail != nil {
-            selectedMediaItem = Globals.shared.media.selected.detail
-            updateUI()
-            
-            tableView.reloadData()
-            
-            //Without this background/main dispatching there isn't time to scroll correctly after a reload.
-            // Delay so UI works as desired.
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                Thread.onMain { [weak self] in
-                    self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
-                }
-            }
-        }
+//        if selectedMediaItem == nil, Globals.shared.media.selected.detail != nil {
+//            selectedMediaItem = Globals.shared.media.selected.detail
+//            updateUI()
+//
+//            tableView.reloadData()
+//
+//            //Without this background/main dispatching there isn't time to scroll correctly after a reload.
+//            // Delay so UI works as desired.
+//            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+//                Thread.onMain { [weak self] in
+//                    self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
+//                }
+//            }
+//        }
 
         // Seems like a strange way to force MTVC to be the visible view controller.  Not sure this ever happens since it would only be during loading while the splitViewController is collapsed.
         // Which means either on an iPhone (not plus) or iPad in split screen model w/ compact width.

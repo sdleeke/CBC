@@ -1635,7 +1635,7 @@ class MediaItem : NSObject //, Downloader
                 return Constants.Strings.None
             }
             
-            return title
+            return title.replacingOccurrences(of: "\n", with: "").replacingOccurrences(of: "\r", with: "")
         }
     }
     
