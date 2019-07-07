@@ -802,7 +802,7 @@ class MediaViewController : MediaItemsViewController
                     operationQueue.addOperation { [weak self] in
                         self?.mediaList = MediaList(Globals.shared.media.multiPartMediaItems(selectedMediaItem))
                         if oldValue == nil {
-                            Thread.onMain {
+                            Thread.onMain { [weak self] in
                                 self?.scrollToMediaItem(selectedMediaItem, select: true, position: .top)
                             }
                         }
