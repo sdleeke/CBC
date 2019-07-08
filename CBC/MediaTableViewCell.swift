@@ -65,7 +65,7 @@ class MediaTableViewCell: UITableViewCell
         
         isHiddenUI(true)
         
-        downloadProgressBar.isHidden = true
+        progressBar.isHidden = true
     }
     
     func isHiddenUI(_ state:Bool)
@@ -231,13 +231,14 @@ class MediaTableViewCell: UITableViewCell
         }
         
 //        guard let percentComplete = mediaItem.percentComplete else {
-//            downloadProgressBar.isHidden = true
-//            downloadProgressBar.progress = 0
+//            progressBar.isHidden = true
+//            progressBar.progress = 0
 //            return
 //        }
         
-        downloadProgressBar.isHidden = max == nil
-        downloadProgressBar.progress = Float(max ?? 0)
+        setupProgressBar()
+//        progressBar.isHidden = max == nil
+//        progressBar.progress = Float(max ?? 0)
     }
     
     @objc func updateUI()
@@ -257,7 +258,7 @@ class MediaTableViewCell: UITableViewCell
             isHiddenUI(false)
         }
         
-        downloadProgressBar.isHidden = self.percentComplete == nil
+        progressBar.isHidden = self.percentComplete == nil
         
 //        if let values = mediaItem?.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
 //            transcript.percentComplete != nil
@@ -271,12 +272,12 @@ class MediaTableViewCell: UITableViewCell
 //                    factor /= 100.0
 //
 //                    transcriptWorking = true
-//                    downloadProgressBar.isHidden = false
-//                    downloadProgressBar.progress = Float(factor)
+//                    progressBar.isHidden = false
+//                    progressBar.progress = Float(factor)
 //
 ////                    overlay[purpose] = UIProgressView()
 ////
-////                    let frame = downloadProgressBar.frame
+////                    let frame = progressBar.frame
 ////                    overlay[purpose]?.frame = frame
 ////                    overlay[purpose]?.frame.origin.y -= CGFloat(count) * frame.height
 ////
@@ -308,15 +309,15 @@ class MediaTableViewCell: UITableViewCell
 //            }
 //        } else {
 //            transcriptWorking = false
-//            downloadProgressBar.isHidden = true
-//            downloadProgressBar.progress = 0
+//            progressBar.isHidden = true
+//            progressBar.progress = 0
 //
 ////            overlay.values.forEach({ (view:UIView) in
 ////                view.removeFromSuperview()
 ////            })
 //        }
         
-//        setupProgressBarForAudio()
+        setupProgressBar()
         setupIcons()
         setupText()
     }
@@ -342,7 +343,7 @@ class MediaTableViewCell: UITableViewCell
 //            }
             
             if (oldValue != nil) {
-                Thread.onMain { [weak self] in 
+                Thread.onMain { // [weak self] in 
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: oldValue)
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: oldValue)
@@ -350,10 +351,10 @@ class MediaTableViewCell: UITableViewCell
             }
             
             if (mediaItem != nil) {
-                Thread.onMain { [weak self] in 
-                    NotificationCenter.default.addObserver(self, selector: #selector(self?.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self?.mediaItem)
-                    NotificationCenter.default.addObserver(self, selector: #selector(self?.percentComplete(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self?.mediaItem)
-                    NotificationCenter.default.addObserver(self, selector: #selector(self?.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self?.mediaItem)
+                Thread.onMain { // [weak self] in
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.percentComplete(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self.mediaItem)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
                 }
             }
 
@@ -503,8 +504,10 @@ class MediaTableViewCell: UITableViewCell
     
 //    var transcriptWorking = false
     
-//    func setupProgressBarForAudio()
-//    {
+    func setupProgressBar()
+    {
+        progressBar.isHidden = (max == nil)
+        progressBar.progress = Float(max ?? 0)
 //        guard Thread.isMainThread else {
 //            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio")
 //            return
@@ -516,31 +519,27 @@ class MediaTableViewCell: UITableViewCell
 //
 //        switch download.state {
 //        case .none:
-//            self.downloadProgressBar.isHidden = true
-//            self.downloadProgressBar.progress = 0
-////            if !transcriptWorking {
-////            }
+//            self.progressBar.isHidden = true
+//            self.progressBar.progress = 0
 //            break
 //
 //        case .downloaded:
-//            self.downloadProgressBar.isHidden = true
-//            self.downloadProgressBar.progress = 1
-////            if !transcriptWorking {
-////            }
+//            self.progressBar.isHidden = true
+//            self.progressBar.progress = 1
 //            break
 //
 //        case .downloading:
-//            self.downloadProgressBar.isHidden = false
+//            self.progressBar.isHidden = false
 //            if (download.totalBytesExpectedToWrite > 0) {
-//                self.downloadProgressBar.progress = Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite)
+//                self.progressBar.progress = Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite)
 //            } else {
-//                self.downloadProgressBar.progress = 0
+//                self.progressBar.progress = 0
 //            }
 //            break
 //        }
-//    }
+    }
     
-    @IBOutlet weak var downloadProgressBar: UIProgressView!
+    @IBOutlet weak var progressBar: UIProgressView!
     
     override func awakeFromNib()
     {
@@ -554,5 +553,4 @@ class MediaTableViewCell: UITableViewCell
 
         // Configure the view for the selected state
     }
-
 }

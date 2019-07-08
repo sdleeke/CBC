@@ -918,9 +918,9 @@ class WebViewController: CBCViewController
             }
 
             if mediaItem != nil {
-                Thread.onMain { [weak self] in 
-                    NotificationCenter.default.addObserver(self, selector: #selector(self?.updateDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self?.mediaItem?.download)
-                    NotificationCenter.default.addObserver(self, selector: #selector(self?.cancelDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self?.mediaItem?.download)
+                Thread.onMain { // [weak self] in
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.updateDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.mediaItem?.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.mediaItem?.download)
                 }
             }
         }

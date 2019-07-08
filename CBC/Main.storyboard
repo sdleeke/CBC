@@ -110,7 +110,7 @@
                                                         </mask>
                                                     </variation>
                                                 </label>
-                                                <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="IgM-pT-w8s">
+                                                <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="IgM-pT-w8s" userLabel="Progress Bar">
                                                     <rect key="frame" x="20" y="97.5" width="300" height="2"/>
                                                 </progressView>
                                             </subviews>
@@ -142,8 +142,8 @@
                                         <connections>
                                             <outlet property="detail" destination="IWS-RY-DB5" id="Asy-SM-dMb"/>
                                             <outlet property="detailText" destination="zia-hB-2Dv" id="6fk-S1-lzf"/>
-                                            <outlet property="downloadProgressBar" destination="IgM-pT-w8s" id="kcH-vz-Kew"/>
                                             <outlet property="icons" destination="eA8-mK-b7w" id="kXb-Xr-Flm"/>
+                                            <outlet property="progressBar" destination="IgM-pT-w8s" id="Kzp-tU-5wH"/>
                                             <outlet property="title" destination="Xkb-5P-JA1" id="Z4E-2y-WVJ"/>
                                             <segue destination="oQN-d3-XYK" kind="showDetail" identifier="Show MediaItem" id="lht-fN-efO"/>
                                         </connections>
@@ -540,8 +540,8 @@
                                         <connections>
                                             <outlet property="detail" destination="4uZ-39-i9r" id="Zfn-H6-oQY"/>
                                             <outlet property="detailText" destination="i7O-sS-l83" id="nn2-rN-V0J"/>
-                                            <outlet property="downloadProgressBar" destination="nxS-ta-D6R" id="82g-lg-tki"/>
                                             <outlet property="icons" destination="L9x-Xt-BKK" id="Xv7-6n-XDR"/>
+                                            <outlet property="progressBar" destination="nxS-ta-D6R" id="RXs-ED-PHd"/>
                                             <outlet property="title" destination="Spt-3A-E9i" id="6no-nR-cjm"/>
                                         </connections>
                                     </tableViewCell>
@@ -1774,8 +1774,8 @@ Web site: www.countrysidebible.org</string>
                                         <connections>
                                             <outlet property="detail" destination="e1j-7E-JH8" id="6Xa-5z-uNg"/>
                                             <outlet property="detailText" destination="CW5-2J-de4" id="Wa2-cw-Pyi"/>
-                                            <outlet property="downloadProgressBar" destination="a84-WN-2lC" id="xl1-kR-WuA"/>
                                             <outlet property="icons" destination="xii-Pk-dwa" id="Wpi-Y5-fhK"/>
+                                            <outlet property="progressBar" destination="a84-WN-2lC" id="xyJ-qB-Cek"/>
                                             <outlet property="title" destination="qyy-zD-jgt" id="dJn-pS-0c4"/>
                                             <segue destination="oQN-d3-XYK" kind="showDetail" identifier="Show Index MediaItem" id="UKU-pu-csh"/>
                                         </connections>
@@ -2574,8 +2574,8 @@ Web site: www.countrysidebible.org</string>
                                             <outlet property="countLabel" destination="ZqQ-Jh-Doi" id="9qB-iY-0Zg"/>
                                             <outlet property="detail" destination="mqs-L6-uck" id="lLi-Cp-5WO"/>
                                             <outlet property="detailText" destination="OXz-ER-jY2" id="pks-U0-P8f"/>
-                                            <outlet property="downloadProgressBar" destination="R0F-oJ-ptu" id="ErP-BA-uFf"/>
                                             <outlet property="icons" destination="a6p-xn-ies" id="a84-DM-d2B"/>
+                                            <outlet property="progressBar" destination="R0F-oJ-ptu" id="Tyk-WI-0KH"/>
                                             <outlet property="title" destination="Q0U-i7-ChV" id="hav-Ic-cAK"/>
                                             <segue destination="oQN-d3-XYK" kind="showDetail" identifier="Show Index MediaItem" id="IN6-El-hW4"/>
                                         </connections>

@@ -485,9 +485,9 @@ class MediaItem : NSObject //, Downloader
                     document.download?.download(background: false)
                 }
                 
-                Thread.onMain { [weak self] in 
-                    NotificationCenter.default.addObserver(self, selector: #selector(self?.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: document.download)
-                    NotificationCenter.default.addObserver(self, selector: #selector(self?.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: document.download)
+                Thread.onMain { // [weak self] in 
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: document.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: document.download)
                 }
                 return
             }
@@ -568,8 +568,8 @@ class MediaItem : NSObject //, Downloader
             self.storage?.update(storage:storage)
         }
         
-        Thread.onMain { [weak self] in 
-            NotificationCenter.default.addObserver(self, selector: #selector(self?.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        Thread.onMain { // [weak self] in
+            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
     }
     
@@ -2110,7 +2110,7 @@ class MediaItem : NSObject //, Downloader
         }
         
         // Should this be sync? Doesn't make any difference.
-        Globals.shared.queue.async { [weak self] in
+        Globals.shared.queue.async { // [weak self] in
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: self, userInfo: ["TAG":tag])
         }
         
@@ -2149,7 +2149,7 @@ class MediaItem : NSObject //, Downloader
         }
         
         // Should this be sync? Doesn't make any difference.
-        Globals.shared.queue.async { [weak self] in
+        Globals.shared.queue.async { // [weak self] in
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: self, userInfo: ["TAG":tag])
         }
         

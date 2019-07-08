@@ -780,13 +780,13 @@ class MediaListGroupSort // : NSObject
             })
         }
         
-        Thread.onMain { [weak self] in 
-            NotificationCenter.default.addObserver(self, selector: #selector(self?.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        Thread.onMain { // [weak self] in
+            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
         
-        Globals.shared.queue.async { [weak self] in
-            NotificationCenter.default.addObserver(self, selector: #selector(self?.tagAdded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(self?.tagRemoved(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: nil)
+        Globals.shared.queue.async { // [weak self] in // THIS IS LETHAL - WHY?
+            NotificationCenter.default.addObserver(self, selector: #selector(self.tagAdded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_ADDED), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.tagRemoved(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TAG_REMOVED), object: nil)
         }
     }
 

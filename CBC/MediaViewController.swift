@@ -2815,12 +2815,12 @@ class MediaViewController : MediaItemsViewController
         self.progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
         self.progressIndicator.isHidden = false
         
-        Thread.onMain { [weak self] in
-            NotificationCenter.default.addObserver(self, selector: #selector(self?.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self?.download)
-            NotificationCenter.default.addObserver(self, selector: #selector(self?.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self?.download)
+        Thread.onMain { // [weak self] in
+            NotificationCenter.default.addObserver(self, selector: #selector(self.updateDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.cancelDocument(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
             
-            NotificationCenter.default.addObserver(self, selector: #selector(self?.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self?.download)
-            NotificationCenter.default.addObserver(self, selector: #selector(self?.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self?.download)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.downloaded(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
         }
         
         if download.state != .downloading {

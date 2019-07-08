@@ -76,8 +76,8 @@ class Lexicon : NSObject // Why an NSObject?
 
         self.mediaListGroupSort = mediaListGroupSort
         
-        Thread.onMain { [weak self] in 
-            NotificationCenter.default.addObserver(self, selector: #selector(self?.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        Thread.onMain { // [weak self] in 
+            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
     }
     
