@@ -249,17 +249,14 @@ class MediaList // : Sequence
     
     func cancelAllDownloads(purpose:String)
     {
+        guard let multiPartName = list?.multiPartName else {
+            return
+        }
+        
+        Alerts.shared.alert(title: "Canceling All \(purpose.name) Downloads",
+                            message: multiPartName + "\n\nYou will be notified when it is complete.")
+        
         let notifyOperation = CancelableOperation { [weak self] (test:(()->Bool)?) in
-            var message = ""
-            
-            if let multiPartName = self?.list?.multiPartName {
-                message += multiPartName + "\n\n"
-            }
-            
-            message += "You will be notified when it is complete."
-            
-            Alerts.shared.alert(title: "Canceling All \(purpose.name) Downloads", message: message)
-            
             self?.list?.forEach({ (mediaItem) in
                 mediaItem.downloads?[purpose]?.cancel()
             })
@@ -325,7 +322,7 @@ class MediaList // : Sequence
             return "ERROR NO MULTIPARTNAME"
         }
         
-        return multiPartName + ":" + Constants.Strings.Download_All + ":" + purpose.name
+        return id + ":" + multiPartName + ":" + Constants.Strings.Download_All + ":" + purpose.name
     }
     
     func downloadingAll(purpose:String) -> Bool
@@ -449,6 +446,8 @@ class MediaList // : Sequence
     }
     
     var listDidSet : (()->(Void))?
+    
+    let id = UUID().uuidString
 
     init(_ list:[MediaItem]? = nil)
     {
