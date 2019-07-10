@@ -195,7 +195,7 @@ class SettingsViewController: CBCViewController
         // Does this REALLY need to be .user* ?
         // Should this be in an opQueue?
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let sizeOfAudio = Globals.shared.media.repository.cacheSize(Purpose.audio)
+            let sizeOfAudio = Globals.shared.media.repository.list?.cacheSize(Purpose.audio)
             
             var size:Float = Float(sizeOfAudio ?? 0)
             

@@ -42,6 +42,28 @@ struct MediaNeed
 
 class Media
 {
+    deinit {
+        debug(self)
+        operationQueue.cancelAllOperations()
+        mediaQueue.cancelAllOperations()
+    }
+    
+    lazy var operationQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "Media:Operation" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 1
+        return operationQueue
+    }()
+    
+    lazy var mediaQueue : OperationQueue! = {
+        let operationQueue = OperationQueue()
+        operationQueue.name = "Media:Media" + UUID().uuidString
+        operationQueue.qualityOfService = .background
+        operationQueue.maxConcurrentOperationCount = 3 // Media downloads at once.
+        return operationQueue
+    }()
+
     var json = JSON()
     
     func multiPartMediaItems(_ mediaItem:MediaItem?) -> [MediaItem]?
@@ -144,7 +166,12 @@ class Media
                 self.repository.list = mediaItemDicts.filter({ (dict:[String : Any]) -> Bool in
                     return (dict["published"] as? Bool) != false
                 }).map({ (mediaItemDict:[String : Any]) -> MediaItem in
-                    return MediaItem(storage: mediaItemDict)
+                    let mediaItem = MediaItem(storage: mediaItemDict)
+                    
+                    // Just in case it was...and something bad happened and the tag was left
+                    mediaItem.removeTag(Constants.Strings.Downloading)
+
+                    return mediaItem
                 })
                 
                 self.sortingAndGrouping()
@@ -243,10 +270,6 @@ class Media
         get {
             return metadata?["s3MediaUrl"] as? String
         }
-    }
-    
-    deinit {
-        debug(self)
     }
     
     var goto:String?

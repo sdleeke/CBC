@@ -2037,7 +2037,8 @@ class VoiceBase
                             self.getTranscript(alert:detailedAlerts,detailedAlerts:detailedAlerts)
                         },
                         errorTitle: "Transcription Failed", errorMessage: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again.", onError: {
-                            self.remove(alert:false)
+                            self.delete(alert:false)
+                            self.reset()
                             
                             Thread.onMain { [weak self] in 
                                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
@@ -2297,10 +2298,8 @@ class VoiceBase
         })
     }
     
-    func remove(alert:Bool)
+    func reset()
     {
-        delete(alert:alert)
-
         // Must retain purpose and mediaItem.
         
         mediaID = nil
@@ -2848,7 +2847,8 @@ class VoiceBase
                     Alerts.shared.alert(title: "Transcript Not Available",message: message)
                 }
                 
-                self.remove(alert:false)
+                self.delete(alert:false)
+                self.reset()
 
                 return
             }
@@ -2902,7 +2902,8 @@ class VoiceBase
                 Alerts.shared.alert(title: "Transcription Failed",message: message)
             }
             
-            self.remove(alert:false)
+            self.delete(alert:false)
+            self.reset()
         })
     }
     
@@ -5393,7 +5394,8 @@ class VoiceBase
                     viewController.yesOrNo(title: "Confirm Deletion of Machine Generated Transcript",
                             message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
-                                self.remove(alert:true)
+                                self.delete(alert:true)
+                                self.reset()
                             },
                             yesStyle: .destructive,
                             noAction: nil,
@@ -6132,5 +6134,98 @@ class VoiceBase
         }
         
         return action
+    }
+    
+    static func deleteAllVoiceBaseMedia(mediaItems:[MediaItem]?, alert:Bool, detailedAlert:Bool)
+    {
+        guard let list = mediaItems?.filter({ (mediaItem:MediaItem) -> Bool in
+            return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+                return transcript.mediaID != nil
+            }).count > 0
+        }), let multiPartName = list.multiPartName else {
+            Alerts.shared.alert(title: "No VoiceBase Media Were Deleted", message:mediaItems?.multiPartName)
+            return
+        }
+        
+        let checkIn = CheckIn()
+        
+        checkIn.reset()
+        checkIn.total = list.reduce(0, { (result, mediaItem) -> Int in
+            return result + mediaItem.transcripts.values.filter({ (voiceBase:VoiceBase) -> Bool in
+                return voiceBase.mediaID != nil
+            }).count
+        })
+        
+        // [weak self]
+        let monitorOperation = CancelableOperation() { (test:(()->Bool)?) in
+            // How do I know all of the deletions were successful?
+            
+//            guard let checkIn = self?.checkIn else {
+//                return
+//            }
+            
+            while ((checkIn.success + checkIn.failure) < checkIn.total) {
+                Thread.sleep(forTimeInterval: 1.0)
+            }
+            
+            var preamble = String()
+            
+            if checkIn.success == checkIn.total, checkIn.failure == 0 {
+                preamble = "All "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:multiPartName)
+            }
+            
+            if checkIn.failure == checkIn.total, checkIn.success == 0 {
+                preamble = "No "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:multiPartName)
+                
+                preamble = "No "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Found\n(\(checkIn.failure) of \(checkIn.total))", message:multiPartName)
+            }
+            
+            if checkIn.failure > 0, checkIn.failure < checkIn.total, checkIn.success > 0, checkIn.success < checkIn.total {
+                preamble = "Some "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:multiPartName)
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Not Found\n(\(checkIn.failure) of \(checkIn.total))", message:multiPartName)
+            }
+        }
+        
+        list.forEach({ (mediaItem:MediaItem) in
+            mediaItem.transcripts.values.forEach({ (voiceBase:VoiceBase) in
+                if voiceBase.mediaID != nil {
+                    // [weak self]
+                    let operation = CancelableOperation() { (test:(()->Bool)?) in
+                        voiceBase.delete(alert:detailedAlert,
+                                         // [weak self]
+                                         completion: { (json:[String:Any]?) in
+                                            checkIn.success += 1
+                                        },
+                                         // [weak self]
+                                         onError: { (json:[String:Any]?) in
+                                            checkIn.failure += 1
+                                        }
+                        )
+                    }
+                    
+                    monitorOperation.addDependency(operation)
+                    
+                    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // Will NOT work if opQueue's maxConcurrentOperationCount == 1 WHY??? (>1, i.e. 2 or more it works fine.)
+                    // could it be that because delete() creates a dataTask that it needs a way to run that task on this
+                    // same opQueue, which it can't if the maxConcurrent is 1 and the op that calls delete() is running,
+                    // meaning both are blocked because the second, the dataTask, is.
+                    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    Globals.shared.media.mediaQueue.addOperation(operation)
+                }
+            })
+        })
+        
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Will NOT work if opQueue's maxConcurrentOperationCount == 1 WHY??? (>1, i.e. 2 or more it works fine.)
+        // could it be that because delete() creates a dataTask that it needs a way to run that task on this
+        // same opQueue, which it can't if the maxConcurrent is 1 and the op that calls delete() is running,
+        // meaning both are blocked because the second, the dataTask, is.
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////
+        Globals.shared.media.mediaQueue.addOperation(monitorOperation)
     }
 }

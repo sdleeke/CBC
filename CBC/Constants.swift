@@ -859,9 +859,6 @@ enum Constants {
         static let Auto_Edit_All_Audio_Transcripts = Auto_Edit_All + SINGLE_SPACE + Audio + SINGLE_SPACE + Transcripts
         static let Auto_Edit_All_Video_Transcripts = Auto_Edit_All + SINGLE_SPACE + Video + SINGLE_SPACE + Transcripts
         
-        static let Remove_All_Audio_Transcripts = Remove_All + SINGLE_SPACE + Audio + SINGLE_SPACE + Transcripts
-        static let Remove_All_Video_Transcripts = Remove_All + SINGLE_SPACE + Video + SINGLE_SPACE + Transcripts
-        
         static let Cancel_All_Auto_Edit_Audio = Cancel + SINGLE_SPACE + All + SINGLE_SPACE + Auto_Edit + SINGLE_SPACE + Audio
         static let Cancel_All_Auto_Edit_Video = Cancel + SINGLE_SPACE + All + SINGLE_SPACE + Auto_Edit + SINGLE_SPACE + Video
         
@@ -873,6 +870,9 @@ enum Constants {
         static let Cancel_All = Cancel + SINGLE_SPACE + All
         static let Delete_All = Delete + SINGLE_SPACE + All
         
+        static let Delete_All_Audio_Transcripts = Delete_All + SINGLE_SPACE + Audio + SINGLE_SPACE + Transcripts
+        static let Delete_All_Video_Transcripts = Delete_All + SINGLE_SPACE + Video + SINGLE_SPACE + Transcripts
+
         static let Cancel_All_Downloads = Cancel_All + SINGLE_SPACE + Downloads
         static let Delete_All_Downloads = Delete_All + SINGLE_SPACE + Downloads
         

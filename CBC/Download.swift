@@ -36,7 +36,7 @@ extension Download : URLSessionDownloadDelegate
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
         }
         
-        let title = "Download Failed (\(downloadPurpose))"
+        let title = "Download Failed (\(purpose?.name ?? ""))"
         
         if let taskDescription = task?.taskDescription, let index = taskDescription.range(of: ".") {
             let id = String(taskDescription[..<index.lowerBound])
@@ -65,6 +65,33 @@ extension Download : URLSessionDownloadDelegate
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
         }
         
+        debug("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
+        
+        debug("session: \(String(describing: session.sessionDescription))")
+        debug("downloadTask: \(String(describing: downloadTask.taskDescription))")
+        
+        if let fileSystemURL = fileSystemURL {
+            debug("path: \(fileSystemURL.path)")
+            debug("filename: \(fileSystemURL.lastPathComponent)")
+            
+            if (downloadTask.taskDescription != fileSystemURL.lastPathComponent) {
+                debug("downloadTask.taskDescription != fileSystemURL.lastPathComponent")
+            }
+        } else {
+            debug("No fileSystemURL")
+        }
+        
+        debug("bytes written: \(totalBytesWritten)")
+        debug("bytes expected to write: \(totalBytesExpectedToWrite)")
+
+        guard state == .downloading else {
+            print("ERROR NOT DOWNLOADING")
+            return
+        }
+
+        self.totalBytesWritten = totalBytesWritten
+        self.totalBytesExpectedToWrite = totalBytesExpectedToWrite
+
         if let purpose = purpose {
             switch purpose {
             case Purpose.audio:
@@ -92,32 +119,6 @@ extension Download : URLSessionDownloadDelegate
             default:
                 break
             }
-        }
-        
-        debug("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
-        
-        debug("session: \(String(describing: session.sessionDescription))")
-        debug("downloadTask: \(String(describing: downloadTask.taskDescription))")
-        
-        if let fileSystemURL = fileSystemURL {
-            debug("path: \(fileSystemURL.path)")
-            debug("filename: \(fileSystemURL.lastPathComponent)")
-            
-            if (downloadTask.taskDescription != fileSystemURL.lastPathComponent) {
-                debug("downloadTask.taskDescription != fileSystemURL.lastPathComponent")
-            }
-        } else {
-            debug("No fileSystemURL")
-        }
-        
-        debug("bytes written: \(totalBytesWritten)")
-        debug("bytes expected to write: \(totalBytesExpectedToWrite)")
-        
-        if (state == .downloading) {
-            self.totalBytesWritten = totalBytesWritten
-            self.totalBytesExpectedToWrite = totalBytesExpectedToWrite
-        } else {
-            print("ERROR NOT DOWNLOADING")
         }
     }
     
@@ -189,10 +190,10 @@ extension Download : URLSessionDownloadDelegate
     {
         debug("urlSession:didCompleteWithError")
         
-        guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
-            error == nil else {
-            return
-        }
+//        guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
+//            error == nil else {
+//            return
+//        }
 
         debug("session: \(String(describing: session.sessionDescription))")
         debug("task: \(String(describing: task.taskDescription))")
@@ -298,38 +299,27 @@ class Download : NSObject, Size
     
     var purpose:String?
     
-    var downloadPurpose:String
+    var tag : String?
     {
         get {
-            var downloadPurpose:String!
-            
-            if let purpose = purpose {
-                switch purpose {
-                case Purpose.audio:
-                    downloadPurpose = Constants.Strings.Audio
-                    break
-                    
-                case Purpose.video:
-                    downloadPurpose = Constants.Strings.Video
-                    break
-                    
-                case Purpose.slides:
-                    downloadPurpose = Constants.Strings.Slides
-                    break
-                    
-                case Purpose.notes:
-                    downloadPurpose = Constants.Strings.Transcript
-                    break
-                    
-                default:
-                    downloadPurpose = "ERROR"
-                    break
-                }
+            guard let mediaItem = mediaItem else {
+                return nil
             }
             
-            return downloadPurpose.lowercased()
+            guard let purpose = purpose else {
+                return nil
+            }
+            
+            return mediaItem.mediaCode + ":" + purpose
         }
     }
+    
+//    var downloadPurpose:String?
+//    {
+//        get {
+//            return purpose?.name.lowercased()
+//        }
+//    }
     
     var id:String?
     

@@ -193,6 +193,10 @@ extension MediaItem : UIActivityItemSource
  */
 class MediaItem : NSObject //, Downloader
 {
+    // weak - does not work. MediaList is immediately deallocated because there
+    // are no strong references to it.
+//    var mediaList : MediaList?
+    
     var percentComplete = [String:Double]()
     {
         didSet {
@@ -270,7 +274,7 @@ class MediaItem : NSObject //, Downloader
             }
             
             // Filter for multiple series of the same name
-            var mediaList = [MediaItem]()
+            var mediaItems = [MediaItem]()
             
             if mediaItemParts?.count > 1 {
                 var number = 0
@@ -279,13 +283,13 @@ class MediaItem : NSObject //, Downloader
                     for mediaItem in mediaItemParts {
                         if let part = mediaItem.part, let partNumber = Int(part) {
                             if partNumber > number {
-                                mediaList.append(mediaItem)
+                                mediaItems.append(mediaItem)
                                 number = partNumber
                             } else {
-                                if (mediaList.count > 0) && mediaList.contains(self) {
+                                if (mediaItems.count > 0) && mediaItems.contains(self) {
                                     break
                                 } else {
-                                    mediaList = [mediaItem]
+                                    mediaItems = [mediaItem]
                                     number = partNumber
                                 }
                             }
@@ -293,7 +297,7 @@ class MediaItem : NSObject //, Downloader
                     }
                 }
                 
-                _multiPartMediaItems = mediaList.count > 0 ? mediaList : nil
+                _multiPartMediaItems = mediaItems.count > 0 ? mediaItems : nil
             } else {
                 _multiPartMediaItems = mediaItemParts
             }
@@ -450,7 +454,7 @@ class MediaItem : NSObject //, Downloader
         // fill cache
         document.fetchData.fill()
         
-        Thread.onMain { [weak self] in 
+        Thread.onMain { // [weak self] in
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
         }
@@ -462,7 +466,7 @@ class MediaItem : NSObject //, Downloader
             return
         }
         
-        Thread.onMain { [weak self] in 
+        Thread.onMain { // [weak self] in 
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: download)
         }

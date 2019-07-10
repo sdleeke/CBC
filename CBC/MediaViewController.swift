@@ -456,9 +456,9 @@ class MediaViewController : MediaItemsViewController
         }
         set {
             if document != nil {
-                Thread.onMain { [weak self] in
-                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self?.document?.download)
-                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self?.document?.download)
+                Thread.onMain { // [weak self] in
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.document?.download)
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.document?.download)
                 }
             }
 
@@ -516,9 +516,9 @@ class MediaViewController : MediaItemsViewController
             break
             
         case .downloaded:
-            Thread.onMain { [weak self] in
-                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self?.download)
-                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self?.download)
+            Thread.onMain { // [weak self] in
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
             }
             break
         }
@@ -526,9 +526,9 @@ class MediaViewController : MediaItemsViewController
     
     @objc func cancelDocument(_ notification:NSNotification)
     {
-        Thread.onMain { [weak self] in
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self?.download)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self?.download)
+        Thread.onMain { // [weak self] in
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: self.download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: self.download)
         }
         
         guard let download = notification.object as? Download else {
@@ -850,6 +850,30 @@ class MediaViewController : MediaItemsViewController
         }
     }
     
+//    var mediaList:MediaList?
+//    {
+//        get {
+//            return selectedMediaItem?.mediaList
+//        }
+//        set {
+////            let oldValue = selectedMediaItem?.mediaList
+////
+////            if newValue?.list != oldValue?.list {
+//                selectedMediaItem?.mediaList = newValue
+//
+//                operationQueue.addOperation { [weak self] in
+//                    self?.selectedMediaItem?.mediaList?.list?.loadDocuments()
+//                }
+//                Thread.onMain { [weak self] in
+//                    self?.tableView?.reloadData()
+//                    self?.updateUI()
+//                    //                    self.setupVerticalSplit()
+//                }
+////            }
+//
+//        }
+//    }
+    
     var mediaList:MediaList? // [MediaItem]?
     {
         didSet {
@@ -863,11 +887,11 @@ class MediaViewController : MediaItemsViewController
 //                    self.setupVerticalSplit()
                 }
             }
-            
+
 //            guard self.isViewLoaded else {
 //                return
 //            }
-//            
+//
 //            if mediaItems?.list == nil {
 //                mediaItemNotesAndSlides.gestureRecognizers = nil
 //            } else {
@@ -1940,7 +1964,7 @@ class MediaViewController : MediaItemsViewController
         if let state = selectedMediaItem.audioDownload?.state {
             switch state {
             case .none:
-                if self.mediaList?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaList?.list?.audioDownloads > 1) {
+                if self.mediaList?.downloadingAll(purpose:Purpose.audio) == false, (self.mediaList?.list?.audioToDownload > 1) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
                 if (self.mediaList?.list?.audioDownloading > 0) {
@@ -1952,7 +1976,7 @@ class MediaViewController : MediaItemsViewController
                 break
                 
             case .downloading:
-                if self.mediaList?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaList?.list?.audioDownloads > 0) {
+                if self.mediaList?.downloadingAll(purpose:Purpose.audio) == false, (self.mediaList?.list?.audioToDownload > 1) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
                 if (self.mediaList?.list?.audioDownloading > 1) {
@@ -1964,7 +1988,7 @@ class MediaViewController : MediaItemsViewController
                 break
                 
             case .downloaded:
-                if self.mediaList?.downloadingAll(name:Constants.Strings.Audio) == false, (self.mediaList?.list?.audioDownloads > 0) {
+                if self.mediaList?.downloadingAll(purpose:Purpose.audio) == false, (self.mediaList?.list?.audioToDownload > 1) {
                     actionMenu.append(Constants.Strings.Download_All_Audio)
                 }
                 if (self.mediaList?.list?.audioDownloading > 0) {
@@ -1987,12 +2011,12 @@ class MediaViewController : MediaItemsViewController
         
         if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.transcribedAudio > self.mediaList?.list?.autoEditingAudio {
             actionMenu.append(Constants.Strings.Auto_Edit_All_Audio_Transcripts)
-            actionMenu.append(Constants.Strings.Remove_All_Audio_Transcripts)
+            actionMenu.append(Constants.Strings.Delete_All_Audio_Transcripts)
         }
         
         if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.transcribedVideo > self.mediaList?.list?.autoEditingVideo {
             actionMenu.append(Constants.Strings.Auto_Edit_All_Video_Transcripts)
-            actionMenu.append(Constants.Strings.Remove_All_Video_Transcripts)
+            actionMenu.append(Constants.Strings.Delete_All_Video_Transcripts)
         }
         
         if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.autoEditingAudio > 0 {
@@ -2735,15 +2759,17 @@ class MediaViewController : MediaItemsViewController
     
     @objc override func downloadFailed(_ notification:NSNotification)
     {
-        if let download = notification.object as? Download, document?.download == download {
-            Thread.onMain { [weak self] in
-                self?.activityIndicator.stopAnimating()
-                self?.activityIndicator.isHidden = true
-                
-                self?.logo.isHidden = false
-                if let logo = self?.logo {
-                    self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
-                }
+        guard let download = notification.object as? Download, document?.download == download else {
+            return
+        }
+
+        Thread.onMain { [weak self] in
+            self?.activityIndicator.stopAnimating()
+            self?.activityIndicator.isHidden = true
+            
+            self?.logo.isHidden = false
+            if let logo = self?.logo {
+                self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
             }
         }
     }
@@ -5356,21 +5382,61 @@ class MediaViewController : MediaItemsViewController
             break
             
             
-        case Constants.Strings.Remove_All_Audio_Transcripts:
-            mediaList?.list?.removeAllAudioTranscripts(viewController: self)
+        case Constants.Strings.Delete_All_Audio_Transcripts:
+            var actions = [AlertAction]()
+            
+            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
+                self.mediaList?.list?.deleteAllAudioTranscripts(viewController: self)
+            }))
+            
+            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
+                
+            }))
+            
+            Alerts.shared.alert(title: "Confirm Deletion of All Audio Transcripts", message: mediaList?.list?.multiPartName, actions: actions)
             break
             
-        case Constants.Strings.Remove_All_Video_Transcripts:
-            mediaList?.list?.removeAllVideoTranscripts(viewController: self)
+        case Constants.Strings.Delete_All_Video_Transcripts:
+            var actions = [AlertAction]()
+            
+            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
+                self.mediaList?.list?.deleteAllVideoTranscripts(viewController: self)
+            }))
+            
+            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
+                
+            }))
+            
+            Alerts.shared.alert(title: "Confirm Deletion of All Video Transcripts", message: mediaList?.list?.multiPartName, actions: actions)
             break
             
             
         case Constants.Strings.Auto_Edit_All_Audio_Transcripts:
-            mediaList?.list?.autoEditAllAudioTranscripts(viewController:self)
+            var actions = [AlertAction]()
+            
+            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
+                self.mediaList?.list?.autoEditAllAudioTranscripts(viewController:self)
+            }))
+            
+            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
+                
+            }))
+            
+            Alerts.shared.alert(title: "Confirm Auto Edit of All Audio Transcripts", message: mediaList?.list?.multiPartName, actions: actions)
             break
             
         case Constants.Strings.Auto_Edit_All_Video_Transcripts:
-            mediaList?.list?.autoEditAllVideoTranscripts(viewController:self)
+            var actions = [AlertAction]()
+            
+            actions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
+                self.mediaList?.list?.autoEditAllVideoTranscripts(viewController:self)
+            }))
+            
+            actions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: { () -> (Void) in
+                
+            }))
+            
+            Alerts.shared.alert(title: "Confirm Auto Edit of All Video Transcripts", message: mediaList?.list?.multiPartName, actions: actions)
             break
             
             

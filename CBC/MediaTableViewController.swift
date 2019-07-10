@@ -1587,10 +1587,10 @@ class MediaTableViewController : MediaItemsViewController
 //        tableView?.rowHeight = UITableViewAutomaticDimension
     }
 
-    var audioDownloads : Int?
+    var audioToDownload : Int?
     {
         get {
-            return Globals.shared.media.active?.mediaList?.list?.audioDownloads
+            return Globals.shared.media.active?.mediaList?.list?.audioToDownload
         }
     }
     
@@ -1601,17 +1601,17 @@ class MediaTableViewController : MediaItemsViewController
         }
     }
     
-    var slidesDownloads : Int?
+    var slidesToDownload : Int?
     {
         get {
-            return Globals.shared.media.active?.mediaList?.list?.slidesDownloads
+            return Globals.shared.media.active?.mediaList?.list?.slidesToDownload
         }
     }
     
-    var notesDownloads : Int?
+    var notesToDownload : Int?
     {
         get {
-            return Globals.shared.media.active?.mediaList?.list?.notesDownloads
+            return Globals.shared.media.active?.mediaList?.list?.notesToDownload
         }
     }
     
@@ -3120,7 +3120,7 @@ class MediaTableViewController : MediaItemsViewController
             
             let yesAction = AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: {
                 () -> Void in
-                Globals.shared.media.repository.deleteAllVoiceBaseMedia(alert:false, detailedAlert:false)
+                VoiceBase.deleteAllVoiceBaseMedia(mediaItems:Globals.shared.media.repository.list, alert:false, detailedAlert:false)
             })
             alertActions.append(yesAction)
             

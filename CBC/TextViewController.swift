@@ -994,6 +994,7 @@ class TextViewController : CBCViewController
                         let end = segment["end"] as? Double,
                         let lowerBound = segment["lowerBound"] as? Int,
                         let upperBound = segment["upperBound"] as? Int {
+                        lastIndex = nil
                         let ratio = Double(range.lowerBound - lowerBound)/Double(upperBound - lowerBound)
                         Globals.shared.mediaPlayer.seek(to: start + (ratio * (end - start)))
                     }
@@ -1117,6 +1118,7 @@ class TextViewController : CBCViewController
         
         trackingTimer?.invalidate()
         trackingTimer = nil
+        lastIndex = nil
         
         if let changedText = changedText {
             textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.body)
@@ -1130,13 +1132,14 @@ class TextViewController : CBCViewController
         }
         
         if trackingTimer == nil {
-            trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(follow), userInfo: nil, repeats: true)
+            trackingTimer = Timer.scheduledTimer(timeInterval: 0.05, target: self, selector: #selector(follow), userInfo: nil, repeats: true)
         } else {
             print("ERROR: trackingTimer not NIL!")
         }
     }
     
     var oldTextRange : Range<Int>? // UITextRange?
+    var lastIndex:Int?
     
     @objc func follow()
     {
@@ -1153,34 +1156,42 @@ class TextViewController : CBCViewController
         }
         
         if let seconds = Globals.shared.mediaPlayer.currentTime?.seconds {
-            var index = 0
+            var index = lastIndex ?? -1
             
-            for element in wordRangeTiming {
-                if let startTime = element["start"] as? Double {
-                    if seconds < startTime {
-                        break
-                    }
-                }
-                
+            var startTime:Double? = 0
+            
+            repeat {
                 index += 1
-            }
-            index -= 1
+                startTime = wordRangeTiming[index]["start"] as? Double
+            } while seconds > startTime
             
+            index -= 1
+
             index = max(index,0)
             
-            if let range = wordRangeTiming[index]["range"] as? Range<String.Index> {
+            lastIndex = index
+            
+            if let text = wordRangeTiming[index]["text"] as? String, let range = wordRangeTiming[index]["range"] as? Range<String.Index> {
                 if let changedText = changedText, range != oldRange {
-                    let before = String(changedText[..<range.lowerBound])
-                    let text = String(changedText[range])
-                    let after = String(changedText[range.upperBound...])
-                    let beforeAttr = NSMutableAttributedString(string: before, attributes: Constants.Fonts.Attributes.body)
-                    let textAttr = NSMutableAttributedString(string: text, attributes: Constants.Fonts.Attributes.marked)
-                    let afterAttr = NSMutableAttributedString(string: after, attributes: Constants.Fonts.Attributes.body)
+//                    let before = String(changedText[..<range.lowerBound])
+//                    let text = String(changedText[range])
+//                    let after = String(changedText[range.upperBound...])
+//                    let beforeAttr = NSMutableAttributedString(string: before, attributes: Constants.Fonts.Attributes.body)
+//                    let textAttr = NSMutableAttributedString(string: text, attributes: Constants.Fonts.Attributes.marked)
+//                    let afterAttr = NSMutableAttributedString(string: after, attributes: Constants.Fonts.Attributes.body)
+//
+//                    beforeAttr.append(textAttr)
+//                    beforeAttr.append(afterAttr)
                     
-                    beforeAttr.append(textAttr)
-                    beforeAttr.append(afterAttr)
-                    
-                    textView.attributedText = beforeAttr
+                    let attributedText = NSMutableAttributedString(string: changedText, attributes:Constants.Fonts.Attributes.body)
+                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.lightGray],
+                                                 range: NSRange(location: range.lowerBound.utf16Offset(in: changedText), length: text.count))
+                    textView.attributedText = attributedText
+
+//                    let nsRange = NSRange(location: range.upperBound.utf16Offset(in: changedText), length: text.count)
+//                    textView.attributedText?.attribute(.backgroundColor, at: range.lowerBound.utf16Offset(in: changedText), longestEffectiveRange: nsRange, in: nsRange)
+//
+//                    textView.attributedText = beforeAttr
                     
                     textView.scrollRangeToVisible(range)
                     

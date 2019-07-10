@@ -911,7 +911,7 @@ class WebViewController: CBCViewController
         }
         didSet {
             if oldValue != nil {
-                Thread.onMain { [weak self] in 
+                Thread.onMain { // [weak self] in
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOWNLOAD), object: oldValue?.download)
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOWNLOAD), object: oldValue?.download)
                 }
@@ -1403,9 +1403,9 @@ class WebViewController: CBCViewController
     
     @objc func downloaded(_ notification : NSNotification)
     {
-        Thread.onMain { [weak self] in 
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self?.download)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self?.download)
+        Thread.onMain { // [weak self] in 
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
         }
         
         switch content {
@@ -1422,9 +1422,9 @@ class WebViewController: CBCViewController
     
     @objc func downloadFailed(_ notification : NSNotification)
     {
-        Thread.onMain { [weak self] in 
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self?.download)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self?.download)
+        Thread.onMain { // [weak self] in
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: self.download)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOAD_FAILED), object: self.download)
         }
         
         switch content {

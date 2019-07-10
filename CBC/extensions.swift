@@ -146,6 +146,38 @@ extension Set where Element == String
 
 extension Array where Element == MediaItem
 {
+    func clearCache(block:Bool)
+    {
+        self.forEach({ (mediaItem) in
+            mediaItem.clearCache(block:block)
+        })
+    }
+    
+    var cacheSize : Int?
+    {
+        get {
+            // THIS IS COMPUTATIONALLY EXPENSIVE TO CALL
+            return self.reduce(0, { (result, mediaItem) -> Int in
+                return result + mediaItem.cacheSize
+            })
+        }
+    }
+    
+    func cacheSize(_ purpose:String) -> Int?
+    {
+        // THIS IS COMPUTATIONALLY EXPENSIVE TO CALL
+        return self.reduce(0, { (result, mediaItem) -> Int in
+            return result + mediaItem.cacheSize(purpose)
+        })
+    }
+    
+    func updateCacheSize()
+    {
+        _ = self.reduce(0, { (result, mediaItem) -> Int in
+            return result + mediaItem.cacheSize
+        })
+    }
+
     func multiPartMediaItems(_ mediaItem:MediaItem?) -> [MediaItem]?
     {
         guard let mediaItem = mediaItem else {
@@ -195,7 +227,7 @@ extension Array where Element == MediaItem
         }
     
         // Filter for multiple series of the same name
-        var mediaList = [MediaItem]()
+        var mediaItems = [MediaItem]()
     
         if let mediaItemParts = mediaItemParts, mediaItemParts.count > 1 {
             var number = 0
@@ -203,20 +235,20 @@ extension Array where Element == MediaItem
             for mediaItem in mediaItemParts {
                 if let part = mediaItem.part, let partNumber = Int(part) {
                     if partNumber > number {
-                        mediaList.append(mediaItem)
+                        mediaItems.append(mediaItem)
                         number = partNumber
                     } else {
-                        if (mediaList.count > 0) && mediaList.contains(mediaItem) {
+                        if (mediaItems.count > 0) && mediaItems.contains(mediaItem) {
                             break
                         } else {
-                            mediaList = [mediaItem]
+                            mediaItems = [mediaItem]
                             number = partNumber
                         }
                     }
                 }
             }
 
-            return mediaList.count > 0 ? mediaList : nil
+            return mediaItems.count > 0 ? mediaItems : nil
         } else {
             return mediaItemParts
         }
@@ -928,6 +960,10 @@ extension Array where Element == MediaItem
                 continue
             }
             
+            guard transcript.aligning == false else {
+                continue
+            }
+            
             guard transcript.completed == false else {
                 continue
             }
@@ -937,17 +973,17 @@ extension Array where Element == MediaItem
         }
     }
     
-    func removeAllAudioTranscripts(viewController:UIViewController)
+    func deleteAllAudioTranscripts(viewController:UIViewController)
     {
-        removeAllTranscripts(viewController:viewController,purpose:Purpose.audio)
+        deleteAllTranscripts(viewController:viewController,purpose:Purpose.audio)
     }
     
-    func removeAllVideoTranscripts(viewController:UIViewController)
+    func deleteAllVideoTranscripts(viewController:UIViewController)
     {
-        removeAllTranscripts(viewController:viewController,purpose:Purpose.video)
+        deleteAllTranscripts(viewController:viewController,purpose:Purpose.video)
     }
     
-    func removeAllTranscripts(viewController:UIViewController,purpose:String)
+    func deleteAllTranscripts(viewController:UIViewController,purpose:String)
     {
 //        guard let mediaItems = list else {
 //            return
@@ -964,22 +1000,29 @@ extension Array where Element == MediaItem
                 continue
             }
             
+            guard transcript.aligning == false else {
+                continue
+            }
+            
             guard transcript.completed == true else {
                 continue
             }
             
-            transcript.remove(alert: true)
+            transcript.delete(alert:true)
+            transcript.reset()
             
             if let text = mediaItem.text {
-                Alerts.shared.alert(title: "Transcript Removed",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\nhas been removed.")
+                Alerts.shared.alert(title: "Transcript Deleted",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\nhas been deleted.")
             }
         }
     }
     
-    func toTranscribe(purpose:String) -> Int?
+    func transcribed(_ purpose:String) -> Int?
     {
+        // This doesn't verify that the source exists (or is supposed to)
+        
         return self.filter({ (mediaItem) -> Bool in
-            return (mediaItem.transcripts[purpose]?.transcribing == false) && (mediaItem.transcripts[purpose]?.completed == false)
+            return mediaItem.transcripts[purpose]?.completed == true
         }).count
     }
     
@@ -1001,6 +1044,15 @@ extension Array where Element == MediaItem
         }
     }
     
+    func autoEditing(_ purpose:String) -> Int?
+    {
+        // This doesn't verify that the source exists (or is supposed to)
+        
+        return self.filter({ (mediaItem) -> Bool in
+            return (mediaItem.transcripts[purpose]?.operationQueue?.operationCount > 0)
+        }).count
+    }
+    
     var autoEditingAudio : Int?
     {
         get {
@@ -1019,30 +1071,44 @@ extension Array where Element == MediaItem
         }
     }
     
+    func toTranscribe(_ purpose:String) -> Int?
+    {
+        // This doesn't verify that the source exists (or is supposed to)
+        
+        return self.filter({ (mediaItem) -> Bool in
+            return  (mediaItem.transcripts[purpose]?.transcribing == false) &&
+                    (mediaItem.transcripts[purpose]?.aligning == false) &&
+                    (mediaItem.transcripts[purpose]?.completed == false)
+        }).count
+    }
+    
     var toTranscribeAudio : Int?
     {
         get {
             return self.filter({ (mediaItem) -> Bool in
                 return  mediaItem.hasAudio &&
-                        (mediaItem.audioTranscript?.transcribing == false) &&
-                        (mediaItem.audioTranscript?.completed == false)
+                    (mediaItem.audioTranscript?.transcribing == false) &&
+                    (mediaItem.audioTranscript?.aligning == false) &&
+                    (mediaItem.audioTranscript?.completed == false)
             }).count
         }
     }
-    
+
     var toTranscribeVideo : Int?
     {
         get {
             return self.filter({ (mediaItem) -> Bool in
                 return  mediaItem.hasVideo &&
                         (mediaItem.videoTranscript?.transcribing == false) &&
+                        (mediaItem.videoTranscript?.aligning == false) &&
                         (mediaItem.videoTranscript?.completed == false)
             }).count
         }
     }
     
-    func toAlign(purpose:String) -> Int?
+    func toAlign(_ purpose:String) -> Int?
     {
+        // This doesn't verify that the source exists (or is supposed to)
         return self.filter({ (mediaItem) -> Bool in
             return  (mediaItem.transcripts[purpose]?.transcribing == false) &&
                     (mediaItem.transcripts[purpose]?.completed == false) &&
@@ -1061,7 +1127,7 @@ extension Array where Element == MediaItem
             }).count
         }
     }
-    
+
     var toAlignVideo : Int?
     {
         get {
@@ -1074,154 +1140,201 @@ extension Array where Element == MediaItem
         }
     }
     
-    func downloads(purpose:String) -> Int?
+    func toDownload(_ purpose:String) -> Int?
     {
+        // This doesn't verify that the source exists (or is supposed to)
+
         guard Globals.shared.reachability.isReachable else {
             return nil
         }
-        
+
         return self.filter({ (mediaItem) -> Bool in
             return (mediaItem.downloads?[purpose]?.active == false) &&
                 (mediaItem.downloads?[purpose]?.exists == false)
         }).count
     }
     
-    var audioDownloads : Int?
-    {
-        get {
-            guard Globals.shared.reachability.isReachable else {
-                return nil
-            }
-            
-            return self.filter({ (mediaItem) -> Bool in
-                return (mediaItem.audioDownload?.active == false) &&
-                    (mediaItem.audioDownload?.exists == false)
-            }).count
-        }
-    }
-    
-    func downloading(purpose:String) -> Int?
+    func downloading(_ purpose:String) -> Int?
     {
         return self.filter({ (mediaItem) -> Bool in
             return mediaItem.downloads?[purpose]?.active == true
         }).count
     }
     
-    var audioDownloading : Int?
-    {
-        get {
-            return self.filter({ (mediaItem) -> Bool in
-                return (mediaItem.audioDownload?.active == true)
-            }).count
-        }
-    }
-    
-    func downloaded(purpose:String) -> Int?
+    func downloaded(_ purpose:String) -> Int?
     {
         return self.filter({ (mediaItem) -> Bool in
             return mediaItem.downloads?[purpose]?.exists == true
         }).count
     }
     
-    var audioDownloaded : Int?
+    func notDownloaded(_ purpose:String) -> Int?
+    {
+        return self.filter({ (mediaItem) -> Bool in
+            return mediaItem.downloads?[purpose]?.exists == false
+        }).count
+    }
+    
+    func notDownloading(_ purpose:String) -> Int?
+    {
+        return self.filter({ (mediaItem) -> Bool in
+            return mediaItem.downloads?[purpose]?.active == false
+        }).count
+    }
+    
+    var audioToDownload : Int?
     {
         get {
-            return self.filter({ (mediaItem) -> Bool in
-                return mediaItem.audioDownload?.exists == true
-            }).count
+            return toDownload(Purpose.audio)
+            
+//            guard Globals.shared.reachability.isReachable else {
+//                return nil
+//            }
+//
+//            return self.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.audioDownload?.active == false) &&
+//                    (mediaItem.audioDownload?.exists == false)
+//            }).count
         }
     }
     
-    var videoDownloads : Int?
+    var audioDownloading : Int?
     {
         get {
-            guard Globals.shared.reachability.isReachable else {
-                return nil
-            }
+            return downloading(Purpose.audio)
+
+//            return self.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.audioDownload?.active == true)
+//            }).count
+        }
+    }
+    
+//    var audioNotDownloaded : Int?
+//    {
+//        get {
+//            return notDownloaded(Purpose.audio)
+//        }
+//    }
+
+    var audioDownloaded : Int?
+    {
+        get {
+            return downloaded(Purpose.audio)
+
+//            return self.filter({ (mediaItem) -> Bool in
+//                return mediaItem.audioDownload?.exists == true
+//            }).count
+        }
+    }
+    
+    var videoToDownload : Int?
+    {
+        get {
+            return toDownload(Purpose.video)
             
-            return self.filter({ (mediaItem) -> Bool in
-                return (mediaItem.videoDownload?.active == false) && (mediaItem.videoDownload?.exists == false)
-            }).count
+//            guard Globals.shared.reachability.isReachable else {
+//                return nil
+//            }
+//
+//            return self.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.videoDownload?.active == false) && (mediaItem.videoDownload?.exists == false)
+//            }).count
         }
     }
     
     var videoDownloading : Int?
     {
         get {
-            return self.filter({ (mediaItem) -> Bool in
-                return (mediaItem.videoDownload?.active == true)
-            }).count
+            return downloading(Purpose.video)
+            
+//            return self.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.videoDownload?.active == true)
+//            }).count
         }
     }
     
     var videoDownloaded : Int?
     {
         get {
-            return self.filter({ (mediaItem) -> Bool in
-                return mediaItem.videoDownload?.exists == true
-            }).count
+            return downloaded(Purpose.video)
+
+//            return self.filter({ (mediaItem) -> Bool in
+//                return mediaItem.videoDownload?.exists == true
+//            }).count
         }
     }
     
-    var slidesDownloads : Int?
+    var slidesToDownload : Int?
     {
         get {
-            guard Globals.shared.reachability.isReachable else {
-                return nil
-            }
+            return toDownload(Purpose.slides)
             
-            return self.filter({ (mediaItem) -> Bool in
-                return (mediaItem.slidesDownload?.active == false) && (mediaItem.slidesDownload?.exists == false)
-            }).count
+//            guard Globals.shared.reachability.isReachable else {
+//                return nil
+//            }
+//
+//            return self.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.slidesDownload?.active == false) && (mediaItem.slidesDownload?.exists == false)
+//            }).count
         }
     }
     
     var slidesDownloading : Int?
     {
         get {
-            return self.filter({ (mediaItem) -> Bool in
-                return (mediaItem.slidesDownload?.active == true)
-            }).count
+            return downloading(Purpose.slides)
+            
+//            return self.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.slidesDownload?.active == true)
+//            }).count
         }
     }
     
     var slidesDownloaded : Int?
     {
         get {
-            return self.filter({ (mediaItem) -> Bool in
-                return (mediaItem.slidesDownload?.exists == true)
-            }).count
+            return downloaded(Purpose.slides)
+
+//            return self.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.slidesDownload?.exists == true)
+//            }).count
         }
     }
     
-    var notesDownloads : Int?
+    var notesToDownload : Int?
     {
         get {
-            guard Globals.shared.reachability.isReachable else {
-                return nil
-            }
-            
-            return self.filter({ (mediaItem) -> Bool in
-                return (mediaItem.notesDownload?.active == false) && (mediaItem.notesDownload?.exists == false)
-            }).count
+            return toDownload(Purpose.notes)
+
+//            guard Globals.shared.reachability.isReachable else {
+//                return nil
+//            }
+//
+//            return self.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.notesDownload?.active == false) && (mediaItem.notesDownload?.exists == false)
+//            }).count
         }
     }
     
     var notesDownloading : Int?
     {
         get {
-            return self.filter({ (mediaItem) -> Bool in
-                return (mediaItem.notesDownload?.active == true)
-            }).count
+            return downloading(Purpose.notes)
+            
+//            return self.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.notesDownload?.active == true)
+//            }).count
         }
     }
     
     var notesDownloaded : Int?
     {
         get {
-            return self.filter({ (mediaItem) -> Bool in
-                return (mediaItem.notesDownload?.exists == true)
-            }).count
+            return downloaded(Purpose.notes)
+            
+//            return self.filter({ (mediaItem) -> Bool in
+//                return (mediaItem.notesDownload?.exists == true)
+//            }).count
         }
     }
     
@@ -5521,6 +5634,32 @@ extension String
 
 extension String
 {
+    var name : String
+    {
+        switch self {
+        case Purpose.audio:
+            return Constants.Strings.Audio
+            
+        case Purpose.video:
+            return Constants.Strings.Video
+            
+        case Purpose.slides:
+            return Constants.Strings.Slides
+            
+        case Purpose.notes:
+            return Constants.Strings.Transcript
+            
+        case Purpose.transcript:
+            return Constants.Strings.Transcript
+            
+        case Purpose.outline:
+            return Constants.Strings.Outline
+            
+        default:
+            return "PURPOSE NOT FOUND"
+        }
+    }
+
     /**
      Extension of String that is assuemd to be a search context and returns the category.
      */
