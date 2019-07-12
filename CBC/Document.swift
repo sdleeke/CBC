@@ -19,32 +19,38 @@ class Document : NSObject
     
     var purpose:String?
     
+    // What is the purpose of this?
     var setZoom = false
     
+    // What is the purpose of this?
     var setOffset = false
     
     lazy var fetchData : Fetch<Data>! = { [weak self] in
         let fetchData = Fetch<Data>(name:mediaItem?.mediaCode ?? "" + "DOCUMENT" + (purpose ?? "")) //
     
-        fetchData.fetch = {
-            var data : Data?
-            
-            if Globals.shared.settings.cacheDownloads {
-                data = self?.download?.fileSystemURL?.data ?? self?.download?.downloadURL?.data?.save(to: self?.download?.fileSystemURL)
-            } else {
-                data = self?.download?.downloadURL?.data
+        fetchData.retrieve = {
+            return self?.download?.fileSystemURL?.data
+        }
+        
+        fetchData.store = { (data:Data?) in
+            _ = data?.save(to: self?.download?.fileSystemURL)
+        }
+        
+        fetchData.transform = { (data:Data?) in
+            guard var data = data else {
+                return nil
             }
             
             if #available(iOS 11.0, *) {
-                if self?.purpose == Purpose.slides, let docData = data {
-                    if let doc = PDFDocument(data: docData), let page = doc.page(at: 0) {
+                if self?.purpose == Purpose.slides {
+                    if let doc = PDFDocument(data: data), let page = doc.page(at: 0) {
                         let rect = page.bounds(for: .mediaBox)
                         
                         if let pageImage = self?.mediaItem?.posterImage?.image {
                             let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
                             
                             if let pageImage = pageImage.resize(scale:posterImageFactor) {
-                                if let pdf = data?.pdf, let page = pageImage.page {
+                                if let pdf = data.pdf, let page = pageImage.page {
                                     pdf.insert(page, at: 0)
                                     
                                     if let pdfData = pdf.data {
@@ -53,20 +59,6 @@ class Document : NSObject
                                 }
                             }
                         }
-//                        
-//                        if let pageImage = self?.mediaItem?.seriesImage?.image {
-//                            let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
-//                            
-//                            if let pageImage = pageImage.resize(scale:seriesImageFactor) {
-//                                if let pdf = data?.pdf, let page = pageImage.page {
-//                                    pdf.insert(page, at: 0)
-//                                    
-//                                    if let pdfData = pdf.data {
-//                                        data = pdfData
-//                                    }
-//                                }
-//                            }
-//                        }
                     }
                 }
             } else {
@@ -75,6 +67,60 @@ class Document : NSObject
             
             return data
         }
+        
+        fetchData.fetch = {
+            return self?.download?.downloadURL?.data
+        }
+                    
+//            var data : Data?
+//
+//            if Globals.shared.settings.cacheDownloads {
+//                data = self?.download?.fileSystemURL?.data ?? self?.download?.downloadURL?.data?.save(to: self?.download?.fileSystemURL)
+//            } else {
+//                data = self?.download?.downloadURL?.data
+//            }
+            
+//            if #available(iOS 11.0, *) {
+//                if self?.purpose == Purpose.slides, let docData = data {
+//                    if let doc = PDFDocument(data: docData), let page = doc.page(at: 0) {
+//                        let rect = page.bounds(for: .mediaBox)
+//
+//                        if let pageImage = self?.mediaItem?.posterImage?.image {
+//                            let posterImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
+//
+//                            if let pageImage = pageImage.resize(scale:posterImageFactor) {
+//                                if let pdf = data?.pdf, let page = pageImage.page {
+//                                    pdf.insert(page, at: 0)
+//
+//                                    if let pdfData = pdf.data {
+//                                        data = pdfData
+//                                    }
+//                                }
+//                            }
+//                        }
+
+//                        if let pageImage = self?.mediaItem?.seriesImage?.image {
+//                            let seriesImageFactor = 1/max(pageImage.size.width/rect.width,pageImage.size.height/rect.width)
+//
+//                            if let pageImage = pageImage.resize(scale:seriesImageFactor) {
+//                                if let pdf = data?.pdf, let page = pageImage.page {
+//                                    pdf.insert(page, at: 0)
+//
+//                                    if let pdfData = pdf.data {
+//                                        data = pdfData
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+            
+//            } else {
+//                // Fallback on earlier versions
+//            }
+            
+//            return data
+//        }
         
         return fetchData
     }()

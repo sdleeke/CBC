@@ -23,13 +23,13 @@ class FetchImage : Fetch<UIImage>, Size
     
     var url : URL?
     
-    init?(name:String? = nil, url:URL?)
+    init?(name:String? = nil, useCache:Bool = false, url:URL?)
     {
         guard let url = url else {
             return nil
         }
         
-        super.init(name: name)
+        super.init(name: name, useCache:useCache)
         
         fetch = { [weak self] () -> (UIImage?) in
             return self?.fetchIt()

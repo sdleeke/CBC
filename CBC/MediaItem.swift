@@ -1336,16 +1336,16 @@ class MediaItem : NSObject //, Downloader
         
         let fetch = FetchCodable<[String]>(name: notesTokensMarkMismatchesFilename)
 
-        fetch.didSet = { [weak self] (strings:[String]?) in
-            guard let strings = strings, strings.count > 0 else {
-                return
-            }
-            
-            print("Token Count vs. Mark Count Mismatch(es) Found")
-            print(self?.text ?? "NO MEDIA ITEM TEXT")
-            print(strings)
-            print("\n\n")
-        }
+//        fetch.didSet = { [weak self] (strings:[String]?) in
+//            guard let strings = strings, strings.count > 0 else {
+//                return
+//            }
+//            
+//            print("Token Count vs. Mark Count Mismatch(es) Found")
+//            print(self?.text ?? "NO MEDIA ITEM TEXT")
+//            print(strings)
+//            print("\n\n")
+//        }
         
         fetch.fetch = {
             guard let notesTokens = self?.notesTokens?.result else {

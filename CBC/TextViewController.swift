@@ -1024,14 +1024,14 @@ class TextViewController : CBCViewController
     var transcript:VoiceBase?
     
     lazy var wordRangeTiming : Fetch<[[String:Any]]>? = { [weak self] in
-        let fetch = Fetch<[[String:Any]]>(name: "WordRangeTiming") // Assumes there is only one at a time globally.
+        let fetch = Fetch<[[String:Any]]>(name: "WordRangeTiming", useCache: true) // Assumes there is only one at a time globally.
         
         fetch.fetch = {
             // Not interruptable until wordRangeTiming is.
             return self?.transcript?.wordRangeTiming
         }
         
-        fetch.didSet = { [weak self] (array:[[String:Any]]?) in
+        fetch.didSetCache = { [weak self] (array:[[String:Any]]?) in
             if fetch.result != nil {
                 self?.checkSync()
             }

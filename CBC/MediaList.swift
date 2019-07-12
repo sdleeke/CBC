@@ -322,7 +322,7 @@ class MediaList // : Sequence
             return "ERROR NO MULTIPARTNAME"
         }
         
-        return id + ":" + multiPartName + ":" + Constants.Strings.Download_All + ":" + purpose.name
+        return multiPartName + ":" + mediaCodes + ":" + Constants.Strings.Download_All + ":" + purpose.name
     }
     
     func downloadingAll(purpose:String) -> Bool
@@ -447,8 +447,19 @@ class MediaList // : Sequence
     
     var listDidSet : (()->(Void))?
     
-    let id = UUID().uuidString
+//    let id = UUID().uuidString
 
+    var mediaCodes : String
+    {
+        guard let list = list else {
+            return "NO LIST"
+        }
+        
+        return list.reduce("", { (string:String, mediaItem:MediaItem) -> String in
+            return !string.isEmpty ? string + ":" + mediaItem.mediaCode : mediaItem.mediaCode
+        })
+    }
+    
     init(_ list:[MediaItem]? = nil)
     {
         self.list = list

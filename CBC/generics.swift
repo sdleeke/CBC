@@ -792,7 +792,7 @@ class Fetch<T>
         operationQueue.maxConcurrentOperationCount = 1
         return operationQueue
     }()
-    
+
     func block(_ block:((T?)->())?)
     {
         operationQueue.addOperation {
@@ -805,7 +805,7 @@ class Fetch<T>
         operationQueue.cancelAllOperations()
     }
     
-    init(name:String? = nil,useCache:Bool = false, fetch:(()->(T?))? = nil)
+    init(name:String? = nil, useCache:Bool = false, fetch:(()->(T?))? = nil)
     {
         self.name = name
         self.useCache = useCache
@@ -823,11 +823,11 @@ class Fetch<T>
     
     var name : String?
     
-    var didSet : ((T?)->())?
+    var didSetCache : ((T?)->())?
     private var cache : T?
     {
         didSet {
-            didSet?(cache)
+            didSetCache?(cache)
         }
     }
     
@@ -868,6 +868,21 @@ class Fetch<T>
         }
     }
     
+    var transform : ((T?)->(T?))?
+
+    func transformIt(_ t:T?) -> T?
+    {
+        guard let t = t else {
+            return nil
+        }
+
+        guard let transform = transform else {
+            return t
+        }
+        
+        return transform(t)
+    }
+    
     var result : T?
     {
         get {
@@ -876,7 +891,7 @@ class Fetch<T>
                     return cache
                 }
                 
-                var result = retrieve?()
+                var result = transformIt(retrieve?())
                 
                 if result != nil {
                     if useCache {
@@ -885,7 +900,7 @@ class Fetch<T>
                     return result
                 }
                 
-                result = self.fetch?()
+                result = transformIt(self.fetch?())
                 
                 operationQueue.addOperation {
                     self.store?(result)

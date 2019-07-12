@@ -19,28 +19,27 @@ extension MediaViewController : UIActivityItemSource
 {
     func share()
     {
-        operationQueue.addOperation { [weak self] in
-            var activityViewController : UIActivityViewController!
-
-            if self?.document != nil {
-
-            } else {
-
-            }
-
-            self?.document?.fetchData.block { (result) in
-                Thread.onMain { [weak self] in
-                    activityViewController = CBCActivityViewController(activityItems: [result, self?.selectedMediaItem], applicationActivities: nil)
-                    
-                    // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
-                    activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
-                    
-                    activityViewController.popoverPresentationController?.barButtonItem = self?.navigationItem.rightBarButtonItem
-                    
-                    Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
-                }
+//        operationQueue.addOperation { [weak self] in
+//        }
+        
+        process(work: { [weak self] () -> (Any?) in
+            return self?.document?.fetchData.result
+        }) { (result:Any?) in
+            Thread.onMain { [weak self] in
+                let activityViewController = CBCActivityViewController(activityItems: [result, self?.selectedMediaItem], applicationActivities: nil)
+                
+                // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
+                activityViewController.excludedActivityTypes = [] // .addToReadingList,.airDrop
+                
+                activityViewController.popoverPresentationController?.barButtonItem = self?.navigationItem.rightBarButtonItem
+                
+                Alerts.shared.blockPresent(presenting: self, presented: activityViewController, animated: true)
             }
         }
+
+//        // block has its own opQueue.
+//        document?.fetchData.block { (result) in
+//        }
     }
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any
@@ -182,9 +181,10 @@ extension MediaViewController : WKNavigationDelegate
         loadTimer = nil
 
         // This dispatch and delay is essential to getting the scroll view to accept the offset and zoom.
-        webQueue.addOperation {
+        webQueue.addOperation { [weak self] in
             // Delay has to be longest to deal with cold start delays
-            Thread.sleep(forTimeInterval: 0.5)
+            Thread.sleep(forTimeInterval: self?.updatingView == true ? 0.5 : 0.1)
+            self?.updatingView = false
 
             Thread.onMain { [weak self] in
                 self?.setDocumentZoomScale(self?.document)
@@ -474,6 +474,7 @@ class MediaViewController : MediaItemsViewController
         }
     }
     
+    var data:Data?
     lazy var wkWebView:WKWebView? = { [weak self] in
         guard isViewLoaded else {
             return nil
@@ -713,6 +714,7 @@ class MediaViewController : MediaItemsViewController
                     Globals.shared.mediaPlayer.view?.isHidden = self?.videoLocation == .withDocuments
 
                     if let url = self?.download?.downloadURL {
+                        self?.data = data
                         self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
                         
 //
@@ -765,13 +767,14 @@ class MediaViewController : MediaItemsViewController
             
         }
         didSet {
-            guard Thread.isMainThread else {
-                return
+//            guard Thread.isMainThread else {
+//                return
+//            }
+            
+            Thread.onMain {
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: oldValue)
+                NotificationCenter.default.addObserver(self, selector: #selector(self.updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.selectedMediaItem)
             }
-            
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: oldValue)
-            
-            NotificationCenter.default.addObserver(self, selector: #selector(updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: selectedMediaItem)
             
             if isViewLoaded {
                 Thread.onMain { [weak self] in
@@ -2583,12 +2586,14 @@ class MediaViewController : MediaItemsViewController
 //        updateUI()
     }
     
+    var updatingView = false
     @objc func updateView()
     {
-        if selectedMediaItem != Globals.shared.media.selected.detail {
-            selectedMediaItem = Globals.shared.media.selected.detail
+        updatingView = true
+        if self.selectedMediaItem != Globals.shared.media.selected.detail {
+            self.selectedMediaItem = Globals.shared.media.selected.detail
         }
-        
+
 //        tableView.reloadData()
 //
 //        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
@@ -5169,36 +5174,39 @@ class MediaViewController : MediaItemsViewController
         } else {
             
         }
+
+        // NO - this adds another layer of opQueue indirection and causes timing problems with setDocumentContentOffset.
+        //        document?.fetchData.block { (result) in
+        //        }
+        // BUT fetchData.result should NOT introduce a delay if cacheDownloads is used if not thought, WATCH OUT.
         
-        document?.fetchData.block { (result) in
-            Thread.onMain { [weak self] in
-                if #available(iOS 11.0, *) {
-                    if zoomScale == nil {
-                        if let data = result, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
-                            // 0.95 worked on an iPad but 0.75 was required to make the entire width of the PDF fit on an iPhone.
-                            // I have no idea why these magic numbers are required.
-                            // It should be noted that the inequality depends on the devices as self.mediaItemNotesAndSlides.frame.width
-                            // varies by device.
-                            
-                            if let frame = self?.mediaItemNotesAndSlides.frame {
-                                if page.bounds(for: .mediaBox).width > frame.width {
-                                    zoomScale = (frame.width * 0.75) / page.bounds(for: .mediaBox).width
-                                } else {
-                                    zoomScale = (page.bounds(for: .mediaBox).width * 0.75) / frame.width
-                                }
+        Thread.onMain { [weak self] in
+            if #available(iOS 11.0, *) {
+                if zoomScale == nil {
+                    if let data = self?.data, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
+                        // 0.95 worked on an iPad but 0.75 was required to make the entire width of the PDF fit on an iPhone.
+                        // I have no idea why these magic numbers are required.
+                        // It should be noted that the inequality depends on the devices as self.mediaItemNotesAndSlides.frame.width
+                        // varies by device.
+                        
+                        if let frame = self?.mediaItemNotesAndSlides.frame {
+                            if page.bounds(for: .mediaBox).width > frame.width {
+                                zoomScale = (frame.width * 0.75) / page.bounds(for: .mediaBox).width
+                            } else {
+                                zoomScale = (page.bounds(for: .mediaBox).width * 0.75) / frame.width
                             }
                         }
                     }
                 }
-                
-                guard let zoomScale = zoomScale else {
-                    return
-                }
-                
-                if !zoomScale.isNaN {
-                    self?.document?.setZoom = true
-                    wkWebView.scrollView.setZoomScale(zoomScale, animated: false)
-                }
+            }
+            
+            guard let zoomScale = zoomScale else {
+                return
+            }
+            
+            if !zoomScale.isNaN {
+                self?.document?.setZoom = true
+                wkWebView.scrollView.setZoomScale(zoomScale, animated: false)
             }
         }
     }
