@@ -952,6 +952,12 @@ class Globals : NSObject
         
         MPRemoteCommandCenter.shared().stopCommand.isEnabled = true
         MPRemoteCommandCenter.shared().stopCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+            if let timeElapsed = Globals.shared.mediaPlayer.stateTime?.timeElapsed {
+                if timeElapsed < 0.5 { // 1.0
+                    print("STOP HITTING THE PLAY PAUSE BUTTON SO QUICKLY!")
+                    return MPRemoteCommandHandlerStatus.commandFailed
+                }
+            }
             print("RemoteControlStop")
             self.mediaPlayer.pause()
             return MPRemoteCommandHandlerStatus.success
@@ -1000,9 +1006,10 @@ class Globals : NSObject
                 
                 if let time = (event as? MPChangePlaybackPositionCommandEvent)?.positionTime {
                     self.mediaPlayer.seek(to: time)
+                    return MPRemoteCommandHandlerStatus.success
+                } else {
+                    return MPRemoteCommandHandlerStatus.commandFailed
                 }
-                
-                return MPRemoteCommandHandlerStatus.success
             })
         } else {
             // Fallback on earlier versions

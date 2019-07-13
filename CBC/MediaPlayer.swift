@@ -247,83 +247,83 @@ class MediaPlayer : NSObject
             }
         }
 
-        if #available(iOS 10.0, *) {
-            if keyPath == #keyPath(AVPlayer.timeControlStatus) {
-                if  let statusNumber = change?[.newKey] as? NSNumber,
-                    let status = AVPlayer.TimeControlStatus(rawValue: statusNumber.intValue) {
-                    switch status {
-                    case .waitingToPlayAtSpecifiedRate:
-                        if let reason = player?.reasonForWaitingToPlay {
-                            print("waitingToPlayAtSpecifiedRate: ",reason)
-                        } else {
-                            print("waitingToPlayAtSpecifiedRate: no reason")
-                        }
-                        break
-                        
-                    case .paused:
-                        if let state = state {
-                            switch state {
-                            case .none:
-                                break
-                                
-                            case .paused:
-                                break
-                                
-                            case .playing:
-                                pause() // coming back from true full screen to MVC fullScreen while playing triggers this pause.  Why???
-                                // didPlayToEnd observer doesn't always work.  This seemds to catch the cases where it doesn't.
-                                checkPlayToEnd()
-                                break
-                                
-                            case .seekingBackward:
-                                pause()
-                                break
-                                
-                            case .seekingForward:
-                                pause()
-                                break
-                                
-                            case .stopped:
-                                break
-                            }
-                        }
-                        break
-                        
-                    case .playing:
-                        if let state = state {
-                            switch state {
-                            case .none:
-                                break
-                                
-                            case .paused:
-                                play() // "fullScreen" (in MVC) then touch causes this play.  Why???
-                                break
-                                
-                            case .playing:
-                                break
-                                
-                            case .seekingBackward:
-                                play()
-                                break
-                                
-                            case .seekingForward:
-                                play()
-                                break
-                                
-                            case .stopped:
-                                break
-                            }
-                        }
-                        break
-
-                    @unknown default:
-                        break
-                    }
-                }
-            }
-        } else {
-            // Fallback on earlier versions
-        }
+//        if #available(iOS 10.0, *) {
+//            if keyPath == #keyPath(AVPlayer.timeControlStatus) {
+//                if  let statusNumber = change?[.newKey] as? NSNumber,
+//                    let status = AVPlayer.TimeControlStatus(rawValue: statusNumber.intValue) {
+//                    switch status {
+//                    case .waitingToPlayAtSpecifiedRate:
+//                        if let reason = player?.reasonForWaitingToPlay {
+//                            print("waitingToPlayAtSpecifiedRate: ",reason)
+//                        } else {
+//                            print("waitingToPlayAtSpecifiedRate: no reason")
+//                        }
+//                        break
+//
+//                    case .paused:
+//                        if let state = state {
+//                            switch state {
+//                            case .none:
+//                                break
+//
+//                            case .paused:
+//                                break
+//
+//                            case .playing:
+//                                pause() // coming back from true full screen to MVC fullScreen while playing triggers this pause.  Why???
+//                                // didPlayToEnd observer doesn't always work.  This seemds to catch the cases where it doesn't.
+//                                checkPlayToEnd()
+//                                break
+//
+//                            case .seekingBackward:
+//                                pause()
+//                                break
+//
+//                            case .seekingForward:
+//                                pause()
+//                                break
+//
+//                            case .stopped:
+//                                break
+//                            }
+//                        }
+//                        break
+//
+//                    case .playing:
+//                        if let state = state {
+//                            switch state {
+//                            case .none:
+//                                break
+//
+//                            case .paused:
+//                                play() // "fullScreen" (in MVC) then touch causes this play.  Why???
+//                                break
+//
+//                            case .playing:
+//                                break
+//
+//                            case .seekingBackward:
+//                                play()
+//                                break
+//
+//                            case .seekingForward:
+//                                play()
+//                                break
+//
+//                            case .stopped:
+//                                break
+//                            }
+//                        }
+//                        break
+//
+//                    @unknown default:
+//                        break
+//                    }
+//                }
+//            }
+//        } else {
+//            // Fallback on earlier versions
+//        }
         
         if keyPath == #keyPath(AVPlayerItem.status) {
             let status: AVPlayerItem.Status
@@ -809,9 +809,9 @@ class MediaPlayer : NSObject
                 
                 observedItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: nil) // &GlobalPlayerContext
                 
-                if #available(iOS 10.0, *) {
-                    player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), context: nil) // &GlobalPlayerContext
-                }
+//                if #available(iOS 10.0, *) {
+//                    player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), context: nil) // &GlobalPlayerContext
+//                }
                 
                 observedItem = nil
                 
@@ -847,13 +847,14 @@ class MediaPlayer : NSObject
         // Timer that runs all the time.  Is this still needed?
         self.playerObserverTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(playerObserver), userInfo: nil, repeats: true)
         
-        if #available(iOS 10.0, *) {
-            // Observer when media is playing
-            player?.addObserver( self,
-                                 forKeyPath: #keyPath(AVPlayer.timeControlStatus),
-                                 options: [.old, .new],
-                                 context: nil) // &GlobalPlayerContext
-        }
+        // Causes problems with remote control events from lock screen (and presumably accessories)
+//        if #available(iOS 10.0, *) {
+//            // Observer when media is playing
+//            player?.addObserver( self,
+//                                 forKeyPath: #keyPath(AVPlayer.timeControlStatus),
+//                                 options: [.old, .new],
+//                                 context: nil) // &GlobalPlayerContext
+//        }
         
         // Observer when media changes
         currentItem?.addObserver(self,
