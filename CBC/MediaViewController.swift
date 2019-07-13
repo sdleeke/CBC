@@ -3818,6 +3818,8 @@ class MediaViewController : MediaItemsViewController
                 if newConstraintConstant > ((maxConstraintConstant+minConstraintConstant)/2) {
                     newConstraintConstant = (maxConstraintConstant+minConstraintConstant)/2
                 }
+            } else {
+//                newConstraintConstant = (maxConstraintConstant+minConstraintConstant)/2
             }
         }
 
@@ -4380,7 +4382,9 @@ class MediaViewController : MediaItemsViewController
         setupVerticalSplit()
         setupControlView()
 
-        updateUI()
+        if mediaList != nil {
+            updateUI()
+        }
 
 //        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
 //        // Delay so UI works as desired.
