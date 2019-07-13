@@ -416,19 +416,19 @@ class ScriptureIndex
             bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
-        if let category = mediaListGroupSort?.category.value {
+        if let category = mediaListGroupSort?.category {
             bodyString += "Category: \(category)<br/>"
         }
         
-        if let tag = mediaListGroupSort?.tag.value {
+        if let tag = mediaListGroupSort?.tag {
             bodyString += "Tag: \(tag)<br/>"
         }
         
-        if let text = mediaListGroupSort?.search.value?.text {
+        if let text = mediaListGroupSort?.search.text {
             bodyString += "Search: \(text)"
         }
         
-        if mediaListGroupSort?.search.value?.transcripts.value == true {
+        if mediaListGroupSort?.search.transcripts == true {
             bodyString += " (including transcripts)"
         }
         

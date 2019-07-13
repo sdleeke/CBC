@@ -30,10 +30,10 @@
             </objects>
             <point key="canvasLocation" x="-974" y="-2120"/>
         </scene>
-        <!--CBC Media-->
+        <!--MediaTableViewController-->
         <scene sceneID="cS0-Qf-R7k">
             <objects>
-                <viewController storyboardIdentifier="Media Table View" automaticallyAdjustsScrollViewInsets="NO" hidesBottomBarWhenPushed="YES" id="aFI-YW-IUs" customClass="MediaTableViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="Media Table View" title="MediaTableViewController" automaticallyAdjustsScrollViewInsets="NO" hidesBottomBarWhenPushed="YES" id="aFI-YW-IUs" customClass="MediaTableViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="NpF-M6-DhB">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -2042,7 +2042,7 @@ Web site: www.countrysidebible.org</string>
                                 <rect key="frame" x="0.0" y="100" width="270" height="322"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="checkmark" indentationWidth="10" reuseIdentifier="PopoverCell" id="gxN-j6-OUN" customClass="PopoverTableViewCell" customModule="CBC" customModuleProvider="target">
+                                    <tableViewCell contentMode="scaleToFill" misplaced="YES" selectionStyle="default" accessoryType="checkmark" indentationWidth="10" reuseIdentifier="PopoverCell" id="gxN-j6-OUN" customClass="PopoverTableViewCell" customModule="CBC" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="22" width="270" height="35"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="gxN-j6-OUN" id="G1M-4g-45e">
@@ -2050,7 +2050,7 @@ Web site: www.countrysidebible.org</string>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gxs-R4-h4B">
-                                                    <rect key="frame" x="15" y="11" width="258" height="13"/>
+                                                    <rect key="frame" x="15" y="11" width="158" height="13"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>

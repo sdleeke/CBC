@@ -8,12 +8,6 @@
 
 import Foundation
 
-struct MediaNeed
-{
-    var sorting:Bool = true
-    var grouping:Bool = true
-}
-
 // Tried to use a struct and bad things happend.  Copy on write problems?  Simultaneous access problems?  Are those two related?  Could be.  Don't know.
 // Problems went away when I switched to class
 
@@ -254,12 +248,7 @@ class Media
     }()
     
     lazy var search : Search! = {
-        let search = Search(self)
-        
-        search.text = UserDefaults.standard.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
-        search.isActive = search.text?.isEmpty == false
-
-        return search
+        return Search(self)
     }()
     
     // Make thread safe?
@@ -274,7 +263,7 @@ class Media
     
     var goto:String?
     
-    var need = MediaNeed()
+//    var need = MediaNeed()
     
     // Globals.shared.media.category.selected is the key
     // That way work can be saved when a category is changed.

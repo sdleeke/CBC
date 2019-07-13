@@ -923,8 +923,8 @@ class MediaTableViewController : MediaItemsViewController
             }
             
             popover.purpose = .selectingGrouping
-            popover.section.strings = Globals.shared.groupingTitles
-            popover.stringSelected = Globals.shared.grouping?.translate
+            popover.section.strings = Globals.shared.media.active?.groupingTitles
+            popover.stringSelected = Globals.shared.media.active?.grouping?.translate
             
             present(navigationController, animated: true, completion: nil)
         }
@@ -1991,7 +1991,7 @@ class MediaTableViewController : MediaItemsViewController
                     self?.updateDisplay(context:context)
                 }
                 
-                if !abort, Globals.shared.media.search.transcripts.value == true, let mediaItems = Globals.shared.media.search.candidates?.mediaList?.list {
+                if !abort, Globals.shared.media.search.transcripts, let mediaItems = Globals.shared.media.search.candidates?.mediaList?.list {
                     // toSearch?
                     Globals.shared.media.search.searches?[context]?.complete = false
                     
@@ -2004,7 +2004,7 @@ class MediaTableViewController : MediaItemsViewController
                             searchHit = mediaItem.searchNotes(context.searchText)
                         }
 
-                        abort = abort || shouldAbort() || (test?() ?? false) || (Globals.shared.media.search.transcripts.value == false)
+                        abort = abort || shouldAbort() || (test?() ?? false) || !Globals.shared.media.search.transcripts
                         
                         Thread.onMainSync {
                             if self?.loadingButton?.tag == 1 {
@@ -3566,9 +3566,9 @@ class MediaTableViewController : MediaItemsViewController
             
         case .selectingGrouping:
             self.popover?["GROUPING"]?.dismiss(animated: true, completion: {
-                Globals.shared.grouping = Globals.shared.groupings[index]
+                Globals.shared.media.active?.grouping = Globals.shared.media.active?.groupings[index]
                 
-                if Globals.shared.media.need.grouping {
+                if Globals.shared.media.active?.need.grouping == true {
                     self.display.clear()
                     
                     self.tableView?.reloadData()
@@ -3596,9 +3596,9 @@ class MediaTableViewController : MediaItemsViewController
             
         case .selectingSorting:
             self.popover?["SORTING"]?.dismiss(animated: true, completion: {
-                Globals.shared.sorting = Constants.sortings[index]
+                Globals.shared.media.active?.sorting = Constants.sortings[index]
                 
-                if (Globals.shared.media.need.sorting) {
+                if Globals.shared.media.active?.need.sorting == true {
                     self.display.clear()
                     
                     Thread.onMain { [weak self] in 

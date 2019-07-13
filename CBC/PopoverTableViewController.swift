@@ -640,18 +640,19 @@ class PopoverTableViewController : CBCViewController
                         // This is an heuristic, empirical solution.  It may not work in all cases.
                         if (seconds >= startSeconds) && (seconds <= (endSeconds)) { //  - 0.5
                             timeWindowFound = true
-                            break
                         } else {
 
                         }
                     } else {
                         if (seconds >= startSeconds) && (seconds <= endSeconds) {
                             timeWindowFound = true
-                            break
                         } else if (seconds < startSeconds) {
                             timeWindowFound = true
-                            break
                         }
+                    }
+                    
+                    if timeWindowFound {
+                        break
                     }
                 }
             }
@@ -2131,17 +2132,20 @@ extension PopoverTableViewController : UITableViewDelegate
         
         if purpose == .selectingTime, Globals.shared.mediaPlayer.currentTime != nil {
             activityIndicator.startAnimating()
-
+            
             if trackingTimer != nil {
                 trackingTimer?.invalidate()
                 trackingTimer = nil
+                lastFollow = nil
             }
             
             // This is a hack because it is being done because we know the delegate call makes a seek.
             Globals.shared.mediaPlayer.seekingCompletion = { [weak self] in
                 Thread.onMain { [weak self] in 
                     self?.activityIndicator.stopAnimating()
-                    self?.startTracking()
+                    if self?.isTracking == true {
+                        self?.startTracking()
+                    }
                 }
             }
         }

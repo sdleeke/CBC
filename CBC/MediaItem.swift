@@ -1137,7 +1137,7 @@ class MediaItem : NSObject //, Downloader
                 return
             }
             
-            print(newValue)
+//            print(newValue)
             self[Constants.SETTINGS.CURRENT_TIME+playing] = newValue
             
             mediaItemSettings?[Constants.SETTINGS.CURRENT_TIME+playing] = newValue
@@ -3349,7 +3349,7 @@ class MediaItem : NSObject //, Downloader
                 htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, index: true).0
             } else
                 
-            if let _ = viewController as? MediaTableViewController, Globals.shared.media.search.isActive, Globals.shared.media.search.transcripts.value == true {
+            if let _ = viewController as? MediaTableViewController, Globals.shared.media.search.isActive, Globals.shared.media.search.transcripts {
                 htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.media.search.text, wholeWordsOnly: false, index: true).0
             }
             

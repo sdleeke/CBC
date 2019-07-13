@@ -1065,25 +1065,29 @@ class MediaPlayer : NSObject
                 operationQueue.addOperation { [weak self] in
                     self?.isSeeking = true
                     
-                    self?.player?.seek(to: CMTimeMakeWithSeconds(seek,preferredTimescale: Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,preferredTimescale: Constants.CMTime_Resolution),
-                                      toleranceAfter: CMTimeMakeWithSeconds(0,preferredTimescale: Constants.CMTime_Resolution),
-                                      completionHandler: { (finished:Bool) in
-                                        if finished { // , self?.isSeeking == true
-                                            self?.mediaItem?.currentTime = seek.description
-                                            self?.stateTime?.startTime = seek.description
+                    
+//                    self?.player?.seek(to: CMTimeMakeWithSeconds(seek,preferredTimescale: Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,preferredTimescale: Constants.CMTime_Resolution),
+//                                      toleranceAfter: CMTimeMakeWithSeconds(0,preferredTimescale: Constants.CMTime_Resolution))
+                    self?.player?.seek(to: CMTimeMakeWithSeconds(seek,preferredTimescale: Constants.CMTime_Resolution))
+                    { (finished:Bool) in
+                        if finished { // , self?.isSeeking == true
+                            self?.mediaItem?.currentTime = seek.description
+                            self?.stateTime?.startTime = seek.description
 
-                                            self?.lastSeek = to
-                                            
-                                            // This MUST come last as it triggers the seekingCompletion?() call.
-                                            self?.isSeeking = false
+                            self?.lastSeek = to
+                            
+                            // This MUST come last as it triggers the seekingCompletion?() call.
+                            self?.isSeeking = false
 
-                                            self?.setupPlayingInfoCenter()
+                            self?.setupPlayingInfoCenter()
 
-                                            Thread.onMain { [weak self] in 
-                                                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
-                                            }
-                                        }
-                    })
+                            Thread.onMain { [weak self] in
+                                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
+                            }
+                        } else {
+                            
+                        }
+                    }
                 }
             }
             break

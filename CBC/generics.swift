@@ -121,10 +121,12 @@ class Default<T>
         debug(self)
     }
     
+    var didSet : ((T?)->())?
+    
     private var _value : T?
     {
         didSet {
-
+            didSet?(_value)
         }
     }
     
@@ -900,7 +902,7 @@ class Fetch<T>
                     return result
                 }
                 
-                result = transformIt(self.fetch?())
+                result = transformIt(fetch?())
                 
                 operationQueue.addOperation {
                     self.store?(result)

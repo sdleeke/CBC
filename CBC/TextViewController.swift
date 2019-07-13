@@ -1032,11 +1032,11 @@ class TextViewController : CBCViewController
         }
         
         fetch.didSetCache = { [weak self] (array:[[String:Any]]?) in
-            if fetch.result != nil {
-                self?.checkSync()
+            if array != nil { // self?.wordRangeTiming
+                self?.checkSync(array:array)
             }
             Thread.onMain { [weak self] in 
-                self?.syncButton?.isEnabled = self?.wordRangeTiming != nil
+                self?.syncButton?.isEnabled = array != nil // self?.wordRangeTiming
                 self?.activityIndicator?.stopAnimating()
             }
         }
@@ -2244,13 +2244,13 @@ class TextViewController : CBCViewController
         navigationController?.toolbar.isTranslucent = false
     }
     
-    func checkSync()
+    func checkSync(array:[[String:Any]]?)
     {
         guard let transcript = self.transcript else {
             return
         }
         
-        guard let wordRangeTiming = self.wordRangeTiming?.result else {
+        guard let wordRangeTiming = array else { // self.wordRangeTiming?.result
             return
         }
         

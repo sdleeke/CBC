@@ -1607,7 +1607,29 @@ class VoiceBase
     private var _mediaJSON : [String:Any]?
     {
         didSet {
-
+            guard let filename = filename else {
+                print("failed to get filename")
+                return
+            }
+            
+            guard let destinationURL = (filename + Constants.FILENAME_EXTENSION.media).fileSystemURL else {
+                print("failed to get destinationURL")
+                return
+            }
+            
+            fileQueue.addOperation { [weak self] in
+                if self?._mediaJSON != nil {
+                    let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
+                    
+                    do {
+                        try mediaPropertyList?.write(to: destinationURL)
+                    } catch let error {
+                        print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
+                    }
+                } else {
+                    destinationURL.delete(block:true)
+                }
+            }
         }
     }
     var mediaJSON: [String:Any]?
@@ -1659,30 +1681,6 @@ class VoiceBase
         }
         set {
             _mediaJSON = newValue
-
-            guard let filename = filename else {
-                print("failed to get filename")
-                return
-            }
-
-            guard let destinationURL = (filename + Constants.FILENAME_EXTENSION.media).fileSystemURL else {
-                print("failed to get destinationURL")
-                return
-            }
-            
-            fileQueue.addOperation { [weak self] in
-                if self?._mediaJSON != nil {
-                    let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
-
-                    do {
-                        try mediaPropertyList?.write(to: destinationURL)
-                    } catch let error {
-                        print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
-                    }
-                } else {
-                    destinationURL.delete(block:true)
-                }
-            }
         }
     }
 
@@ -1991,7 +1989,7 @@ class VoiceBase
                 }
                 
                 if let percentComplete = self?.percentComplete {
-                    print("\(title) (\(transcriptPurpose)) is \(percentComplete)% finished")
+                    print("\(title) (\(transcriptPurpose)) is \(String(format: "%0.1f",percentComplete * 100))% finished")
                 }
                 break
             }
@@ -2192,101 +2190,103 @@ class VoiceBase
         progress(completion: completion, onError: onError)
     }
     
-    func delete(alert:Bool,completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
+    func delete(alert:Bool = false,completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
     {
-        guard Globals.shared.isVoiceBaseAvailable ?? false else {
-            return
-        }
+        VoiceBase.delete(alert: alert, mediaID: self.mediaID, completion: completion, onError: onError)
         
-        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey else {
-            return
-        }
-        
-        guard let mediaID = mediaID else {
-            return
-        }
-
-        // mediaID:mediaID,
-        guard let url = URL(string: VoiceBase.url(path:"media/\(mediaID)", query: nil)) else {
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        
-        request.httpMethod = "DELETE"
-        
-        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-        
-        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: UUID().uuidString)
-        let session = URLSession(configuration: sessionConfig)
-        
-        // URLSession.shared
-        let task = session.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            var errorOccured = false
-            
-            if let error = error {
-                print("post error: ",error.localizedDescription)
-                errorOccured = true
-            }
-            
-            if let response = response {
-                debug("post response: ",response.description)
-                
-                if let httpResponse = response as? HTTPURLResponse {
-                    debug("post HTTP response: ",httpResponse.description)
-                    debug("post HTTP response: ",httpResponse.allHeaderFields)
-                    debug("post HTTP response: ",httpResponse.statusCode)
-                    debug("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                    
-                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
-                        errorOccured = true
-                    }
-                    
-                    if (httpResponse.statusCode == 204) || (httpResponse.statusCode == 404) {
-                        // It eithber completed w/o error (204) so it is now gone and we should set mediaID to nil
-                        // OR it couldn't be found (404) in which case it should also be set to nil.
-
-                        // WE DO NOT HAVE TO SET THIS TO NIL.
-                        // self.mediaID = nil
-                    }
-                }
-            } else {
-                errorOccured = true
-            }
-            
-            var json : [String:Any]?
-            
-            if let data = data, data.count > 0 {
-                let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
-                debug(string as Any)
-
-                json = data.json as? [String:Any]
-                debug(json as Any)
-                
-                if let errors = json?["errors"] {
-                    print(string as Any)
-                    print(json as Any)
-                    print(errors)
-                    errorOccured = true
-                }
-            } else {
-                // no data
-                
-            }
-            
-            if errorOccured {
-                // ???
-                onError?(json)
-//                Thread.onMain { [weak self] in 
+//        guard Globals.shared.isVoiceBaseAvailable ?? false else {
+//            return
+//        }
+//        
+//        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey else {
+//            return
+//        }
+//        
+//        guard let mediaID = mediaID else {
+//            return
+//        }
+//
+//        // mediaID:mediaID,
+//        guard let url = URL(string: VoiceBase.url(path:"media/\(mediaID)", query: nil)) else {
+//            return
+//        }
+//        
+//        var request = URLRequest(url: url)
+//        
+//        request.httpMethod = "DELETE"
+//        
+//        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
+//        
+//        let sessionConfig = URLSessionConfiguration.default // background(withIdentifier: UUID().uuidString)
+//        let session = URLSession(configuration: sessionConfig)
+//        
+//        // URLSession.shared
+//        let task = session.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+//            var errorOccured = false
+//            
+//            if let error = error {
+//                print("post error: ",error.localizedDescription)
+//                errorOccured = true
+//            }
+//            
+//            if let response = response {
+//                debug("post response: ",response.description)
+//                
+//                if let httpResponse = response as? HTTPURLResponse {
+//                    debug("post HTTP response: ",httpResponse.description)
+//                    debug("post HTTP response: ",httpResponse.allHeaderFields)
+//                    debug("post HTTP response: ",httpResponse.statusCode)
+//                    debug("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+//                    
+//                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
+//                        errorOccured = true
+//                    }
+//                    
+//                    if (httpResponse.statusCode == 204) || (httpResponse.statusCode == 404) {
+//                        // It eithber completed w/o error (204) so it is now gone and we should set mediaID to nil
+//                        // OR it couldn't be found (404) in which case it should also be set to nil.
+//
+//                        // WE DO NOT HAVE TO SET THIS TO NIL.
+//                        // self.mediaID = nil
+//                    }
 //                }
-            } else {
-                completion?(json)
-//                Thread.onMain { [weak self] in 
+//            } else {
+//                errorOccured = true
+//            }
+//            
+//            var json : [String:Any]?
+//            
+//            if let data = data, data.count > 0 {
+//                let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
+//                debug(string as Any)
+//
+//                json = data.json as? [String:Any]
+//                debug(json as Any)
+//                
+//                if let errors = json?["errors"] {
+//                    print(string as Any)
+//                    print(json as Any)
+//                    print(errors)
+//                    errorOccured = true
 //                }
-            }
-        })
-        
-        task.resume()
+//            } else {
+//                // no data
+//                
+//            }
+//            
+//            if errorOccured {
+//                // ???
+//                onError?(json)
+////                Thread.onMain { [weak self] in 
+////                }
+//            } else {
+//                completion?(json)
+////                Thread.onMain { [weak self] in 
+////                }
+//            }
+//        })
+//        
+//        task.resume()
     }
     
     func details(completion:(([String:Any]?)->())?,onError:(([String:Any]?)->())?)
@@ -2298,7 +2298,7 @@ class VoiceBase
         })
     }
     
-    func reset()
+    func reset(alert:Bool = false)
     {
         // Must retain purpose and mediaItem.
         
@@ -2317,7 +2317,15 @@ class VoiceBase
         resultsTimer = nil
         
         transcript = nil
-        transcriptSegments = nil
+        
+        // Fetch shoudl NOT be set to nil.
+        // Unless cache is being used it doesn't
+        // even need to be cleared.
+//        transcriptSegments = nil
+        
+        if alert, let text = self.mediaItem?.text {
+            Alerts.shared.alert(title:"Transcript Deleted", message:"The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been deleted.")
+        }
     }
     
     private func details(alert:Bool, atEnd:(()->())?)
@@ -2764,6 +2772,32 @@ class VoiceBase
         })
     }
     
+    func performAutoEdit()
+    {
+        guard !self.isAutoEditUnderway else {
+            // AutoEdit underway
+            return
+        }
+        
+        var alertActions = [AlertAction]()
+        
+        var message:String?
+        
+        if let text = self.mediaItem?.text {
+            message = text + " (\(self.transcriptPurpose))"
+        }
+        
+        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
+            self.confirmAutoEdit()
+        }))
+        
+        alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: {
+            
+        }))
+        
+        Alerts.shared.alert(title:"Perform " + Constants.Strings.Auto_Edit, message: message, actions: alertActions)
+    }
+    
     func getTranscript(alert:Bool = true,detailedAlerts:Bool = false,completion:(()->())? = nil)
     {
         getTranscript(alert: alert) {
@@ -2777,36 +2811,15 @@ class VoiceBase
                         self.percentComplete = nil
                     }
                     
-                    guard !self.isAutoEditUnderway else {
-                        // AutoEdit underway
-                        return
-                    }
-                    
                     // This is where we MIGHT ask the user if they want to view/edit the transcript but I'm not
                     // sure I can predict the context in which this (i.e. that) would happen.
-                    var alertActions = [AlertAction]()
-                    
-                    var message:String?
-                    
-                    if let text = self.mediaItem?.text {
-                        message = text + " (\(self.transcriptPurpose))"
-                    }
-                    
-                    alertActions.append(AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: {
-                        self.confirmAutoEdit()
-                    }))
-                    
-                    alertActions.append(AlertAction(title: Constants.Strings.No, style: .default, handler: {
-                        
-                    }))
-                    
-                    Alerts.shared.alert(title:"Perform " + Constants.Strings.Auto_Edit, message: message, actions: alertActions)
+                    self.performAutoEdit()
                 }
             }
         }
     }
     
-    private func getTranscript(alert:Bool, onSuccess:(()->())? = nil)
+    private func getTranscript(alert:Bool, onSuccess:(()->())? = nil) // , onFailure:(()->())? = nil
     {
         guard let mediaID = mediaID else {
             upload()
@@ -2902,7 +2915,9 @@ class VoiceBase
                 Alerts.shared.alert(title: "Transcription Failed",message: message)
             }
             
-            self.delete(alert:false)
+//            onFailure?()
+
+            self.delete()
             self.reset()
         })
     }
@@ -5394,8 +5409,8 @@ class VoiceBase
                     viewController.yesOrNo(title: "Confirm Deletion of Machine Generated Transcript",
                             message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
-                                self.delete(alert:true)
-                                self.reset()
+                                self.delete(alert:false)
+                                self.reset(alert:true)
                             },
                             yesStyle: .destructive,
                             noAction: nil,

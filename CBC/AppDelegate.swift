@@ -439,7 +439,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         }
 
         // If new category or tag, or sorting or grouping is needed:
-        if newCategory || newTag || Globals.shared.media.need.sorting || Globals.shared.media.need.grouping {
+        if newCategory || newTag || (Globals.shared.media.active?.need.sorting == true) || (Globals.shared.media.active?.need.grouping == true) {
             Thread.onMain { [weak self] in 
                 // Pop to the root view controller
                 // And show the change

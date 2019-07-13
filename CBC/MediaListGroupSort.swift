@@ -35,14 +35,14 @@ class MLGSSection
     var sorting : String?
     {
         get {
-            return mediaListGroupSort?.sorting.value
+            return mediaListGroupSort?.sorting
         }
     }
     
     var grouping : String?
     {
         get {
-            return mediaListGroupSort?.grouping.value
+            return mediaListGroupSort?.grouping
         }
     }
     
@@ -116,35 +116,92 @@ class MLGSSection
  
  */
 
+struct MediaNeed
+{
+    var sorting:Bool = true
+    var grouping:Bool = true
+}
+
 class MediaListGroupSort // : NSObject
 {
     deinit {
         debug(self)
     }
     
+    var need = MediaNeed()
+    
     var name : String?
     var complete = false
     var cancelled = false
     var when : Date?
+    
+    var groupings = Constants.groupings
+    var groupingTitles = Constants.GroupingTitles
 
-    lazy var sorting = Default<String>({ return Globals.shared.sorting })
+    // In case we want different sorting in different MLGS's some day?
+    var sorting : String? // lazy Default<String>({ return Globals.shared.sorting })
+    {
+        get {
+            return Globals.shared.sorting
+        }
+        set {
+            if !need.sorting {
+                // => Once set it must be reset elsewhere.
+                need.sorting = (sorting != newValue)
+            }
+            
+            Globals.shared.sorting = newValue
+        }
+    }
     
-    lazy var grouping = Default<String>({ return Globals.shared.grouping })
-    
+    // In case we want different grouping in different MLGS's some day?
+    var grouping : String? // lazy Default<String>({ return Globals.shared.grouping })
+    {
+        get {
+            return Globals.shared.grouping
+        }
+        set {
+            if !need.grouping {
+                // => Once set it must be reset elsewhere.
+                need.grouping = (grouping != newValue)
+            }
+            
+            Globals.shared.grouping = newValue
+        }
+    }
+
     // In case we want different search in different MLGS's some day?
-    lazy var search = Default<Search>({ return Globals.shared.media.search })
-    
+    var search : Search! // lazy Default<Search>({ return Globals.shared.media.search })
+    {
+        get {
+            return Globals.shared.media.search
+        }
+        set {
+            Globals.shared.media.search = newValue
+        }
+    }
+
     // In case we want different categories in different MLGS's some day?
-    lazy var category:Default<String>! = {
-        let category = Default<String>({ return Globals.shared.media.category.selected })
-    
-        
-        
-        return category
-    }()
-    
+    var category : String? // lazy Default<String>({ return Globals.shared.media.category.selected })
+    {
+        get {
+            return Globals.shared.grouping
+        }
+        set {
+            Globals.shared.grouping = newValue
+        }
+    }
+
     // In case we want different tags selected in different MLGS's some day?
-    var tag = Default<String>({ return Globals.shared.media.tags.selected })
+    var tag : String? // lazy Default<String>({ return Globals.shared.media.tags.selected })
+    {
+        get {
+            return Globals.shared.media.tags.selected
+        }
+        set {
+            Globals.shared.media.tags.selected = newValue
+        }
+    }
 
     func addTagMediaItem(mediaItem:MediaItem,sortTag:String?,tag:String?)
     {
@@ -194,11 +251,11 @@ class MediaListGroupSort // : NSObject
         get {
             var string:String?
 
-            if let sorting = sorting.value?.uppercased() {
+            if let sorting = sorting?.uppercased() {
                 string = ((string != nil) ? string! + ":" : "") + sorting
             }
 
-            if let grouping = grouping.value?.uppercased() {
+            if let grouping = grouping?.uppercased() {
                 string = ((string != nil) ? string! + ":" : "") + grouping
             }
 
@@ -209,21 +266,21 @@ class MediaListGroupSort // : NSObject
     var context:String?
     {
         get {
-            guard let category = category.value?.uppercased(), !category.isEmpty else {
+            guard let category = category?.uppercased(), !category.isEmpty else {
                 return nil
             }
             
             var string = "CATEGORY:" + category
             
-            if let tag = tag.value?.uppercased() {
+            if let tag = tag?.uppercased() {
                 string += "|TAG:" + tag
             }
             
-            if search.value?.transcripts.value == true {
+            if search.transcripts {
                 string += "|TRANSCRIPTS:YES"
             }
 
-            if search.value?.isValid == true, let search = search.value?.text?.uppercased() {
+            if search.isValid, let search = search.text?.uppercased() {
                 string += "|SEARCH:" + search
             }
             
@@ -750,7 +807,7 @@ class MediaListGroupSort // : NSObject
         groupNames = ThreadSafeDN<String>(name: "MediaGroupNames")
         groupSort = ThreadSafeDN<[MediaItem]>(name: "MediaGroupSort")
         
-        sortGroup(grouping.value)
+        sortGroup(grouping)
 
         guard let mediaItems = mediaItems else {
             return
@@ -799,11 +856,11 @@ class MediaListGroupSort // : NSObject
             return nil
         }
         
-        guard let grouping = grouping.value else {
+        guard let grouping = grouping else {
             return nil
         }
 
-        guard let sorting = sorting.value else {
+        guard let sorting = sorting else {
             return nil
         }
         
@@ -827,19 +884,19 @@ class MediaListGroupSort // : NSObject
             bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
-        if let category = category.value {
+        if let category = category {
             bodyString += "Category: \(category)<br/>"
         }
         
-        if let tag = tag.value {
+        if let tag = tag {
             bodyString += "Tag: \(tag)<br/>"
         }
         
-        if let searchText = search.value?.text {
+        if let searchText = search.text {
             bodyString += "Search: \(searchText)"
         }
         
-        if search.value?.transcripts.value == true {
+        if search.transcripts == true {
             bodyString += " (including transcripts)"
         }
 

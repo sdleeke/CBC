@@ -133,7 +133,16 @@ class Search
         }
     }
 
-    lazy var transcripts = Default<Bool>({ return Globals.shared.settings.transcripts })
+    // In case we want different transcripts search switch in different MLGS's some day?
+    var transcripts : Bool // lazy Default<Bool>({ return Globals.shared.settings.transcripts })
+    {
+        get {
+            return Globals.shared.settings.transcripts
+        }
+        set {
+            Globals.shared.settings.transcripts = newValue
+        }
+    }
 //    var transcripts:Bool
 //    {
 //        get {

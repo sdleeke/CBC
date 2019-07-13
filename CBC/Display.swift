@@ -23,21 +23,21 @@ class Display
     
     func setup(_ active:MediaListGroupSort? = nil)
     {
-        Globals.shared.groupings = Constants.groupings
-        Globals.shared.groupingTitles = Constants.GroupingTitles
+        active?.groupings = Constants.groupings
+        active?.groupingTitles = Constants.GroupingTitles
         
         if active?.mediaList?.classes.count > 0 {
-            Globals.shared.groupings.append(GROUPING.CLASS)
-            Globals.shared.groupingTitles.append(Grouping.Class)
+            active?.groupings.append(GROUPING.CLASS)
+            active?.groupingTitles.append(Grouping.Class)
         }
         
         if active?.mediaList?.events.count > 0 {
-            Globals.shared.groupings.append(GROUPING.EVENT)
-            Globals.shared.groupingTitles.append(Grouping.Event)
+            active?.groupings.append(GROUPING.EVENT)
+            active?.groupingTitles.append(Grouping.Event)
         }
         
-        if let grouping = Globals.shared.grouping, !Globals.shared.groupings.contains(grouping) {
-            Globals.shared.grouping = GROUPING.YEAR
+        if let grouping = active?.grouping, active?.groupings.contains(grouping) == false {
+            active?.grouping = GROUPING.YEAR
         }
 
         // Why is the section being recreated?

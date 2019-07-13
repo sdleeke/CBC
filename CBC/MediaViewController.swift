@@ -4380,8 +4380,8 @@ class MediaViewController : MediaItemsViewController
         setupVerticalSplit()
         setupControlView()
 
-//        updateUI()
-//
+        updateUI()
+
 //        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
 //        // Delay so UI works as desired.
 //        DispatchQueue.global(qos: .userInitiated).async { [weak self] in

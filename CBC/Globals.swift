@@ -414,8 +414,8 @@ class Globals : NSObject
     /////////////////////////////////////////////////////////////////////////////////////
     // would like to group these somehow
     /////////////////////////////////////////////////////////////////////////////////////
-    var groupings = Constants.groupings
-    var groupingTitles = Constants.GroupingTitles
+//    var groupings = Constants.groupings
+//    var groupingTitles = Constants.GroupingTitles
     
     var _grouping:String?
     {
@@ -423,9 +423,6 @@ class Globals : NSObject
             
         }
         didSet {
-            // This assumes it only changes ONCE.  I.e. another call w/ the new value and it will be false.
-            media.need.grouping = (grouping != oldValue)
-            
             let defaults = UserDefaults.standard
             if (_grouping != nil) {
                 defaults.set(_grouping,forKey: Constants.SETTINGS.GROUPING)
@@ -460,9 +457,6 @@ class Globals : NSObject
             
         }
         didSet {
-            // This assumes it only changes ONCE.  I.e. another call w/ the new value it will be false.
-            media.need.sorting = (sorting != oldValue)
-            
             let defaults = UserDefaults.standard
             if (_sorting != nil) {
                 defaults.set(_sorting,forKey: Constants.SETTINGS.SORTING)
@@ -546,7 +540,7 @@ class Globals : NSObject
                 string += ", " + "\"\(search)\""  // Search:
             }
             
-            if media.search.transcripts.value == true {
+            if media.search.transcripts {
                 string += " (including transcripts)"  // Search:
             }
             
@@ -753,7 +747,12 @@ class Globals : NSObject
     }()
 
     lazy var _media : Media? = {
-        return Media()
+        let media = Media()
+        
+        media.search.text = UserDefaults.standard.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
+        media.search.isActive = media.search.text?.isEmpty == false
+        
+        return media
     }()
     
     var media : Media!

@@ -831,7 +831,7 @@ class LexiconIndexViewController : MediaItemsViewController
         }
         
         // Globals.shared
-        guard let grouping = mediaListGroupSort?.grouping.value, let sorting = mediaListGroupSort?.sorting.value else {
+        guard let grouping = mediaListGroupSort?.grouping, let sorting = mediaListGroupSort?.sorting else {
             return nil
         }
         
@@ -873,29 +873,29 @@ class LexiconIndexViewController : MediaItemsViewController
             bodyString += " from " + Constants.CBC.LONG + "<br/><br/>"
         }
         
-        if let category = mediaListGroupSort?.category.value {
+        if let category = mediaListGroupSort?.category {
             bodyString += "Category: \(category)<br/>"
         }
         
-        if let tag = mediaListGroupSort?.tag.value {
+        if let tag = mediaListGroupSort?.tag {
             bodyString += "Tag: \(tag)<br/>"
         }
         
-        if mediaListGroupSort?.search.value?.isValid == true, let searchText = mediaListGroupSort?.search.value?.text {
+        if mediaListGroupSort?.search.isValid == true, let searchText = mediaListGroupSort?.search.text {
             bodyString += "Search: \(searchText)"
         }
         
-        if mediaListGroupSort?.search.value?.transcripts.value == true {
+        if mediaListGroupSort?.search.transcripts == true {
             bodyString += " (including transcripts)"
         }
         
         bodyString += "<br/>"
         
-        if let grouping = mediaListGroupSort?.grouping.value?.translate {
+        if let grouping = mediaListGroupSort?.grouping?.translate {
             bodyString += "Grouped: By \(grouping)<br/>"
         }
         
-        if let sorting = mediaListGroupSort?.sorting.value?.translate {
+        if let sorting = mediaListGroupSort?.sorting?.translate {
             bodyString += "Sorted: \(sorting)<br/>"
         }
         
@@ -980,14 +980,14 @@ class LexiconIndexViewController : MediaItemsViewController
                         }
                         
                         // Globals.shared
-                        if mediaListGroupSort?.grouping.value != GROUPING.CLASS {
+                        if mediaListGroupSort?.grouping != GROUPING.CLASS {
                             if mediaItem.hasClassName {
                                 order.append("class")
                             }
                         }
                         
                         // Globals.shared
-                        if mediaListGroupSort?.grouping.value != GROUPING.EVENT {
+                        if mediaListGroupSort?.grouping != GROUPING.EVENT {
                             if mediaItem.hasEventName {
                                 order.append("event")
                             }
@@ -1013,7 +1013,7 @@ class LexiconIndexViewController : MediaItemsViewController
             if includeURLs, keys.count > 1 {
                 bodyString += "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
                 
-                if let grouping = mediaListGroupSort?.grouping.value { // Globals.shared
+                if let grouping = mediaListGroupSort?.grouping { // Globals.shared
                     switch grouping {
                     case GROUPING.CLASS:
                         fallthrough
