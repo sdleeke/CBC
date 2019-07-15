@@ -1358,7 +1358,7 @@ class MediaItem : NSObject //, Downloader
                 let tokenWord = notesToken.key
                 let tokenCount = notesToken.value
                 
-                let markCount = self?.notesText?.markHTML(searchText: tokenWord, wholeWordsOnly: true, index: false).1
+                let markCount = self?.notesText?.markHTML(searchText: tokenWord, wholeWordsOnly: true, index: false)?.1
 
                 if tokenCount != markCount {
                     mismatches.append("\(tokenWord) \(tokenCount) \(markCount)")
@@ -3346,11 +3346,11 @@ class MediaItem : NSObject //, Downloader
             var htmlString:String?
             
             if let lexiconIndexViewController = viewController as? LexiconIndexViewController {
-                htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, index: true).0
+                htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:lexiconIndexViewController.searchText, wholeWordsOnly: true, index: true)?.0
             } else
                 
             if let _ = viewController as? MediaTableViewController, Globals.shared.media.search.isActive, Globals.shared.media.search.transcripts {
-                htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.media.search.text, wholeWordsOnly: false, index: true).0
+                htmlString = bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:Globals.shared.media.search.text, wholeWordsOnly: false, index: true)?.0
             }
             
             return htmlString

@@ -190,37 +190,108 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
                         return nil
                     }
                     
-                    guard let times = popover?.transcript?.transcriptSegmentTokensTimes?.result?[searchText] else {
-                        return nil
-                    }
-                    
-                    var strings = [String]()
-                    
-                    for time in times {
-                        for transcriptSegmentComponent in transcriptSegmentComponents {
-                            if transcriptSegmentComponent.contains(time+" --> ") { //
-                                var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
-                                
-                                if transcriptSegmentArray.count > 2  {
-                                    let count = transcriptSegmentArray.removeFirst()
-                                    let timeWindow = transcriptSegmentArray.removeFirst()
-                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") //
-                                    
-                                    if  let start = times.first,
-                                        let end = times.last,
-                                        let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
-                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
-                                        let string = "\(count)\n\(start) to \(end)\n" + text
-                                        
-                                        strings.append(string)
+                    var wordTimes = [String]()
+
+                    if let words = popover?.transcript?.words?.filter({ (dict:[String:Any]) -> Bool in
+                        return dict["w"] != nil
+                    }) {
+                        for i in 0..<words.count {
+                            if  let position = words[i]["p"] as? Int,
+                                let start = words[i]["s"] as? Int,
+                                let end = words[i]["e"] as? Int,
+                                let word = words[i]["w"] as? String,
+                                let startHMS = (Double(start)/1000.0).secondsToHMSms,
+                                let endHMS = (Double(end)/1000.0).secondsToHMSms {
+                                if word.lowercased() == searchText.lowercased() {
+                                    let midPoint = Double(start+end)/2000.0
+                                    if let wordTime = midPoint.secondsToHMSms {
+                                        wordTimes.append(wordTime)
                                     }
                                 }
-                                break
                             }
                         }
                     }
+
+                    var strings = [String]()
                     
-                    return strings
+                    for transcriptSegmentComponent in transcriptSegmentComponents {
+                        if transcriptSegmentComponent.contains(" --> ") { //
+                            var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+                            
+                            if transcriptSegmentArray.count > 2  {
+                                let count = transcriptSegmentArray.removeFirst()
+                                let timeWindow = transcriptSegmentArray.removeFirst()
+                                let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") //
+                                
+                                if  let start = times.first,
+                                    let end = times.last,
+                                    let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+//                                    let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+//
+//                                    let range = NSRange(location: 0, length: text.utf16.count)
+//
+//                                    if let regex = try? NSRegularExpression(pattern: "\\b" + searchText + "\\b", options: .caseInsensitive) {
+//                                        let matches = regex.matches(in: text, options: .withTransparentBounds, range: range)
+//
+//                                        if matches.count > 0 {
+//                                            let string = "\(count)\n\(start) to \(end)\n" + text
+//
+//                                            if !strings.contains(string) {
+//                                                strings.append(string)
+//                                            }
+//                                        }
+//                                    }
+                                    
+                                    while start.hmsToSeconds <= wordTimes.first?.hmsToSeconds, wordTimes.first?.hmsToSeconds <= end.hmsToSeconds {
+                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+
+                                        let string = "\(count)\n\(start) to \(end)\n" + text
+
+                                        if !strings.contains(string) {
+                                            strings.append(string)
+                                        }
+
+                                        wordTimes.removeFirst()
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    return strings.count > 0 ? strings : nil
+                    
+//                    guard let times = popover?.transcript?.transcriptSegmentTokensTimes?.result?[searchText] else {
+//                        return nil
+//                    }
+//
+//                    var strings = [String]()
+//
+//
+//                    for time in times {
+//                        for transcriptSegmentComponent in transcriptSegmentComponents {
+//                            if transcriptSegmentComponent.contains(time+" --> ") { //
+//                                var transcriptSegmentArray = transcriptSegmentComponent.components(separatedBy: "\n")
+//
+//                                if transcriptSegmentArray.count > 2  {
+//                                    let count = transcriptSegmentArray.removeFirst()
+//                                    let timeWindow = transcriptSegmentArray.removeFirst()
+//                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ") //
+//
+//                                    if  let start = times.first,
+//                                        let end = times.last,
+//                                        let range = transcriptSegmentComponent.range(of: timeWindow+"\n") {
+//                                        let text = String(transcriptSegmentComponent[range.upperBound...]).replacingOccurrences(of: "\n", with: " ")
+//                                        let string = "\(count)\n\(start) to \(end)\n" + text
+//
+//                                        strings.append(string)
+//                                    }
+//                                }
+//                                break
+//                            }
+//                        }
+//                    }
+//
+//                    return strings
                 }
                 
                 self.popover?["TIMINGINDEXWORD"]?.navigationController?.pushViewController(popover, animated: true)

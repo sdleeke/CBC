@@ -5571,10 +5571,12 @@ class VoiceBase
                         
                         var wordCounts = [String:Int]()
                         
-                        words.filter({ (dict:[String : Any]) -> Bool in
-                            return ((dict["m"] as? String) != "punc") && ((dict["w"] as? String) != nil)
-                        }).map({ (dict:[String : Any]) -> String in
-                            return (dict["w"] as! String).uppercased() // ?? "ERROR"
+                        words.compactMap({ (dict:[String : Any]) -> String? in
+                            guard (dict["m"] as? String) != "punc" else {
+                                return nil
+                            }
+                            
+                            return (dict["w"] as? String)?.uppercased()
                         }).forEach({ (word:String) in
                             if let count = wordCounts[word] {
                                 wordCounts[word] = count + 1

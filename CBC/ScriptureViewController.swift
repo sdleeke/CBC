@@ -205,9 +205,9 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                             self?.webViewController?.html.string = self?.webViewController?.html.original?.stripHead.insertHead(fontSize: self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                         } else {
                             if self?.webViewController?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                                self?.webViewController?.html.string = self?.webViewController?.bodyHTML?.markHTML(headerHTML: self?.webViewController?.headerHTML, searchText:self?.webViewController?.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                                self?.webViewController?.html.string = self?.webViewController?.bodyHTML?.markHTML(headerHTML: self?.webViewController?.headerHTML, searchText:self?.webViewController?.searchText, wholeWordsOnly: false, lemmas: false, index: true)?.0.stripHead.insertHead(fontSize: self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                             } else {
-                                self?.webViewController?.html.string = self?.webViewController?.html.original?.markHTML(searchText:self?.webViewController?.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
+                                self?.webViewController?.html.string = self?.webViewController?.html.original?.markHTML(searchText:self?.webViewController?.searchText, wholeWordsOnly: false, index: true)?.0.stripHead.insertHead(fontSize: self?.webViewController?.html.fontSize ?? Constants.FONT_SIZE)
                             }
                         }
                         

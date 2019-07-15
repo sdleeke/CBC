@@ -647,6 +647,15 @@ class PopoverTableViewController : CBCViewController
                         if (seconds >= startSeconds) && (seconds <= endSeconds) {
                             timeWindowFound = true
                         } else if (seconds < startSeconds) {
+                            // Why?  Because we're going forward in time and if it doesn't fall
+                            // in the start end window then there are two possibilities, it is either
+                            // beyond end or before start.  If it is beyond end we just need to keep marching
+                            // forward in the transcriptSegmentComponents.  If is before start then we've
+                            // gone too far, meaning it falls in the gap between the last transcriptSegmentComponent
+                            // and the current one, so we pick the current one.
+                            //
+                            // Meaning, seconds that fall in the gap are always associated with the one after, not before.
+                            // So what happens if it falls AFTER the last transcriptSegmentComponent?
                             timeWindowFound = true
                         }
                     }
@@ -759,6 +768,7 @@ class PopoverTableViewController : CBCViewController
         assistButton?.isEnabled = true
     }
     
+    // This is sync
     var isTracking = false
     {
         didSet {

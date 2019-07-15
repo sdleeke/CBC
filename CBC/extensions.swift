@@ -6050,11 +6050,14 @@ extension String
     /**
      Extension of String that is assumed html and marks it.  Can be interrupted.
      */
-    func markHTML(headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool, test:(()->(Bool))? = nil) -> (String?,Int)
+    func markHTML(headerHTML:String?, searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool, test:(()->(Bool))? = nil) -> (String,Int)?
     {
         if let headerHTML = headerHTML {
-            let markedHTML = self.markHTML(searchText: searchText, wholeWordsOnly: wholeWordsOnly, lemmas:lemmas, index: index)
-            return (markedHTML.0?.replacingOccurrences(of: "<body>", with: "<body>"+headerHTML+"<br/>"),markedHTML.1)
+            if let markedHTML = self.markHTML(searchText: searchText, wholeWordsOnly: wholeWordsOnly, lemmas:lemmas, index: index, test:test) {
+                return (markedHTML.0.replacingOccurrences(of: "<body>", with: "<body>"+headerHTML+"<br/>"),markedHTML.1)
+            } else {
+                return nil
+            }
         } else {
             return self.markHTML(searchText: searchText, wholeWordsOnly: wholeWordsOnly, lemmas:lemmas, index: index)
         }
@@ -6063,16 +6066,20 @@ extension String
     /**
      Extension of String that is assumed html and marks it.  Can be interrupted.
      */
-    func markHTML(searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool, test:(()->(Bool))? = nil) -> (String?,Int)
+    func markHTML(searchText:String?, wholeWordsOnly:Bool, lemmas:Bool = false, index:Bool, test:(()->(Bool))? = nil) -> (String,Int)?
     {
         let html = self
         
         guard !html.stripHead.isEmpty else {
-            return (nil,0)
+            return nil
         }
         
         guard let searchText = searchText, !searchText.isEmpty else {
             return (html,0)
+        }
+        
+        if let test = test, test() {
+            return nil
         }
         
         var searchTexts = Set<String>()
@@ -6253,11 +6260,19 @@ extension String
         var string:String = html // ?? Constants.EMPTY_STRING
         
         for searchText in Array(searchTexts).sorted() {
+            if let test = test, test() {
+                return nil
+            }
+            
             // TERRIBLE way to detect HTML
             if string.range(of: "<") != nil {
                 while let searchRange = string.range(of: "<") {
                     let searchString = String(string[..<searchRange.lowerBound])
                     //            print(searchString)
+                    
+                    if let test = test, test() {
+                        return nil
+                    }
                     
                     // mark search string
                     newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "), searchText: searchText)
@@ -6275,6 +6290,10 @@ extension String
                 }
             } else {
                 // mark search string
+                if let test = test, test() {
+                    return nil
+                }
+                
                 newString = mark(string.replacingOccurrences(of: "&nbsp;", with: " "),searchText:searchText)
             }
             
@@ -6290,12 +6309,20 @@ extension String
             indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.\(wholeWordsOnly ? "<br/>(whole words only)" : "")<br/><br/>" // <br/> needed since markCounter == 0 so the below div isn't added.
         }
         
+        if let test = test, test() {
+            return nil
+        }
+        
         // If we want an index of links to the occurrences of the searchText.
         if index {
             if markCounter > 0 {
                 indexString += "<div>Locations: "
                 
                 for counter in 1...markCounter {
+                    if let test = test, test() {
+                        return nil
+                    }
+                    
                     if counter > 1 {
                         indexString += ", "
                     }
@@ -6313,6 +6340,10 @@ extension String
         }
         
         htmlString += string + "</body></html>"
+        
+        if let test = test, test() {
+            return nil
+        }
         
         return (htmlString.insertHead(fontSize: Constants.FONT_SIZE),markCounter)
     }

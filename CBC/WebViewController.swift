@@ -192,7 +192,7 @@ extension WebViewController : PopoverPickerControllerDelegate
         self.activityIndicator.startAnimating()
         
         if bodyHTML != nil { // , headerHTML != nil // Not necessary
-            html.string = bodyHTML?.markHTML(headerHTML: headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
+            html.string = bodyHTML?.markHTML(headerHTML: headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)?.0
         }
 
         html.string = html.string?.stripHead.insertHead(fontSize: html.fontSize)
@@ -323,19 +323,31 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 self?.activityIndicator.isHidden = false
                 self?.activityIndicator.startAnimating()
                 
-                if let isEmpty = self?.searchText?.isEmpty, isEmpty {
-                    self?.html.string = self?.html.original?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
-                } else {
-                    if self?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self?.html.string = self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:self?.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                self?.process(work: { (test:(() -> Bool)?) -> (Any?) in
+                    if let isEmpty = self?.searchText?.isEmpty, isEmpty {
+                        self?.html.string = self?.html.original?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                     } else {
-                        self?.html.string = self?.html.original?.markHTML(searchText:self?.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                        if self?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
+                            return self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:self?.searchText, wholeWordsOnly: false, lemmas: false, index: true, test:test)?.0.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                        } else {
+                            return self?.html.original?.markHTML(searchText:self?.searchText, wholeWordsOnly: false, index: true, test:test)?.0.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                        }
                     }
-                }
-                
-                if let url = self?.html.fileURL {
-                    self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                }
+
+                    return nil
+                }, completion: { (data:Any?, test:(() -> Bool)?) in
+                    if let string = data as? String {
+                        self?.html.string = string
+                        
+                        if let url = self?.html.fileURL {
+                            self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                        }
+                    } else {
+                        self?.activityIndicator.stopAnimating()
+                        self?.activityIndicator.isHidden = true
+                        self?.wkWebView?.isHidden = false
+                    }
+                })
             })
             alert.addAction(search)
             
@@ -348,19 +360,30 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 self?.activityIndicator.isHidden = false
                 self?.activityIndicator.startAnimating()
                 
-                if let isEmpty = self?.searchText?.isEmpty, isEmpty {
-                    self?.html.string = self?.html.original?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
-                } else {
-                    if self?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self?.html.string = self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:self?.searchText, wholeWordsOnly: true, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                self?.process(work: { (test:(() -> Bool)?) -> (Any?) in
+                    if let isEmpty = self?.searchText?.isEmpty, isEmpty {
+                        self?.html.string = self?.html.original?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                     } else {
-                        self?.html.string = self?.html.original?.markHTML(searchText:self?.searchText, wholeWordsOnly: true, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                        if self?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
+                            return self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:self?.searchText, wholeWordsOnly: true, lemmas: false, index: true, test:test)?.0.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                        } else {
+                            return self?.html.original?.markHTML(searchText:self?.searchText, wholeWordsOnly: true, index: true, test:test)?.0.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                        }
                     }
-                }
-                
-                if let url = self?.html.fileURL {
-                    self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                }
+                    
+                    return nil
+                }, completion: { (data:Any?, test:(() -> Bool)?) in
+                    if let string = data as? String {
+                        self?.html.string = string
+                        if let url = self?.html.fileURL {
+                            self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                        }
+                    } else {
+                        self?.activityIndicator.stopAnimating()
+                        self?.activityIndicator.isHidden = true
+                        self?.wkWebView?.isHidden = false
+                    }
+                })
             })
             alert.addAction(searchWhole)
             
@@ -373,19 +396,30 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 self?.activityIndicator.isHidden = false
                 self?.activityIndicator.startAnimating()
                 
-                if let isEmpty = self?.searchText?.isEmpty, isEmpty {
-                    self?.html.string = self?.html.original?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
-                } else {
-                    if self?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
-                        self?.html.string = self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:self?.searchText, wholeWordsOnly: false, lemmas: false, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                self?.process(work: { (test:(() -> Bool)?) -> (Any?) in
+                    if let isEmpty = self?.searchText?.isEmpty, isEmpty {
+                        self?.html.string = self?.html.original?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
                     } else {
-                        self?.html.string = self?.html.original?.markHTML(searchText:self?.searchText, wholeWordsOnly: false, index: true).0?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                        if self?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
+                            return self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:self?.searchText, wholeWordsOnly: false, lemmas: false, index: true, test:test)?.0.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                        } else {
+                            return self?.html.original?.markHTML(searchText:self?.searchText, wholeWordsOnly: false, index: true, test:test)?.0.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                        }
                     }
-                }
-                
-                if let url = self?.html.fileURL {
-                    self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-                }
+
+                    return nil
+                }, completion: { (data:Any?, test:(() -> Bool)?) in
+                    if let string = data as? String {
+                        self?.html.string = string
+                        if let url = self?.html.fileURL {
+                            self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                        }
+                    } else {
+                        self?.activityIndicator.stopAnimating()
+                        self?.activityIndicator.isHidden = true
+                        self?.wkWebView?.isHidden = false
+                    }
+                })
             })
             alert.addAction(clear)
             
@@ -620,7 +654,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 // This serializes the webView loading
                 self.operationQueue.addOperation { [weak self] in
                     if self?.bodyHTML != nil { // , self?.headerHTML != nil // Not necessary
-                        self?.html.string = self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true).0
+                        self?.html.string = self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:searchText, wholeWordsOnly: true, lemmas: false, index: true)?.0
                     }
                     
                     if let fontSize = self?.html.fontSize {

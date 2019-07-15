@@ -789,11 +789,11 @@ class MediaListGroupSort // : NSObject
     //////////////////////////////////////////////////////////////////////////////////////////////
     // Uses notifications for adding and removing tags since mediaItems could be in multiple MLGS
     //////////////////////////////////////////////////////////////////////////////////////////////
-    init?(name:String? = nil, mediaItems:[MediaItem]?)
+    init(name:String? = nil, mediaItems:[MediaItem]?)
     {
-        guard mediaItems?.count > 0 else {
-            return nil
-        }
+//        guard mediaItems?.count > 0 else {
+//            return nil
+//        }
         
         self.name = name
 
@@ -809,9 +809,9 @@ class MediaListGroupSort // : NSObject
         
         sortGroup(grouping)
 
-        guard let mediaItems = mediaItems else {
-            return
-        }
+//        guard let mediaItems = mediaItems else {
+//            return
+//        }
         
         // Why isn't this done on demand?
         //
@@ -822,7 +822,7 @@ class MediaListGroupSort // : NSObject
         tagMediaItems = ThreadSafeDN<[MediaItem]>() // [String:[MediaItem]]() // ictionary
         tagNames = ThreadSafeDN<String>() // [String:String]() // ictionary
 
-        mediaItems.forEach { (mediaItem:MediaItem) in
+        mediaItems?.forEach { (mediaItem:MediaItem) in
             mediaItem.tagsSet?.forEach({ (tag:String) in
                 let sortTag = tag.withoutPrefixes
 
