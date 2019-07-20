@@ -96,7 +96,7 @@ extension Download : URLSessionDownloadDelegate
             switch purpose {
             case Purpose.audio:
                 if bytesWritten > 0 {
-                    self.mediaItem?.percentComplete["DOWNLOAD"+purpose] = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
+                    percentComplete = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
                     Thread.onMain { [weak self] in 
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self?.mediaItem)
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PERCENT_COMPLETE), object: self?.mediaItem)
@@ -345,7 +345,25 @@ class Download : NSObject, Size
             return state == .downloading
         }
     }
-
+    
+    var percentComplete:Double?
+    {
+        get {
+            guard let purpose = purpose else {
+                return nil
+            }
+            
+            return mediaItem?.percentComplete["DOWNLOAD"+purpose]
+        }
+        set {
+            guard let purpose = purpose else {
+                return
+            }
+            
+            mediaItem?.percentComplete["DOWNLOAD"+purpose] = newValue
+        }
+    }
+    
     var state:State = .none {
         willSet {
             
@@ -394,13 +412,13 @@ class Download : NSObject, Size
                 case .downloaded:
                     self.mediaItem?.removeTag(Constants.Strings.Downloading)
                     self.mediaItem?.addTag(Constants.Strings.Downloaded)
-                    self.mediaItem?.percentComplete["DOWNLOAD"+purpose] = nil
+                    percentComplete = nil
                     break
                     
                 case .none:
                     self.mediaItem?.removeTag(Constants.Strings.Downloading)
                     self.mediaItem?.removeTag(Constants.Strings.Downloaded)
-                    self.mediaItem?.percentComplete["DOWNLOAD"+purpose] = nil
+                    percentComplete = nil
                     break
                 }
                 
@@ -578,7 +596,7 @@ class Download : NSObject, Size
         totalBytesWritten = 0
         totalBytesExpectedToWrite = 0
         
-        mediaItem?.percentComplete["DOWNLOAD"+purpose] = nil
+        percentComplete = nil
     }
 }
 

@@ -127,11 +127,11 @@ class JSON
             }
         } else {
             // FileSystem first
-            guard let json = filename?.fileSystemURL?.data?.json as? [String:Any] else {
+            guard !Globals.shared.newAPI, let json = filename?.fileSystemURL?.data?.json as? [String:Any] else {
                 loadURL(urlString:urlString, filename:filename, completion:completion)
                 return
             }
-            
+
             completion?(json)
             
             operationQueue.addOperation {

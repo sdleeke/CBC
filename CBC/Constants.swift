@@ -229,7 +229,7 @@ enum Constants {
             static let BASE_OLD = "https://api.countrysidebible.org/?return=" // "http://countrysidebible.org/medialist_all.php?return="
             static let BASE_NEW = "https://api.countrysidebible.org/"
             
-            static let BASE = BASE_OLD
+            static let BASE = BASE_NEW
             
             static let PARAMETER_OLD = "&"
             static let PARAMETER_NEW = "?"
@@ -252,12 +252,12 @@ enum Constants {
             static let SINGLE_NEW = MEDIA_NEW + PARAMETER_NEW + "mediacode="
             static let SINGLE_ALT_NEW = MEDIA_NEW + "/"
 
-            static let MEDIA = MEDIA_OLD
-            static let SINGLE = SINGLE_OLD
+            static let MEDIA = MEDIA_NEW
+            static let SINGLE = SINGLE_NEW
             static let GROUPS = GROUPS_NEW
-            static let CATEGORY = CATEGORY_OLD
-            static let TEACHERS = TEACHERS_OLD
-            static let CATEGORIES = CATEGORIES_OLD
+            static let CATEGORY = CATEGORY_NEW
+            static let TEACHERS = TEACHERS_NEW
+            static let CATEGORIES = CATEGORIES_NEW
         }
 
         enum ARRAY_KEY {
@@ -291,10 +291,11 @@ enum Constants {
         static let LIVE_EVENTS_OLD = "https://api.countrysidebible.org/cache/streamEntries.json"
         static let LIVE_EVENTS_NEW = "https://api.countrysidebible.org/media/?streaming=true"
 
-        static let LIVE_EVENTS = LIVE_EVENTS_OLD
+        static let LIVE_EVENTS = LIVE_EVENTS_NEW
         
         static let LIVE_STREAM_OLD = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
-        static let LIVE_STREAM = LIVE_STREAM_OLD
+        static let LIVE_STREAM_NEW = ""
+        static let LIVE_STREAM = LIVE_STREAM_NEW
         
         static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v3/" // v2-beta
         
@@ -432,11 +433,11 @@ enum Constants {
         static let MEDIA_WEBSITE_OLD = WEBSITE + "/cbcmedia"
         static let MEDIA_WEBSITE_NEW = WEBSITE + "/media"
         
-        static let MEDIA_WEBSITE = MEDIA_WEBSITE_OLD
+        static let MEDIA_WEBSITE = MEDIA_WEBSITE_NEW
         
         static let SINGLE_WEBSITE_OLD = MEDIA_WEBSITE + "?return=single&mediacode="
-        static let SINGLE_WEBSITE_NEW = MEDIA_WEBSITE_NEW + "/"
-        static let SINGLE_WEBSITE = SINGLE_WEBSITE_OLD
+        static let SINGLE_WEBSITE_NEW = MEDIA_WEBSITE_NEW + "-archives/"
+        static let SINGLE_WEBSITE = SINGLE_WEBSITE_NEW
 
         static let APP_URL = "https://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8"
         
@@ -548,7 +549,7 @@ enum Constants {
     
     static let DOUBLE_QUOTES = LEFT_DOUBLE_QUOTE + RIGHT_DOUBLE_QUOTE + DOUBLE_QUOTE
     
-    static let QUOTES = LEFT_SINGLE_QUOTE + RIGHT_SINGLE_QUOTE + LEFT_DOUBLE_QUOTE + RIGHT_DOUBLE_QUOTE
+    static let QUOTES = SINGLE_QUOTES + DOUBLE_QUOTES // LEFT_SINGLE_QUOTE + RIGHT_SINGLE_QUOTE + LEFT_DOUBLE_QUOTE + RIGHT_DOUBLE_QUOTE
     
     static let SINGLE_UNDERSCORE = "_"
     
@@ -901,6 +902,7 @@ enum Constants {
         static let New = "New"
         static let All = "All"
         static let None = "None"
+        static let Various_Artists = "Various Artists"
         static let Okay = "OK"
         static let Confirm = "Confirm"
         static let Cancel = "Cancel"
@@ -952,7 +954,7 @@ enum Constants {
         static let Full_Screen = "Full Screen"
         static let Open_in_Browser = "Open in Browser"
         
-        static let Open_on_CBC_Website = "Open on CBC Web Site"
+        static let Open_on_CBC_Website = "Open on CBC Website"
         
         static let Email_One = "E-mail"
         static let Email_All = "E-mail All"

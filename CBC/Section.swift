@@ -210,7 +210,7 @@ class Section
             }
             
             indexStrings = strings.map({ (string:String) -> String in
-                return indexStringsTransform?(string.uppercased()) ?? string.uppercased()
+                return (indexStringsTransform?(string) ?? string).uppercased().trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES))
             })
         }
     }

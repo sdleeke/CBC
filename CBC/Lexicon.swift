@@ -349,9 +349,11 @@ class Lexicon : NSObject // Why an NSObject?
             self?.callBacks.execute("start")
             
             repeat {
-                guard let mediaItem = list.first else { // One chance to load tokens per media item
-                    break
-                }
+//                guard
+                let mediaItem = list.removeFirst()
+//                else { // One chance to load tokens per media item
+//                    break
+//                }
                 
                 if let test = test, test() {
                     return
@@ -364,9 +366,6 @@ class Lexicon : NSObject // Why an NSObject?
                 // Made an ORDER OF MAGNITUDE difference in memory usage!
                 autoreleasepool {
                     if let notesTokens = mediaItem.notesTokens?.result {
-                        // Try indefinitely to load all media items
-                        list.removeFirst()
-                        
                         for token in notesTokens {
                             if self?.words?[token.key] == nil {
                                 self?.words?[token.key] = [mediaItem:token.value]
@@ -384,6 +383,8 @@ class Lexicon : NSObject // Why an NSObject?
                         }
                     } else {
                         print("NO NOTES TOKENS!")
+                        // Try indefinitely to load all media items
+//                        list.append(mediaItem)
                     }
                 }
 

@@ -567,12 +567,14 @@ class MediaTableViewController : MediaItemsViewController
             
             popover.stringSelected = Globals.shared.media.category.selected ?? Constants.Strings.All
             
-            popover.section.strings = [Constants.Strings.All]
-            
-            if let categories = Globals.shared.media.categories.keys()?.sorted() {
-                popover.section.strings?.append(contentsOf: categories)
-            }
+//            popover.section.strings = [Constants.Strings.All]
+//            
+//            if let categories = Globals.shared.media.categories.keys()?.sorted() {
+//                popover.section.strings?.append(contentsOf: categories)
+//            }
 
+            popover.section.strings = Globals.shared.media.categories.keys()?.sorted()
+            
             self.popover?["CATEGORY"] = popover
             
             popover.completion = { [weak self] in
@@ -1050,8 +1052,14 @@ class MediaTableViewController : MediaItemsViewController
             Thread.onMain { [weak self] in 
                 self?.navigationItem.title = Constants.Title.Loading_Media
             }
+
+//            UserDefaults.standard.removeObject(forKey: "NEW API 2019")
+            
+            Globals.shared.newAPI = UserDefaults.standard.bool(forKey: "NEW API 2019")
             
             Globals.shared.media.load()
+            
+            UserDefaults.standard.set(true, forKey: "NEW API 2019")
 
 //            if let jsonSource = self?.jsonSource {
 //                switch jsonSource {
@@ -3305,21 +3313,21 @@ class MediaTableViewController : MediaItemsViewController
             self.process(work: { [weak self] () -> (Any?) in
                 self?.selectedMediaItem = Globals.shared.media.selected.master
                 
-                guard let selected = Globals.shared.media.category.selected else {
-                    return nil
-                }
+//                guard let selected = Globals.shared.media.category.selected else {
+//                    return nil
+//                }
                 
-                if Globals.shared.media.cache[selected] != nil {
-                    Globals.shared.media.all = Globals.shared.media.cache[selected]
+                if Globals.shared.media.cache[string] != nil {
+                    Globals.shared.media.all = Globals.shared.media.cache[string]
                 } else {
-                    if selected != Constants.Strings.All {
+                    if string != Constants.Strings.All {
                         Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.media.repository.list?.filter({ (mediaItem) -> Bool in
                             mediaItem.category == Globals.shared.media.category.selected
                         }))
                     } else {
                         Globals.shared.media.all = MediaListGroupSort(name:Constants.Strings.All, mediaItems: Globals.shared.media.repository.list)
                     }
-                    Globals.shared.media.cache[selected] = Globals.shared.media.all
+                    Globals.shared.media.cache[string] = Globals.shared.media.all
                 }
                 
                 Globals.shared.media.tags.tagged.clear()

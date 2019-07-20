@@ -142,7 +142,7 @@ class LexiconIndexViewController : MediaItemsViewController
         updateToolbar()
 
         view.setNeedsLayout()
-        view.layoutSubviews()
+        view.layoutIfNeeded()
     }
     
     func resetConstraint()
@@ -165,7 +165,7 @@ class LexiconIndexViewController : MediaItemsViewController
         tableViewHeightConstraint.constant = 0
         
         view.setNeedsLayout()
-        view.layoutSubviews()
+        view.layoutIfNeeded()
     }
     
     @IBOutlet weak var locateView: UIView!

@@ -1373,7 +1373,7 @@ extension Array where Element == MediaItem
                 return nil
             }
             
-            return set.first
+            return set.first // ?.trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES))
         }
     }
     
@@ -5042,16 +5042,24 @@ extension String
                 return self
             }
             
-            let sourceString = self.replacingOccurrences(of: Constants.DOUBLE_QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING)
+            let sourceString = self.trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES + "."))
+           
+            // .replacingOccurrences(of: Constants.DOUBLE_QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING).
             
             let prefixes = ["A ","An ","The "] // "And ",
             
             var sortString = sourceString
             
             for prefix in prefixes {
-                if (sourceString.endIndex >= prefix.endIndex) && (String(sourceString[..<prefix.endIndex]).lowercased() == prefix.lowercased()) {
-                    sortString = String(sourceString[prefix.endIndex...])
-                    break
+//                if (sourceString.endIndex >= prefix.endIndex) && (String(sourceString[..<prefix.endIndex]).lowercased() == prefix.lowercased()) {
+//                    sortString = String(sourceString[prefix.endIndex...])
+//                    break
+//                }
+                if let range = sourceString.range(of: prefix, options: .caseInsensitive, range: nil, locale: nil) {
+                    if range.lowerBound == sourceString.startIndex {
+                        sortString = String(sourceString[range.upperBound...])
+                        break
+                    }
                 }
             }
             
@@ -7976,15 +7984,24 @@ extension Date
         self = Date(timeInterval:0, since:d)
     }
     
+    func format(_ format:String?) -> String
+    {
+        let dateStringFormatter = DateFormatter()
+        dateStringFormatter.dateFormat = format
+        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+        return dateStringFormatter.string(from: self)
+    }
+
     // VERY Computationally Expensive
     var ymd : String
     {
         get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "yyyy-MM-dd"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            
-            return dateStringFormatter.string(from: self)
+            return self.format("yyyy-MM-dd")
+//            let dateStringFormatter = DateFormatter()
+//            dateStringFormatter.dateFormat = "yyyy-MM-dd"
+//            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+//
+//            return dateStringFormatter.string(from: self)
         }
     }
     
@@ -8007,11 +8024,12 @@ extension Date
     var mdy : String
     {
         get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "MMM d, yyyy"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            
-            return dateStringFormatter.string(from: self)
+            return self.format("MMM d, yyyy")
+//            let dateStringFormatter = DateFormatter()
+//            dateStringFormatter.dateFormat = "MMM d, yyyy"
+//            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+//
+//            return dateStringFormatter.string(from: self)
         }
     }
     
@@ -8019,11 +8037,12 @@ extension Date
     var year : String
     {
         get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "yyyy"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            
-            return dateStringFormatter.string(from: self)
+            return self.format("yyyy")
+//            let dateStringFormatter = DateFormatter()
+//            dateStringFormatter.dateFormat = "yyyy"
+//            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+//
+//            return dateStringFormatter.string(from: self)
         }
     }
     
@@ -8031,11 +8050,25 @@ extension Date
     var month : String
     {
         get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "MMM"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            
-            return dateStringFormatter.string(from: self)
+            return self.format("MMM")
+            //            let dateStringFormatter = DateFormatter()
+            //            dateStringFormatter.dateFormat = "MMM"
+            //            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            //
+            //            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    // VERY Computationally Expensive
+    var fullMonth : String
+    {
+        get {
+            return self.format("MMMM")
+            //            let dateStringFormatter = DateFormatter()
+            //            dateStringFormatter.dateFormat = "MMMM"
+            //            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            //
+            //            return dateStringFormatter.string(from: self)
         }
     }
     
@@ -8043,11 +8076,12 @@ extension Date
     var day : String
     {
         get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "dd"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            
-            return dateStringFormatter.string(from: self)
+            return self.format("d")
+//            let dateStringFormatter = DateFormatter()
+//            dateStringFormatter.dateFormat = "d"
+//            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+//
+//            return dateStringFormatter.string(from: self)
         }
     }
     

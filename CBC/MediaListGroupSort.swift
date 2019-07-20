@@ -791,6 +791,8 @@ class MediaListGroupSort // : NSObject
     //////////////////////////////////////////////////////////////////////////////////////////////
     init(name:String? = nil, mediaItems:[MediaItem]?)
     {
+        // It is VERY important that this NOT return nil if mediaItems is nil.
+        // It should just return with an empty list.
 //        guard mediaItems?.count > 0 else {
 //            return nil
 //        }

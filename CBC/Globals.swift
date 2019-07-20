@@ -31,6 +31,8 @@ import CoreData
 class Globals : NSObject
 {
     static var shared = Globals()
+ 
+    var newAPI = false
     
     var settings = Settings()
 
@@ -775,7 +777,7 @@ class Globals : NSObject
         Thread.onMain { [weak self] in 
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
-
+        
         URLCache.shared.removeAllCachedResponses()
     }
     

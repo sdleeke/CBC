@@ -1956,8 +1956,9 @@ class TextViewController : CBCViewController
             }
         }
 
-        view.layoutSubviews()
-        
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+
         keyboardShowing = true
     }
 

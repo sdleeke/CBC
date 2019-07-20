@@ -1193,7 +1193,7 @@ class MediaViewController : MediaItemsViewController
         var notesIndex = 0
         var videoIndex = 0
 
-        // This order: Transcript (aka Notes), Slides, Video matches the CBC web site.
+        // This order: Transcript (aka Notes), Slides, Video matches the CBC website.
         
         if selectedMediaItem.hasOutline {
             stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.OUTLINE, at: index, animated: false)
@@ -1627,7 +1627,8 @@ class MediaViewController : MediaItemsViewController
                 pan.setTranslation(CGPoint.zero, in: pan.view)
                 setMediaItemNotesAndSlidesConstraint(change)
                 self.view.setNeedsLayout()
-                self.view.layoutSubviews()
+                self.view.layoutIfNeeded()
+
             }
             break
             

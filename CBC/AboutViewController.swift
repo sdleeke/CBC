@@ -177,7 +177,7 @@ class AboutViewController: CBCViewController
     fileprivate func openWebSite(_ urlString:String)
     {
         UIApplication.shared.open(scheme: urlString) {
-            self.networkUnavailable("Unable to open web site: \(urlString)")
+            self.networkUnavailable("Unable to open website: \(urlString)")
         }
     }
     

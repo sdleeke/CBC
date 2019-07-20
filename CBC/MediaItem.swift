@@ -1556,19 +1556,19 @@ class MediaItem : NSObject //, Downloader
     }()
     
     // VERY Computationally Expensive
-    func formatDate(_ format:String?) -> String?
-    {
-        let dateStringFormatter = DateFormatter()
-        dateStringFormatter.dateFormat = format
-        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-        return dateStringFormatter.string(for: fullDate)
-    }
+//    func formatDate(_ format:String?) -> String?
+//    {
+//        let dateStringFormatter = DateFormatter()
+//        dateStringFormatter.dateFormat = format
+//        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+//        return dateStringFormatter.string(for: fullDate)
+//    }
     
     var formattedDate:String?
     {
         get {
             // VERY Computationally Expensive
-            return formatDate("MMMM d, yyyy")
+            return fullDate?.mdy // formatDate("MMMM d, yyyy")
         }
     }
     
@@ -1576,7 +1576,7 @@ class MediaItem : NSObject //, Downloader
     {
         get {
             // VERY Computationally Expensive
-            return formatDate("MMMM")
+            return fullDate?.fullMonth // formatDate("MMMM")
         }
     }
     
@@ -1584,7 +1584,7 @@ class MediaItem : NSObject //, Downloader
     {
         get {
             // VERY Computationally Expensive
-            return formatDate("d")
+            return fullDate?.day // formatDate("d")
         }
     }
     
@@ -1592,7 +1592,7 @@ class MediaItem : NSObject //, Downloader
     {
         get {
             // VERY Computationally Expensive
-            return formatDate("yyyy")
+            return fullDate?.year // formatDate("yyyy")
         }
     }
     
@@ -1683,7 +1683,7 @@ class MediaItem : NSObject //, Downloader
     var classSectionSort:String!
     {
         get {
-            return classSection.lowercased()
+            return classSection.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES))
         }
     }
     
@@ -1716,7 +1716,7 @@ class MediaItem : NSObject //, Downloader
     var eventSectionSort:String!
     {
         get {
-            return eventSection.lowercased()
+            return eventSection.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES))
         }
     }
     
@@ -1753,7 +1753,7 @@ class MediaItem : NSObject //, Downloader
                 return "ERROR"
             }
             
-            return speakerSort.lowercased()
+            return speakerSort.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES))
         }
     }
     
@@ -1783,11 +1783,11 @@ class MediaItem : NSObject //, Downloader
     {
         get {
             if let speaker = self[Field.speaker] as? String, !speaker.isEmpty {
-                return speaker
+                return speaker.trimmingCharacters(in: CharacterSet(charactersIn: " \n"))
             }
             
             if let speakerDict = self[Field.speaker] as? [String:Any] {
-                return Teacher(speakerDict)?.name
+                return Teacher(speakerDict)?.name?.trimmingCharacters(in: CharacterSet(charactersIn: " \n"))
             }
             
             return Constants.Strings.None
@@ -1862,13 +1862,13 @@ class MediaItem : NSObject //, Downloader
     {
         get {
             if hasMultipleParts {
-                if let sort = multiPartSort?.lowercased() {
+                if let sort = multiPartSort?.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES)) {
                     return sort
                 } else {
                     return "ERROR"
                 }
             } else {
-                if let sort = title?.withoutPrefixes.lowercased() {
+                if let sort = title?.withoutPrefixes.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES)) {
                     return sort
                 } else {
                     return "ERROR"
@@ -1880,6 +1880,7 @@ class MediaItem : NSObject //, Downloader
     var multiPartSection:String!
     {
         get {
+            // ?.trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES))
             return multiPartName ?? (title ?? Constants.Strings.None)
         }
     }
@@ -1891,14 +1892,14 @@ class MediaItem : NSObject //, Downloader
                 if let multiPartSort = mediaItemSettings?[Field.multi_part_name_sort] {
                     self[Field.multi_part_name_sort] = multiPartSort
                 } else {
-                    if let multiPartSort = multiPartName?.withoutPrefixes {
+                    if let multiPartSort = multiPartName?.withoutPrefixes { // .trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES))
                         self[Field.multi_part_name_sort] = multiPartSort
                     } else {
 
                     }
                 }
             }
-            return self[Field.multi_part_name_sort] as? String
+            return (self[Field.multi_part_name_sort] as? String)?.trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES))
         }
     }
     
@@ -1958,12 +1959,12 @@ class MediaItem : NSObject //, Downloader
             
             // These are expected to be mutually exclusive.
             
-            if hasClassName {
-                dynamicTags = (dynamicTags != nil ? dynamicTags! + "|" : "") + className!
+            if hasClassName, let className = className {
+                dynamicTags = (dynamicTags != nil ? dynamicTags! + "|" : "") + className
             }
             
-            if hasEventName {
-                dynamicTags = (dynamicTags != nil ? dynamicTags! + "|" : "") + eventName!
+            if hasEventName, let eventName = eventName {
+                dynamicTags = (dynamicTags != nil ? dynamicTags! + "|" : "") + eventName
             }
             
             return dynamicTags
@@ -2636,7 +2637,7 @@ class MediaItem : NSObject //, Downloader
             if let contains = filesFlags?.contains("H") {
                 return contains
             } else {
-                return files?.notesHTML != nil
+                return !(files?.notesHTML?.isEmpty ?? true)
             }
         }
     }
@@ -3035,7 +3036,7 @@ class MediaItem : NSObject //, Downloader
                 string += "\n\(speaker)"
             }
             
-            if hasTitle, let title = title {
+            if hasTitle, let title = title, !title.isEmpty {
                 var partFound = false
                 for partPreamble in Constants.PART_PREAMBLES {
                     if let rangeTo = title.range(of: partPreamble + Constants.PART_INDICATOR), let rangeFrom = title.range(of: partPreamble + Constants.PART_INDICATOR), rangeFrom.lowerBound == rangeTo.lowerBound {
@@ -3218,7 +3219,7 @@ class MediaItem : NSObject //, Downloader
     var hasMultipleParts:Bool
         {
         get {
-            guard let multiPartName = multiPartName, !multiPartName.isEmpty else {
+            guard let multiPartName = multiPartName else {
                 return false
             }
             
@@ -3251,7 +3252,7 @@ class MediaItem : NSObject //, Downloader
                 return false
             }
             
-            return !speaker.isEmpty && (speaker != Constants.Strings.None)
+            return !speaker.isEmpty && (speaker != Constants.Strings.None) && (speaker != Constants.Strings.Various_Artists)
         }
     }
     
@@ -3659,9 +3660,10 @@ class MediaItem : NSObject //, Downloader
                     transcript = AlertAction(title: Constants.Strings.HTML_Transcript, style: .default) { [weak self] in
                         // test:(()->(Bool))?
                         viewController.process(work: { [weak self] () -> (Any?) in
-                            _ = self?.notesHTML?.result
+                            return self?.notesHTML?.result
                         }, completion: { [weak self] (data:Any?) in
-                            self?.view(viewController:viewController, bodyHTML:self?.notesHTML?.result)
+                            // self?.notesHTML?.result
+                            self?.view(viewController:viewController, bodyHTML:data as? String)
                         })
                     }
                 }

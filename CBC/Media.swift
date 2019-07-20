@@ -42,6 +42,18 @@ class Media
         mediaQueue.cancelAllOperations()
     }
     
+    @objc func freeMemory()
+    {
+        cache.clear()
+    }
+    
+    init()
+    {
+        Thread.onMain { // [weak self] in
+            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        }
+    }
+    
     lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
         operationQueue.name = "Media:Operation" + UUID().uuidString
@@ -306,6 +318,7 @@ class Media
             
             if search.isActive {
                 if let context = active?.context, let search = search.searches?[context] {
+                    // active MUST NOT BE NIL!
                     active = search
                 }
             }
