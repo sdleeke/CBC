@@ -205,7 +205,7 @@ class MediaList // : Sequence
         operationQueue.addOperation {
             var message = ""
             
-            if let multiPartName = self.list?.multiPartName {
+            if let multiPartName = self.list?.multiPartName, !multiPartName.isEmpty {
                 message += multiPartName + "\n\n"
             }
             

@@ -204,7 +204,7 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
                                 let endHMS = (Double(end)/1000.0).secondsToHMSms {
                                 if word.lowercased() == searchText.lowercased() {
                                     let midPoint = Double(start+end)/2000.0
-                                    if let wordTime = midPoint.secondsToHMSms {
+                                    if let wordTime = midPoint.secondsToHMSms, !wordTime.isEmpty {
                                         wordTimes.append(wordTime)
                                     }
                                 }
@@ -502,7 +502,7 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
                 break
             }
             
-            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = time.hmsToSeconds {
+            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, !time.isEmpty, let seconds = time.hmsToSeconds {
                 Globals.shared.mediaPlayer.seek(to: seconds)
             }
             break

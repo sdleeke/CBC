@@ -111,15 +111,15 @@ class MediaCategory
     subscript(key:String) -> String?
     {
         get {
-            if let selected = selected {
+            if let selected = selected, !selected.isEmpty {
                 return settings[selected,key] // ]?[
             } else {
                 return nil
             }
         }
         set {
-            guard let selected = selected else {
-                print("selected == nil!")
+            guard let selected = selected, !selected.isEmpty else {
+                print("selected empty!")
                 return
             }
             

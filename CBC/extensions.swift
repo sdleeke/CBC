@@ -233,7 +233,7 @@ extension Array where Element == MediaItem
             var number = 0
     
             for mediaItem in mediaItemParts {
-                if let part = mediaItem.part, let partNumber = Int(part) {
+                if let part = mediaItem.part, !part.isEmpty, let partNumber = Int(part) {
                     if partNumber > number {
                         mediaItems.append(mediaItem)
                         number = partNumber
@@ -602,14 +602,14 @@ extension Array where Element == MediaItem
                 return nil
             }
             
-            if let multiPartName = mediaItem.multiPartName?.withoutPrefixes {
+            if let multiPartName = mediaItem.multiPartName?.withoutPrefixes, !multiPartName.isEmpty {
                 if mediaListSort[multiPartName] == nil {
                     mediaListSort[multiPartName] = [mediaItem]
                 } else {
                     mediaListSort[multiPartName]?.append(mediaItem)
                 }
             } else {
-                if let title = mediaItem.title {
+                if let title = mediaItem.title, !title.isEmpty {
                     if mediaListSort[title] == nil {
                         mediaListSort[title] = [mediaItem]
                     } else {
@@ -670,7 +670,7 @@ extension Array where Element == MediaItem
                 switch mediaItems.count {
                 case 1:
                     if let mediaItem = mediaItems.first {
-                        if let string = mediaItem.bodyHTML(order: ["date","title","scripture","speaker"], token: nil, includeURLs:includeURLs, includeColumns:includeColumns) {
+                        if let string = mediaItem.bodyHTML(order: ["date","title","scripture","speaker"], token: nil, includeURLs:includeURLs, includeColumns:includeColumns), !string.isEmpty {
                             let tag = key.asTag
                             if includeURLs, keys.count > 1 {
                                 bodyString  = bodyString + "<tr>"
@@ -692,7 +692,7 @@ extension Array where Element == MediaItem
                             return nil
                         }
                         
-                        if let speaker = mediaItem.speaker {
+                        if let speaker = mediaItem.speaker, !speaker.isEmpty {
                             if let count = speakerCounts[speaker] {
                                 speakerCounts[speaker] = count + 1
                             } else {
@@ -717,7 +717,7 @@ extension Array where Element == MediaItem
                     
                     if speakerCount == 1, let speaker = mediaItems[0].speaker, key != speaker {
                         if var speaker = mediaItems[0].speaker, key != speaker {
-                            if let speakerTitle = mediaItems[0].speakerTitle {
+                            if let speakerTitle = mediaItems[0].speakerTitle, !speakerTitle.isEmpty {
                                 speaker += ", \(speakerTitle)"
                             }
                             bodyString += " by " + speaker
@@ -747,7 +747,7 @@ extension Array where Element == MediaItem
                             order.append("speaker")
                         }
                         
-                        if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
+                        if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns), !string.isEmpty {
                             bodyString += string
                         }
                         
@@ -922,7 +922,7 @@ extension Array where Element == MediaItem
             transcript.autoEdit(notify:false)
         }
         
-        if let multiPartName = multiPartName {
+        if let multiPartName = multiPartName, !multiPartName.isEmpty {
             Alerts.shared.alert(title: "All Auto Edits Underway", message: "\(multiPartName)\n(\(purpose.lowercased()))")
         } else {
             if self.count == 1, let mediaItem = self.first, let title = mediaItem.title {
@@ -1011,7 +1011,7 @@ extension Array where Element == MediaItem
             transcript.delete(alert:true)
             transcript.reset()
             
-            if let text = mediaItem.text {
+            if let text = mediaItem.text, !text.isEmpty {
                 Alerts.shared.alert(title: "Transcript Deleted",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\nhas been deleted.")
             }
         }
@@ -1412,7 +1412,7 @@ extension Array where Element == MediaItem
                     //                    print(".", terminator: Constants.EMPTY_STRING)
                 }
                 
-                if let title = mediaItem.title, let notesURLString = mediaItem.notes, let notesURL = mediaItem.notes?.url {
+                if let title = mediaItem.title, !title.isEmpty, let notesURLString = mediaItem.notes, let notesURL = notesURLString.url {
                     if ((try? Data(contentsOf: notesURL)) == nil) {
                         print("Transcript DOES NOT exist for: \(title) PDF: \(notesURLString)")
                     } else {
@@ -1420,7 +1420,7 @@ extension Array where Element == MediaItem
                     }
                 }
                 
-                if let title = mediaItem.title, let slidesURLString = mediaItem.slides, let slidesURL = mediaItem.slides?.url {
+                if let title = mediaItem.title, !title.isEmpty, let slidesURLString = mediaItem.slides, let slidesURL = slidesURLString.url {
                     if ((try? Data(contentsOf: slidesURL)) == nil) {
                         print("Slides DO NOT exist for: \(title) PDF: \(slidesURLString)")
                     } else {
@@ -1448,7 +1448,7 @@ extension Array where Element == MediaItem
                 if (mediaItem.audioURL == nil) {
                     print("No Audio file for: \(String(describing: mediaItem.title)) can't test for PDF's")
                 } else {
-                    if let title = mediaItem.title, let id = mediaItem.mediaCode, let notesURL = mediaItem.notes?.url {
+                    if let title = mediaItem.title, !title.isEmpty, let id = mediaItem.mediaCode, let notesURL = mediaItem.notes?.url {
                         if ((try? Data(contentsOf: notesURL)) != nil) {
                             print("Transcript DOES exist for: \(title) ID:\(id)")
                         } else {
@@ -1456,7 +1456,7 @@ extension Array where Element == MediaItem
                         }
                     }
                     
-                    if let title = mediaItem.title, let id = mediaItem.mediaCode, let slidesURL = mediaItem.slides?.url {
+                    if let title = mediaItem.title, !title.isEmpty, let id = mediaItem.mediaCode, let slidesURL = mediaItem.slides?.url {
                         if ((try? Data(contentsOf: slidesURL)) != nil) {
                             print("Slides DO exist for: \(title) ID: \(id)")
                         } else {
@@ -1936,14 +1936,14 @@ extension Array where Element == String
             }
         }
 
-        if let title = title {
+        if let title = title, !title.isEmpty {
             bodyHTML += title
             bodyHTML += "<br/>"
         }
         
         bodyHTML += "<p>Index to \(words.count.formatted) Words</p>"
 
-        if let searchText = searchText?.uppercased() {
+        if let searchText = searchText?.uppercased(), !searchText.isEmpty {
             bodyHTML += "Search Text: \(searchText)<br/><br/>"
         }
     
@@ -2004,7 +2004,7 @@ extension Array where Element == String
             
             wordsHTML += "<li>"
             
-            if let searchText = searchText {
+            if let searchText = searchText, !searchText.isEmpty {
                 wordsHTML += word.markSearchHTML(searchText)
             } else {
                 wordsHTML += word
@@ -2168,7 +2168,7 @@ extension String
         }
         
         for scripture in scriptures {
-            if let book = scripture.books?.first {
+            if let book = scripture.books?.first, !book.isEmpty {
                 var reference : String?
                 
                 if let range = scripture.range(book) {
@@ -3044,7 +3044,7 @@ extension String
                         debug("default")
                         
                         if let number = Int(first) {
-                            if let first = tokens.first {
+                            if let first = tokens.first { // , !first.isEmpty // Don't want to signal no more tokens
                                 if first == ":" {
                                     debug("chapter")
                                     
@@ -4882,6 +4882,10 @@ extension String
     var hmsToSeconds : Double?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             guard self.range(of: ":") != nil else {
                 return nil
             }
@@ -4923,6 +4927,10 @@ extension String
     var secondsToHMS : String?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             guard let timeNow = Double(self) else {
                 return nil
             }
@@ -7831,6 +7839,10 @@ extension Data
      */
     func save(to url: URL?) -> Data?
     {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
         guard let url = url else {
             return nil
         }
@@ -7850,6 +7862,10 @@ extension Data
     var json : Any?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             do {
                 let json = try JSONSerialization.jsonObject(with: self, options: [])
                 return json
@@ -7863,6 +7879,10 @@ extension Data
     var html2AttributedString: NSAttributedString?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             do {
                 return try NSAttributedString(data: self, options: [NSAttributedString.DocumentReadingOptionKey.documentType:NSAttributedString.DocumentType.html, NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf16.rawValue], documentAttributes: nil)
             } catch {
@@ -7885,6 +7905,10 @@ extension Data
     var string16 : String?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             return String.init(data: self, encoding: String.Encoding.utf16)
         }
     }
@@ -7895,6 +7919,10 @@ extension Data
     var string8 : String?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             return String.init(data: self, encoding: String.Encoding.utf8)
         }
     }
@@ -7905,6 +7933,10 @@ extension Data
     var image : UIImage?
     {
         get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
             return UIImage(data: self)
         }
     }

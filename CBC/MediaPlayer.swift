@@ -119,7 +119,7 @@ class PlayerStateTime
             break
         }
         
-        if let stateName = stateName {
+        if let stateName = stateName, !stateName.isEmpty {
             print(stateName)
         }
     }
@@ -354,7 +354,7 @@ class MediaPlayer : NSObject
                                 seek(to: duration.seconds)
                             }
                         } else {
-                            if let currentTime = mediaItem.currentTime, let time = Double(currentTime) {
+                            if let currentTime = mediaItem.currentTime, !currentTime.isEmpty, let time = Double(currentTime) {
                                 seek(to: time)
                             }
                         }

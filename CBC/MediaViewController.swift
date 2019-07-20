@@ -5188,7 +5188,7 @@ class MediaViewController : MediaItemsViewController
         Thread.onMain { [weak self] in
             if #available(iOS 11.0, *) {
                 if zoomScale == nil {
-                    if let data = self?.data, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
+                    if let data = self?.data, !data.isEmpty, let pdf = PDFDocument(data: data), let page = pdf.page(at: 0) {
                         // 0.95 worked on an iPad but 0.75 was required to make the entire width of the PDF fit on an iPhone.
                         // I have no idea why these magic numbers are required.
                         // It should be noted that the inequality depends on the devices as self.mediaItemNotesAndSlides.frame.width

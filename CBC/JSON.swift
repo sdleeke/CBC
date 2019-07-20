@@ -83,7 +83,7 @@ class JSON
         }
 
         // Network first
-        guard let data = urlString?.url?.data else {
+        guard let data = urlString?.url?.data, !data.isEmpty else {
             return filename?.fileSystemURL?.data?.json
         }
 
@@ -100,11 +100,13 @@ class JSON
     
     func loadURL(urlString:String?, filename:String?, completion:(([String:Any]?)->())?)
     {
-        guard let data = urlString?.url?.data else {
+        guard let data = urlString?.url?.data, !data.isEmpty else {
+            // completion?(nil) // ???
             return
         }
         
         guard let json = data.json as? [String:Any] else {
+            // completion?(nil) // ???
             return
         }
         
@@ -121,8 +123,8 @@ class JSON
             if Globals.shared.reachability.isReachable {
                 loadURL(urlString:urlString, filename:filename, completion:completion)
             } else {
-                if let json = filename?.fileSystemURL?.data?.json as? [String:Any] {
-                    completion?(json)
+                if let data = filename?.fileSystemURL?.data, let json = data.json as? [String:Any] { // , !data.isEmpty // ???
+                    completion?(json) // json could be empty, but not nil
                 }
             }
         } else {
@@ -142,7 +144,7 @@ class JSON
     
     func load(urlString:String?, key:String, filename:String?) -> [[String:Any]]?
     {
-        guard let json = get(urlString: urlString, filename: filename) as? [String:Any] else {
+        guard let json = get(urlString: urlString, filename: filename) as? [String:Any], !json.isEmpty else {
             print("could not get json from url, make sure that url contains valid json.")
             return nil
         }

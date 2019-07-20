@@ -36,7 +36,7 @@ class Selected
             
             var selectedMediaItem:MediaItem?
             
-            if let selectedMediaItemID = media?.category.selectedInMaster {
+            if let selectedMediaItemID = media?.category.selectedInMaster, !selectedMediaItemID.isEmpty {
                 selectedMediaItem = media?.repository.index[selectedMediaItemID]
             }
             
@@ -61,7 +61,7 @@ class Selected
         get {
             var selectedMediaItem:MediaItem?
             
-            if let selectedMediaItemID = media?.category.selectedInDetail {
+            if let selectedMediaItemID = media?.category.selectedInDetail, !selectedMediaItemID.isEmpty {
                 selectedMediaItem = media?.repository.index[selectedMediaItemID]
             }
             

@@ -33,7 +33,7 @@ class Streaming : Storage
     var startDate : Date?
     {
         get {
-            if let start = start {
+            if let start = start, !start.isEmpty {
                 return Date(dateString: start)
             } else {
                 return nil
@@ -51,7 +51,7 @@ class Streaming : Storage
     var endDate : Date?
     {
         get {
-            if let end = end {
+            if let end = end, !end.isEmpty {
                 return Date(dateString: end)
             } else {
                 return nil

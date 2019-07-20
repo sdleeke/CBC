@@ -16,7 +16,7 @@ extension NSMutableData
     {
         // ABSOLUTELY essential that this stay data8 (i.e. utf8 encoding) because it is used in setting up
         // VB http headers - utf16 will break it.
-        if let data = string.data8 { // (using: String.Encoding.utf8, allowLossyConversion: false)
+        if let data = string.data8, !data.isEmpty { // (using: String.Encoding.utf8, allowLossyConversion: false)
             append(data)
         }
     }
@@ -379,7 +379,7 @@ extension VoiceBase // Class Methods
             
             var json : [String:Any]?
             
-            if let data = data, data.count > 0 {
+            if let data = data, !data.isEmpty {
                 let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
 
                 if let acceptText = accept?.contains("text"), acceptText {
@@ -506,7 +506,7 @@ extension VoiceBase // Class Methods
             
             var json : [String:Any]?
             
-            if let data = data, data.count > 0 {
+            if let data = data, !data.isEmpty {
                 let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
                 debug(string as Any)
                 
@@ -1874,7 +1874,7 @@ class VoiceBase
 
             var json : [String:Any]?
 
-            if let data = data, data.count > 0 {
+            if let data = data, !data.isEmpty {
                 let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
                 debug(string as Any)
                 
@@ -3209,7 +3209,7 @@ class VoiceBase
             
             var json : [String:Any]?
             
-            if let data = data, data.count > 0 {
+            if let data = data, !data.isEmpty {
                 let string = data.string8 // String.init(data: data, encoding: String.Encoding.utf8) // why not utf16?
                 debug(string as Any)
                 

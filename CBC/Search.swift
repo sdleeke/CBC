@@ -36,10 +36,10 @@ class Search
         get {
             var toSearch:MediaListGroupSort?
             
-            if let showing = media?.tags.showing {
+            if let showing = media?.tags.showing, !showing.isEmpty {
                 switch showing {
                 case Constants.TAGGED:
-                    if let selected = media?.tags.selected {
+                    if let selected = media?.tags.selected, !selected.isEmpty {
                         toSearch = media?.tags.tagged[selected]
                     }
                     break

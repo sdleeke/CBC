@@ -2039,19 +2039,19 @@ class MediaItem : NSObject //, Downloader
         get {
             var tags:String?
             
-            if let dynamicTags = dynamicTags {
+            if let dynamicTags = dynamicTags, !dynamicTags.isEmpty {
                 tags = tags != nil ? (tags! + "|" + dynamicTags) : dynamicTags
             }
             
-            if let constantTags = constantTags {
+            if let constantTags = constantTags, !constantTags.isEmpty {
                 tags = tags != nil ? (tags! + "|" + constantTags) : constantTags
             }
             
-            if let jsonTags = series {
+            if let jsonTags = series, !jsonTags.isEmpty {
                 tags = tags != nil ? (tags! + "|" + jsonTags) : jsonTags
             }
             
-            if let savedTags = mediaItemSettings?[Field.tags] {
+            if let savedTags = mediaItemSettings?[Field.tags], !savedTags.isEmpty {
                 tags = tags != nil ? (tags! + "|" + savedTags) : savedTags
             }
 
@@ -2082,7 +2082,7 @@ class MediaItem : NSObject //, Downloader
                 }
                 
                 return true
-            }).set.tagsString {
+            }).set.tagsString, !tagsString.isEmpty {
                 return tagsString // tags
             } else {
                 return nil
@@ -2102,7 +2102,7 @@ class MediaItem : NSObject //, Downloader
             return
         }
 
-        if let tags = mediaItemSettings?[Field.tags] {
+        if let tags = mediaItemSettings?[Field.tags], !tags.isEmpty {
             mediaItemSettings?[Field.tags] = tags + Constants.SEPARATOR + tag
         } else {
             mediaItemSettings?[Field.tags] = tag

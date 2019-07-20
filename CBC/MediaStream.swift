@@ -87,7 +87,7 @@ class MediaStream
                 for event in streamEntries {
                     let streamEntry = StreamEntry(event)
                     
-                    if let start = streamEntry?.start, let text = streamEntry?.text {
+                    if let start = streamEntry?.start, let text = streamEntry?.text, !text.isEmpty {
                         // All streaming to start 5 minutes before the scheduled start time
                         if ((now.timeIntervalSince1970 + 5*60) >= Double(start)) && (now <= streamEntry?.endDate) {
                             if streamStringIndex[Constants.Strings.Playing] == nil {
@@ -179,7 +179,7 @@ class MediaStream
             
             if let streamEntries = streamEntries {
                 for streamEntry in streamEntries {
-                    if let name = StreamEntry(streamEntry)?.name {
+                    if let name = StreamEntry(streamEntry)?.name, !name.isEmpty {
                         if streamCategories[name] == nil {
                             streamCategories[name] = [[String:Any]]()
                         }

@@ -492,7 +492,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         }
 
         // If the url contains a media code, segue to it.
-        if let mediaCode = Globals.shared.media.goto {
+        if let mediaCode = Globals.shared.media.goto, !mediaCode.isEmpty {
             if let mediaItem = Globals.shared.media.repository.index[mediaCode] {
                 Thread.onMain { [weak self] in 
                     nvc.popToRootViewController(animated: false)

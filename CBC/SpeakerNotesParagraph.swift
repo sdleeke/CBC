@@ -26,7 +26,7 @@ class SpeakerNotesParagraph
             return nil
         }
 
-        if let name = name {
+        if let name = name, !name.isEmpty {
             if list?.filter({ (mediaItem) -> Bool in
                 if !mediaItem.hasNotesText {
                     return false
@@ -50,7 +50,7 @@ class SpeakerNotesParagraph
                 if !mediaItem.hasNotesText {
                     return false
                 } else {
-                    if let name = self?.name {
+                    if let name = self?.name, !name.isEmpty {
                         return mediaItem.speaker == name
                     } else {
                         return true
@@ -113,7 +113,7 @@ class SpeakerNotesParagraph
         
         fetch.fetch = { [weak fetch] in
             guard let mediaItems = self?.list?.filter({ (mediaItem) -> Bool in
-                if let name = self?.name {
+                if let name = self?.name, !name.isEmpty {
                     return (mediaItem.speaker == name) && mediaItem.hasNotesText // && (mediaItem.category == self.category)
                 } else {
                     return true

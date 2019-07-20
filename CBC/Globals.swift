@@ -149,14 +149,9 @@ class Globals : NSObject
     private var _voiceBaseAPIKey : String?
     {
         didSet {
-            if let key = _voiceBaseAPIKey {
-                if !key.isEmpty {
-                    UserDefaults.standard.set(key, forKey: Constants.Strings.VoiceBase_API_Key)
-                } else {
-                    isVoiceBaseAvailable = false
-                    UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
-                }
-                
+            if let key = _voiceBaseAPIKey, !key.isEmpty {
+                UserDefaults.standard.set(key, forKey: Constants.Strings.VoiceBase_API_Key)
+
                 // Do we need to notify VoiceBase objects?
                 // No, because if it was nil before there shouldn't be anything on VB.com
                 // No, because if it was not nil before then they either the new KEY is good or bad.
@@ -439,7 +434,7 @@ class Globals : NSObject
     {
         get {
             if _grouping == nil {
-                if let groupingString = UserDefaults.standard.string(forKey: Constants.SETTINGS.GROUPING) {
+                if let groupingString = UserDefaults.standard.string(forKey: Constants.SETTINGS.GROUPING), !groupingString.isEmpty {
                     _grouping = groupingString
                 } else {
                     _grouping = GROUPING.YEAR
@@ -473,7 +468,7 @@ class Globals : NSObject
     {
         get {
             if _sorting == nil {
-                if let sortingString = UserDefaults.standard.string(forKey: Constants.SETTINGS.SORTING) {
+                if let sortingString = UserDefaults.standard.string(forKey: Constants.SETTINGS.SORTING), !sortingString.isEmpty {
                     _sorting = sortingString
                 } else {
                     _sorting = SORTING.REVERSE_CHRONOLOGICAL
@@ -534,11 +529,11 @@ class Globals : NSObject
             
             var string = mediaCategory // Category:
                 
-            if let tag = media.tags.selected {
+            if let tag = media.tags.selected, !tag.isEmpty {
                 string += ", " + tag  // Collection:
             }
             
-            if media.search.isValid, let search = media.search.text {
+            if media.search.isValid, let search = media.search.text, !search.isEmpty {
                 string += ", " + "\"\(search)\""  // Search:
             }
             
@@ -672,7 +667,7 @@ class Globals : NSObject
 
         addNotifications()
 
-        if let playing = media.category.playing {
+        if let playing = media.category.playing, !playing.isEmpty {
             // This ONLY works if media.repository.index is loaded before this is instantiated.
             player.mediaItem = media.repository.index[playing]
         } else {
@@ -752,7 +747,7 @@ class Globals : NSObject
         let media = Media()
         
         media.search.text = UserDefaults.standard.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
-        media.search.isActive = media.search.text?.isEmpty == false
+        media.search.isActive = !(media.search.text?.isEmpty ?? true)
         
         return media
     }()

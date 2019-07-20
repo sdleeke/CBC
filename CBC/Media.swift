@@ -97,7 +97,7 @@ class Media
             }
             
             json.forEach({ (dict:[String : Any]) in
-                if let name = dict["name"] as? String {
+                if let name = dict["name"] as? String, !name.isEmpty {
                     self.groups[name] = Group(dict)
                 }
             })
@@ -115,7 +115,7 @@ class Media
             }
 
             json.forEach({ (dict:[String : Any]) in
-                if let name = dict["name"] as? String {
+                if let name = dict["name"] as? String, !name.isEmpty {
                     self.teachers[name] = Teacher(dict)
                 }
             })
@@ -143,7 +143,7 @@ class Media
                     key = "name"
                 }
                 
-                if let name = dict[key] as? String {
+                if let name = dict[key] as? String, !name.isEmpty {
                     self.categories[name] = Category(dict)
                 }
             })
@@ -182,7 +182,7 @@ class Media
                 
                 self.sortingAndGrouping()
                 
-                if let playing = self.category.playing {
+                if let playing = self.category.playing, !playing.isEmpty {
                     Globals.shared.mediaPlayer.mediaItem = self.repository.index[playing]
                 } else {
                     Globals.shared.mediaPlayer.mediaItem = nil
@@ -230,7 +230,7 @@ class Media
                     return mediaItem.category == category.selected
                 }).withTag(tag: tags.selected))
             } else {
-                if let sortTag = tags.selected?.withoutPrefixes {
+                if let sortTag = tags.selected?.withoutPrefixes, !sortTag.isEmpty {
                     tags.tagged[tag] = MediaListGroupSort(mediaItems: all?.tagMediaItems?[sortTag])
                 }
             }
@@ -299,10 +299,10 @@ class Media
         get {
             var active:MediaListGroupSort?
             
-            if let showing = tags.showing {
+            if let showing = tags.showing, !showing.isEmpty {
                 switch showing {
                 case Constants.TAGGED:
-                    if let selected = tags.selected {
+                    if let selected = tags.selected, !selected.isEmpty {
                         active = tags.tagged[selected]
                     }
                     break
@@ -317,7 +317,7 @@ class Media
             }
             
             if search.isActive {
-                if let context = active?.context, let search = search.searches?[context] {
+                if let context = active?.context, !context.isEmpty, let search = search.searches?[context] {
                     // active MUST NOT BE NIL!
                     active = search
                 }
