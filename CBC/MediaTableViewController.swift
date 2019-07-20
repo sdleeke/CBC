@@ -1057,6 +1057,28 @@ class MediaTableViewController : MediaItemsViewController
             
             Globals.shared.newAPI = UserDefaults.standard.bool(forKey: "NEW API 2019")
             
+            if !Globals.shared.newAPI {
+                guard let cachesURL = FileManager.default.cachesURL else {
+                    return
+                }
+                
+                try? autoreleasepool {
+                    let files = try FileManager.default.contentsOfDirectory(atPath: cachesURL.path)
+                    
+                    for file in files {
+                        for fileType in Constants.cacheFileTypes {
+                            if file.isFileType(fileType) {
+                                var fileURL = cachesURL
+                                fileURL.appendPathComponent(file)
+                                fileURL.delete(block: true)
+                            } else {
+                                print(file)
+                            }
+                        }
+                    }
+                }
+            }
+
             Globals.shared.media.load()
             
             UserDefaults.standard.set(true, forKey: "NEW API 2019")
