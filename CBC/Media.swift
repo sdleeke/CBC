@@ -103,12 +103,6 @@ class Media
             })
         }
         
-//        json.load(urlString: Constants.JSON.URL.GROUPS, key:Constants.JSON.ARRAY_KEY.GROUP_ENTRIES, filename: Constants.JSON.FILENAME.GROUPS)?.forEach({ (dict:[String : Any]) in
-//            if let name = dict["name"] as? String {
-//                groups[name] = Group(dict)
-//            }
-//        })
-        
         json.load(urlString: Constants.JSON.URL.TEACHERS, filename: Constants.JSON.FILENAME.TEACHERS) { (json:[String:Any]?) in
             guard let json = json?[Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES] as? [[String:Any]] else {
                 return
@@ -120,12 +114,6 @@ class Media
                 }
             })
         }
-        
-//        json.load(urlString: Constants.JSON.URL.TEACHERS, key:Constants.JSON.ARRAY_KEY.TEACHER_ENTRIES, filename: Constants.JSON.FILENAME.TEACHERS)?.forEach({ (dict:[String : Any]) in
-//            if let name = dict["name"] as? String {
-//                teachers[name] = Teacher(dict)
-//            }
-//        })
         
         json.load(urlString: Constants.JSON.URL.CATEGORIES, filename: Constants.JSON.FILENAME.CATEGORIES) { (json:[String:Any]?) in
             guard let json = json?[Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES] as? [[String:Any]] else {
@@ -149,33 +137,23 @@ class Media
             })
         }
         
-//        json.load(urlString: Constants.JSON.URL.CATEGORIES, key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES, filename: Constants.JSON.FILENAME.CATEGORIES)?.forEach({ (dict:[String : Any]) in
-//            var key = ""
-//
-//            if Constants.JSON.URL.CATEGORIES == Constants.JSON.URL.CATEGORIES_OLD {
-//                key = "category_name"
-//            }
-//
-//            if Constants.JSON.URL.CATEGORIES == Constants.JSON.URL.CATEGORIES_NEW {
-//                key = "name"
-//            }
-//
-//            if let name = dict[key] as? String {
-//                categories[name] = Category(dict)
-//            }
-//        })
-        
         json.load(urlString: json.url, filename: json.filename) { (json:[String : Any]?) in
             if let mediaItemDicts = json?[Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES] as? [[String:Any]] {
                 self.metadata = json?[Constants.JSON.ARRAY_KEY.META_DATA] as? [String:Any]
                 
-                self.repository.list = mediaItemDicts.filter({ (dict:[String : Any]) -> Bool in
-                    return (dict["published"] as? Bool) != false
-                }).map({ (mediaItemDict:[String : Any]) -> MediaItem in
-                    let mediaItem = MediaItem(storage: mediaItemDict)
+                self.repository.list = mediaItemDicts.compactMap({ (dict:[String : Any]) -> MediaItem? in
+                    guard (dict["published"] as? Bool) != false else {
+                        return nil
+                    }
+
+                    guard dict["error"] == nil else {
+                        return nil
+                    }
+                    
+                    let mediaItem = MediaItem(storage: dict)
                     
                     // Just in case it was...and something bad happened and the tag was left
-                    mediaItem.removeTag(Constants.Strings.Downloading)
+                    mediaItem?.removeTag(Constants.Strings.Downloading)
 
                     return mediaItem
                 })
@@ -189,28 +167,6 @@ class Media
                 }
             }
         }
-        
-//        if  let url = json.url,
-//            let filename = json.filename,
-//            let json = json.get(urlString: url, filename: filename) as? [String:Any],
-//            let mediaItemDicts = json[Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES] as? [[String:Any]] {
-//            metadata = json[Constants.JSON.ARRAY_KEY.META_DATA] as? [String:Any]
-//            
-//            repository.list = mediaItemDicts.filter({ (dict:[String : Any]) -> Bool in
-//                return (dict["published"] as? Bool) != false
-//            }).map({ (mediaItemDict:[String : Any]) -> MediaItem in
-//                return MediaItem(storage: mediaItemDict)
-//            })
-//            
-//            if let playing = category.playing {
-//                Globals.shared.mediaPlayer.mediaItem = repository.index[playing]
-//            } else {
-//                Globals.shared.mediaPlayer.mediaItem = nil
-//            }
-//        } else {
-//            repository.list = nil
-//            print("FAILED TO LOAD")
-//        }
     }
     
     func sortingAndGrouping()

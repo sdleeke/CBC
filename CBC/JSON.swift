@@ -142,13 +142,13 @@ class JSON
         }
     }
     
-    func load(urlString:String?, key:String, filename:String?) -> [[String:Any]]?
-    {
-        guard let json = get(urlString: urlString, filename: filename) as? [String:Any], !json.isEmpty else {
-            print("could not get json from url, make sure that url contains valid json.")
-            return nil
-        }
-        
-        return json[key] as? [[String:Any]]
-    }
+//    func load(urlString:String?, key:String, filename:String?) -> [[String:Any]]?
+//    {
+//        guard let json = get(urlString: urlString, filename: filename) as? [String:Any], !json.isEmpty else {
+//            print("could not get json from url, make sure that url contains valid json.")
+//            return nil
+//        }
+//        
+//        return json[key] as? [[String:Any]]
+//    }
 }

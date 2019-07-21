@@ -1041,7 +1041,6 @@ class MediaTableViewController : MediaItemsViewController
         
         operationQueue.cancelAllOperations()
         
-//        let operation = CancelableOperation { [weak self] (test:(()->Bool)?) in
         operationQueue.addCancelableOperation { [weak self] (test:(() -> Bool)?) in
             self?.setupSearchBar()
 

@@ -596,11 +596,8 @@ enum Constants {
     }
     
     static let SEGMENT_CHANGE_WIDTH     = CGFloat(420)
-    
     static let REGULAR_SEGMENT_WIDTH    = CGFloat(50)
-    
     static let COMPACT_SEGMENT_WIDTH    = CGFloat(25)
-    
     static let MIN_SLIDER_WIDTH         = CGFloat(60)
     
     enum AV_SEGMENT_INDEX {

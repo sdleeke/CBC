@@ -564,14 +564,16 @@ class MediaItem : NSObject //, Downloader
         notesTokens?.clear()
     }
     
-    init(storage:[String:Any]?)
+    init?(storage:[String:Any]?)
     {
-        super.init()
-        
-        if let storage = storage {
-            self.storage?.update(storage:storage)
+        guard storage?.isEmpty == false else {
+            return nil
         }
         
+        super.init()
+        
+        self.storage?.update(storage:storage)
+
         Thread.onMain { // [weak self] in
             NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
