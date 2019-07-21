@@ -8042,7 +8042,7 @@ extension Date
     {
         get {
             let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "MMM d, yyyy 'at' h:mm a"
+            dateStringFormatter.dateFormat = "MMMM d, yyyy 'at' h:mm a"
             dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
             
             dateStringFormatter.amSymbol = "AM"
@@ -8056,7 +8056,7 @@ extension Date
     var mdy : String
     {
         get {
-            return self.format("MMM d, yyyy")
+            return self.format("MMMM d, yyyy")
 //            let dateStringFormatter = DateFormatter()
 //            dateStringFormatter.dateFormat = "MMM d, yyyy"
 //            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")

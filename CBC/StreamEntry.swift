@@ -68,9 +68,9 @@ class StreamEntry : Base
             
             var string = ""
             
-            if let category = Category(self["category"] as? [String:Any])?.name {
-                string = category
-            }
+//            if let category = Category(self["category"] as? [String:Any])?.name {
+//                string = category
+//            }
 
             if let title = self["title"] as? String {
                 string = string.isEmpty ? title : string + ": " + title

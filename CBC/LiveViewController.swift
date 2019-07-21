@@ -23,7 +23,8 @@ class LiveViewController: CBCViewController
     var streamingURL : String?
     {
         get {
-            return ((streaming?.storage?["files"] as? [String:Any])?["progressive"] as? [[String:Any]])?[0]["url"] as? String
+            // [[String:Any]])?[0]["url"] as?
+            return (streaming?.storage?["files"] as? [String:Any])?["video"] as? String
         }
     }
     
@@ -174,10 +175,10 @@ class LiveViewController: CBCViewController
     
     fileprivate func setupLivePlayerView()
     {
-        if (Globals.shared.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+        if (Globals.shared.mediaPlayer.url != streamingURL?.url) { // URL(string:Constants.URL.LIVE_STREAM)
             Globals.shared.mediaPlayer.pause() // IfPlaying
 
-            Globals.shared.mediaPlayer.setup(url: streamingURL?.url ?? URL(string:Constants.URL.LIVE_STREAM),playOnLoad:true)
+            Globals.shared.mediaPlayer.setup(url: streamingURL?.url,playOnLoad:true) //  ?? URL(string:Constants.URL.LIVE_STREAM)
             Globals.shared.mediaPlayer.setupPlayingInfoCenter()
         }
         

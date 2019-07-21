@@ -89,7 +89,8 @@ class MediaStream
                     
                     if let start = streamEntry?.start, let text = streamEntry?.text, !text.isEmpty {
                         // All streaming to start 5 minutes before the scheduled start time
-                        if ((now.timeIntervalSince1970 + 5*60) >= Double(start)) && (now <= streamEntry?.endDate) {
+                        // ( + 5*60)
+                        if (now.timeIntervalSince1970 >= Double(start)) && (now <= streamEntry?.endDate) {
                             if streamStringIndex[Constants.Strings.Playing] == nil {
                                 streamStringIndex[Constants.Strings.Playing] = [String]()
                             }
@@ -134,7 +135,8 @@ class MediaStream
                     
                     if let start = streamEntry?.start {
                         // All streaming to start 5 minutes before the scheduled start time
-                        if ((now.timeIntervalSince1970 + 5*60) >= Double(start)) && (now <= streamEntry?.endDate) {
+                        // ( + 5*60)
+                        if (now.timeIntervalSince1970 >= Double(start)) && (now <= streamEntry?.endDate) {
                             if streamEntryIndex[Constants.Strings.Playing] == nil {
                                 streamEntryIndex[Constants.Strings.Playing] = [[String:Any]]()
                             }
