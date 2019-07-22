@@ -761,6 +761,64 @@ class MediaViewController : MediaItemsViewController
         operationQueue.cancelAllOperations()
     }
     
+    func selectedMediaItemUpdate(oldValue:MediaItem?)
+    {
+        Thread.onMain { [weak self] in
+            self?.wkWebView?.isHidden = true
+            self?.wkWebView?.stopLoading()
+            
+            if let image = UIImage(named:"CBC_logo") {
+                // Need to adjust aspect ratio contraint
+                let ratio = image.size.width / image.size.height
+                
+                self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+                self?.logo.image = image
+                if let logo = self?.logo {
+                    self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
+                }
+            }
+        }
+        
+        //            webData = nil
+        
+        webQueue.cancelAllOperations()
+        
+        // This causes the old MediaList to be deallocated, stopping any downloads that were occuring on it.
+        // Is that what we want? No, not unless the value of multiPartMediaItems should really change
+        if let selectedMediaItem = selectedMediaItem {
+            if mediaList?.list?.contains(selectedMediaItem) != true {
+                operationQueue.addOperation { [weak self] in
+                    self?.mediaList = MediaList(Globals.shared.media.multiPartMediaItems(selectedMediaItem))
+                    if oldValue == nil {
+                        Thread.onMain { [weak self] in
+                            self?.scrollToMediaItem(selectedMediaItem, select: true, position: .top)
+                        }
+                    }
+                }
+            }
+        } else {
+            self.mediaList = nil
+        }
+        
+        if let selectedMediaItem = selectedMediaItem, selectedMediaItem.mediaCode != nil {
+            if (selectedMediaItem == Globals.shared.mediaPlayer.mediaItem) {
+                removePlayerObserver()
+                
+                if Globals.shared.mediaPlayer.url != selectedMediaItem.playingURL {
+                    updateUI()
+                }
+            } else {
+                if let url = selectedMediaItem.playingURL {
+                    playerURL(url: url)
+                } else {
+                    self.alert(title:"No Media Available")
+                }
+            }
+        } else {
+            // We always select, never deselect
+        }
+    }
+    
     var selectedMediaItem:MediaItem?
     {
         willSet {
@@ -771,50 +829,21 @@ class MediaViewController : MediaItemsViewController
 //                return
 //            }
             
+            if let selectedMediaItem = selectedMediaItem, selectedMediaItem.mediaCode != nil {
+                Globals.shared.media.selected.detail = selectedMediaItem
+            }
+            
             Thread.onMain {
                 NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: oldValue)
                 NotificationCenter.default.addObserver(self, selector: #selector(self.updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.selectedMediaItem)
             }
             
-            if isViewLoaded {
-                Thread.onMain { [weak self] in
-                    self?.wkWebView?.isHidden = true
-                    self?.wkWebView?.stopLoading()
-                    
-                    if let image = UIImage(named:"CBC_logo") {
-                        // Need to adjust aspect ratio contraint
-                        let ratio = image.size.width / image.size.height
-                        
-                        self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
-                        self?.logo.image = image
-                        if let logo = self?.logo {
-                            self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
-                        }
-                    }
-                }
+            guard isViewLoaded else {
+                return
             }
             
-//            webData = nil
+            selectedMediaItemUpdate(oldValue:oldValue)
             
-            webQueue.cancelAllOperations()
-
-            // This causes the old MediaList to be deallocated, stopping any downloads that were occuring on it.
-            // Is that what we want? No, not unless the value of multiPartMediaItems should really change
-            if let selectedMediaItem = selectedMediaItem {
-                if mediaList?.list?.contains(selectedMediaItem) != true {
-                    operationQueue.addOperation { [weak self] in
-                        self?.mediaList = MediaList(Globals.shared.media.multiPartMediaItems(selectedMediaItem))
-                        if oldValue == nil {
-                            Thread.onMain { [weak self] in
-                                self?.scrollToMediaItem(selectedMediaItem, select: true, position: .top)
-                            }
-                        }
-                    }
-                }
-            } else {
-                self.mediaList = nil
-            }
-
 //            if selectedMediaItem?.multiPartMediaItems?.count != mediaItems?.list?.count {
 //                mediaItems = MediaList(selectedMediaItem?.multiPartMediaItems)
 //            } else {
@@ -829,27 +858,6 @@ class MediaViewController : MediaItemsViewController
 //                    mediaItems = MediaList(selectedMediaItem?.multiPartMediaItems)
 //                }
 //            }
-            
-            if let selectedMediaItem = selectedMediaItem, selectedMediaItem.mediaCode != nil {
-                if (selectedMediaItem == Globals.shared.mediaPlayer.mediaItem) {
-                    removePlayerObserver()
-                    
-                    if Globals.shared.mediaPlayer.url != selectedMediaItem.playingURL {
-                        updateUI()
-                    }
-                } else {
-                    if let url = selectedMediaItem.playingURL {
-                        playerURL(url: url)
-                    } else {
-                        self.alert(title:"No Media Available")
-                    }
-                }
-
-                Globals.shared.media.selected.detail = selectedMediaItem
-            } else {
-                // We always select, never deselect
-                
-            }
         }
     }
     
@@ -3918,6 +3926,8 @@ class MediaViewController : MediaItemsViewController
 //        var barButtons = [UIBarButtonItem]()
         
         guard canSwapVideo else {
+            swapVideoButton?.removeFromSuperview()
+            swapVideoButton = nil
             return
         }
         
@@ -3953,14 +3963,14 @@ class MediaViewController : MediaItemsViewController
 //        swapVideoButton.frame = CGRect(x: bounds.width/2 - boundingRect.width/2, y: bounds.height - boundingRect.height, width: boundingRect.width, height: boundingRect.height)
         swapVideoButton.frame = CGRect(x: bounds.width - boundingRect.width - 10, y: 20, width: boundingRect.width, height: boundingRect.height)
         
+//        swapVideoButton.removeTarget(self, action: #selector(swapVideoLocation), for: .touchUpInside)
         swapVideoButton.addTarget(self, action: #selector(swapVideoLocation), for: .touchUpInside)
         
         swapVideoButton.setTitle(title)
 //        swapVideoButton.setAttributedTitle(NSAttributedString(string: title, attributes: Constants.Fonts.Attributes.callout), for: .normal)
         
         swapVideoButton.removeFromSuperview()
-        
-        Globals.shared.mediaPlayer.controller?.contentOverlayView?.addSubview(swapVideoButton)
+        Globals.shared.mediaPlayer.controller?.view?.addSubview(swapVideoButton)
 
         swapVideoButton.translatesAutoresizingMaskIntoConstraints = false
 
@@ -4378,8 +4388,11 @@ class MediaViewController : MediaItemsViewController
             Globals.shared.mediaPlayer.seek(to: Double(currentTime))
         }
         
+        selectedMediaItemUpdate(oldValue:nil)
+        
         activityIndicator.startAnimating()
         progressIndicator.isHidden = true
+        
         setupVerticalSplit()
         setupControlView()
 

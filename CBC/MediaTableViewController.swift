@@ -3080,7 +3080,7 @@ class MediaTableViewController : MediaItemsViewController
             // Makes no sense w/o section.showIndex also being true - UNLESS you're using section.stringIndex
             popover.section.showHeaders = true
 
-            process(work: { [weak self, weak popover] (test:(() -> Bool)?) -> (Any?) in
+            process(work: { [weak self, weak popover] in
                 var key = ""
                 
                 if Constants.URL.LIVE_EVENTS == Constants.URL.LIVE_EVENTS_OLD {
@@ -3090,7 +3090,7 @@ class MediaTableViewController : MediaItemsViewController
                     key = "mediaEntries"
                 }
                 return Globals.shared.media.stream.liveEvents?[key] as? [[String:Any]]
-            }) { [weak self, weak popover] (data:Any?, test:(() -> Bool)?) in
+            }) { [weak self, weak popover] (data:Any?) in
                 Globals.shared.media.stream.streamEntries = data as? [[String:Any]]
                 
                 if Globals.shared.media.stream.streamEntries != nil {

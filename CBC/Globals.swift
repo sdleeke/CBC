@@ -34,6 +34,27 @@ class Globals : NSObject
  
     var newAPI = false
     
+    var streamEntry:StreamEntry?
+    {
+        get {
+            return StreamEntry(UserDefaults.standard.object(forKey: Constants.SETTINGS.LIVE) as? [String:Any])
+        }
+    }
+    
+    var streaming:Streaming?
+    {
+        get {
+            return Streaming(streamEntry?["streaming"] as? [String:Any])
+        }
+    }
+    
+    var streamingURL:URL?
+    {
+        get {
+            return ((streaming?["files"] as? [String:Any])?["video"] as? String)?.url
+        }
+    }
+    
     var settings = Settings()
 
     private var rootViewController : UIViewController?

@@ -175,6 +175,11 @@ class MediaPlayer : NSObject
     var playerObserverTimer:Timer?
     
     var fullScreen = false
+    {
+        didSet {
+            
+        }
+    }
     
     var url : URL?
     {
@@ -506,7 +511,7 @@ class MediaPlayer : NSObject
     
     @objc func playerObserver()
     {
-        guard (url != URL(string:Constants.URL.LIVE_STREAM)) else {
+        guard (url != Globals.shared.streamingURL) else { // URL(string:Constants.URL.LIVE_STREAM)
             return
         }
         
@@ -838,7 +843,7 @@ class MediaPlayer : NSObject
             return
         }
         
-        guard (url != URL(string:Constants.URL.LIVE_STREAM)) else {
+        guard url != Globals.shared.streamingURL else { // URL(string:Constants.URL.LIVE_STREAM))
             return
         }
         
@@ -959,7 +964,7 @@ class MediaPlayer : NSObject
             return
         }
         
-        guard (url != URL(string:Constants.URL.LIVE_STREAM)) else {
+        guard url != Globals.shared.streamingURL else { // URL(string:Constants.URL.LIVE_STREAM))
             print("Player is LIVE STREAMING.")
             return
         }

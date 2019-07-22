@@ -20,11 +20,11 @@ class LiveViewController: CBCViewController
         debug(self)
     }
     
-    var streamingURL : String?
+    var streamingURL : URL?
     {
         get {
             // [[String:Any]])?[0]["url"] as?
-            return (streaming?.storage?["files"] as? [String:Any])?["video"] as? String
+            return ((streaming?.storage?["files"] as? [String:Any])?["video"] as? String)?.url
         }
     }
     
@@ -69,13 +69,6 @@ class LiveViewController: CBCViewController
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done))
-        } else {
-            navigationItem.rightBarButtonItem = nil
-        }
-
-        setupLivePlayerView()
     }
 
     @objc func clearView()
@@ -137,9 +130,17 @@ class LiveViewController: CBCViewController
 
         setDVCLeftBarButton()
         
+        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: UIBarButtonItem.Style.plain, target: self, action: #selector(done))
+        } else {
+            navigationItem.rightBarButtonItem = nil
+        }
+        
+        setupLivePlayerView()
+
         navigationController?.isToolbarHidden = true
         
-        navigationItem.title = streamEntry?.name
+        navigationItem.title = streamEntry?.title
     }
     
     override func viewDidAppear(_ animated: Bool)
@@ -175,10 +176,10 @@ class LiveViewController: CBCViewController
     
     fileprivate func setupLivePlayerView()
     {
-        if (Globals.shared.mediaPlayer.url != streamingURL?.url) { // URL(string:Constants.URL.LIVE_STREAM)
-            Globals.shared.mediaPlayer.pause() // IfPlaying
+        if (Globals.shared.mediaPlayer.url != streamingURL) { // URL(string:Constants.URL.LIVE_STREAM)
+            Globals.shared.mediaPlayer.stop() // IfPlaying
 
-            Globals.shared.mediaPlayer.setup(url: streamingURL?.url,playOnLoad:true) //  ?? URL(string:Constants.URL.LIVE_STREAM)
+            Globals.shared.mediaPlayer.setup(url: streamingURL, playOnLoad:true) //  ?? URL(string:Constants.URL.LIVE_STREAM)
             Globals.shared.mediaPlayer.setupPlayingInfoCenter()
         }
         
