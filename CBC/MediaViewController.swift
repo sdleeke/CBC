@@ -19,9 +19,6 @@ extension MediaViewController : UIActivityItemSource
 {
     func share()
     {
-//        operationQueue.addOperation { [weak self] in
-//        }
-        
         process(work: { [weak self] () -> (Any?) in
             return self?.document?.fetchData.result
         }) { (result:Any?) in
@@ -665,7 +662,28 @@ class MediaViewController : MediaItemsViewController
     
     func loadWeb()
     {
-        webQueue.addOperation { [weak self] in
+        guard self.wkWebView?.url != self.download?.downloadURL else {
+//            self.wkWebView?.isHidden = false
+            return
+        }
+        
+        // Belt and suspenders to prevent a new op for long running prior duplicate.
+        guard self.webQueue.operations.filter({ (op:Operation) -> Bool in
+            guard let op = op as? CancelableOperation else {
+                return false
+            }
+
+            return op.tag == self.download?.downloadURL?.absoluteString
+        }).first == nil else {
+            return
+        }
+        
+//        guard self.wkWebView?.url != self.download?.downloadURL else {
+//            return
+//        }
+        
+        self.webQueue.cancelAllOperations()
+        self.webQueue.addCancelableOperation(tag: self.download?.downloadURL?.absoluteString) { [weak self] (test:(() -> Bool)?) in
             guard self?.document?.showing(self?.selectedMediaItem) == true else {
                 return
             }
@@ -680,7 +698,11 @@ class MediaViewController : MediaItemsViewController
                 self?.activityIndicator.isHidden = false
                 self?.activityIndicator.startAnimating()
             }
-
+            
+            if let test = test, test() {
+                return
+            }
+            
             guard let data = self?.document?.fetchData.result else { // , (data != self?.webData) || (self?.webData == nil)
                 if self?.document?.showing(self?.selectedMediaItem) == true {
                     Thread.onMain { [weak self] in
@@ -689,40 +711,44 @@ class MediaViewController : MediaItemsViewController
                         self?.logo.isHidden = false
                     }
                 }
-//                Thread.onMain { [weak self] in
-//                    self?.activityIndicator.stopAnimating()
-//                    self?.activityIndicator.isHidden = true
-//
-//                    if let wkWebView = self?.wkWebView {
-//                        self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
-//                    }
-//
-//                    self?.wkWebView?.isHidden = false
-//                }
+                //                Thread.onMain { [weak self] in
+                //                    self?.activityIndicator.stopAnimating()
+                //                    self?.activityIndicator.isHidden = true
+                //
+                //                    if let wkWebView = self?.wkWebView {
+                //                        self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+                //                    }
+                //
+                //                    self?.wkWebView?.isHidden = false
+                //                }
                 return
             }
             
-//            self?.webData = data
+            //            self?.webData = data
+            
+            if let test = test, test() {
+                return
+            }
             
             if self?.document?.showing(self?.selectedMediaItem) == true { // let url = Globals.shared.cacheDownloads ? self?.download?.fileSystemURL : self?.download?.downloadURL
                 Thread.onMain { [weak self] in
-//                    if let wkWebView = self?.wkWebView {
-//                        self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
-//                    }
-//
+                    //                    if let wkWebView = self?.wkWebView {
+                    //                        self?.mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+                    //                    }
+                    //
                     self?.wkWebView?.isHidden = true
                     Globals.shared.mediaPlayer.view?.isHidden = self?.videoLocation == .withDocuments
-
+                    
                     if let url = self?.download?.downloadURL {
                         self?.data = data
                         self?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "UTF-8", baseURL: url)
                         
-//
-//                        if let activityIndicator = self?.activityIndicator {
-//                            // Don't want to show it just because it is already (down)loaded!
-//                            // The scale and offset have not yet been set!
-//                            self?.mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
-//                        }
+                        //
+                        //                        if let activityIndicator = self?.activityIndicator {
+                        //                            // Don't want to show it just because it is already (down)loaded!
+                        //                            // The scale and offset have not yet been set!
+                        //                            self?.mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
+                        //                        }
                     }
                 }
             }
@@ -763,25 +789,27 @@ class MediaViewController : MediaItemsViewController
     
     func selectedMediaItemUpdate(oldValue:MediaItem?)
     {
-        Thread.onMain { [weak self] in
-            self?.wkWebView?.isHidden = true
-            self?.wkWebView?.stopLoading()
-            
-            if let image = UIImage(named:"CBC_logo") {
-                // Need to adjust aspect ratio contraint
-                let ratio = image.size.width / image.size.height
-                
-                self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
-                self?.logo.image = image
-                if let logo = self?.logo {
-                    self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
-                }
-            }
-        }
-        
         //            webData = nil
         
-        webQueue.cancelAllOperations()
+        if selectedMediaItem != oldValue {
+            Thread.onMain { [weak self] in
+                self?.wkWebView?.isHidden = true
+                self?.wkWebView?.stopLoading()
+                
+                if let image = UIImage(named:"CBC_logo") {
+                    // Need to adjust aspect ratio contraint
+                    let ratio = image.size.width / image.size.height
+                    
+                    self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+                    self?.logo.image = image
+                    if let logo = self?.logo {
+                        self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
+                    }
+                }
+            }
+            
+            webQueue.cancelAllOperations()
+        }
         
         // This causes the old MediaList to be deallocated, stopping any downloads that were occuring on it.
         // Is that what we want? No, not unless the value of multiPartMediaItems should really change
@@ -889,9 +917,9 @@ class MediaViewController : MediaItemsViewController
     {
         didSet {
             if mediaList?.list != oldValue?.list {
-                operationQueue.addOperation { [weak self] in
-                    self?.mediaList?.list?.loadDocuments()
-                }
+//                operationQueue.addOperation { [weak self] in
+//                    self?.mediaList?.list?.loadDocuments()
+//                }
                 Thread.onMain { [weak self] in
                     self?.tableView?.reloadData()
                     self?.updateUI()
@@ -3037,7 +3065,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        activityIndicator.isHidden = true
+//        activityIndicator.isHidden = true
 
         progressIndicator.isHidden = true
         progressIndicator.progress = 0.0

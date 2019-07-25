@@ -904,6 +904,10 @@ class Fetch<T>
                 
                 result = transformIt(fetch?())
                 
+                guard result != nil else {
+                    return result
+                }
+                
                 operationQueue.addOperation {
                     self.store?(result)
                 }

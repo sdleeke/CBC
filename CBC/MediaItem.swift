@@ -147,21 +147,24 @@ extension MediaItem : UIActivityItemSource
             return nil
         }
         
-        if activityType == UIActivity.ActivityType.mail {
+        switch activityType {
+        case UIActivity.ActivityType.mail:
             return html
-        } else if activityType == UIActivity.ActivityType.print {
+
+        case UIActivity.ActivityType.print:
             return html
-        }
 
-        var string : String!
-        
-        if let path = self.websiteURL?.absoluteString {
-            string = text + "\n\n" + path
-        } else {
-            string = text
+        default:
+            var string : String!
+            
+            if let path = self.websiteURL?.absoluteString {
+                string = text + "\n\n" + path
+            } else {
+                string = text
+            }
+            
+            return string
         }
-
-        return string
     }
     
     func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivity.ActivityType?) -> String
@@ -171,13 +174,16 @@ extension MediaItem : UIActivityItemSource
     
     func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivity.ActivityType?) -> String
     {
-        if activityType == UIActivity.ActivityType.mail {
+        switch activityType {
+        case UIActivity.ActivityType.mail:
             return "public.text"
-        } else if activityType == UIActivity.ActivityType.print {
+            
+        case UIActivity.ActivityType.print:
+            return "public.text"
+            
+        default:
             return "public.text"
         }
-        
-        return "public.plain-text"
     }
 }
 

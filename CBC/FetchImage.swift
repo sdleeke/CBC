@@ -65,13 +65,22 @@ class FetchImage : Fetch<UIImage>, Size
         return self.url?.image
     }
     
-    func block(_ block:((UIImage?)->()))
+//    func block(_ block:((UIImage?)->()))
+//    {
+//        if let image = image {
+//            block(image)
+//        }
+//    }
+
+    func load(success:((UIImage)->())?, failure:(()->())?)
     {
-        if let image = image {
-            block(image)
+        if let image = result {
+            success?(image)
+        } else {
+            failure?()
         }
     }
-    
+
     var imageName : String?
     {
         return url?.lastPathComponent
