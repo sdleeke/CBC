@@ -29,11 +29,18 @@ class Document : NSObject
         let fetchData = Fetch<Data>(name:mediaItem?.mediaCode ?? "" + "DOCUMENT" + (purpose ?? "")) //
     
         fetchData.retrieve = {
-            return self?.download?.fileSystemURL?.data
+            if Globals.shared.settings.cacheDownloads {
+                return self?.download?.fileSystemURL?.data
+            } else {
+                return nil
+            }
         }
         
         fetchData.store = { (data:Data?) in
-            _ = data?.save(to: self?.download?.fileSystemURL)
+            if Globals.shared.settings.cacheDownloads {
+                _ = data?.save(to: self?.download?.fileSystemURL)
+                self?.download?.state = .downloaded
+            }
         }
         
         fetchData.transform = { (data:Data?) in

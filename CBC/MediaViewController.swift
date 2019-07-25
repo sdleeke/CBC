@@ -662,7 +662,7 @@ class MediaViewController : MediaItemsViewController
     
     func loadWeb()
     {
-        guard self.wkWebView?.url != self.download?.downloadURL else {
+        if wkWebView?.isHidden == false, self.wkWebView?.url == self.download?.downloadURL, self.download?.exists == true {
 //            self.wkWebView?.isHidden = false
             return
         }
@@ -4361,6 +4361,7 @@ class MediaViewController : MediaItemsViewController
     @objc func didBecomeActive()
     {
 //        updateView()
+
         setDVCLeftBarButton()
     }
     
@@ -5422,6 +5423,7 @@ class MediaViewController : MediaItemsViewController
             fallthrough
         case Constants.Strings.Refresh_Slides:
             // This only refreshes the visible document.
+            wkWebView?.isHidden = true
             document?.download?.cancelOrDelete()
             setupDocumentsAndVideo()
             break

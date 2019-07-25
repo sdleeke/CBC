@@ -9,77 +9,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "585746021.443927"
+            filePath = "CBC/MediaViewController.swift"
+            timestampString = "585759346.25669"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "3106"
-            endingLineNumber = "3106"
-            landmarkName = "showMenu(action:mediaItem:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "585746021.444598"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "3659"
-            endingLineNumber = "3659"
-            landmarkName = "rowClickedAtIndex(_:strings:purpose:mediaItem:)"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "CBC.MediaTableViewController.rowClickedAtIndex(_: Swift.Int, strings: Swift.Optional&lt;Swift.Array&lt;Swift.String&gt;&gt;, purpose: CBC.PopoverPurpose, mediaItem: Swift.Optional&lt;CBC.MediaItem&gt;) -&gt; ()"
-                  moduleName = "CBC"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v35%20-%20V3/CBC/MediaTableViewController.swift"
-                  timestampString = "585746028.674964"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "3659"
-                  endingLineNumber = "3659"
-                  offsetFromSymbolStart = "5436">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #9 () -&gt; () in CBC.MediaTableViewController.rowClickedAtIndex(_: Swift.Int, strings: Swift.Optional&lt;Swift.Array&lt;Swift.String&gt;&gt;, purpose: CBC.PopoverPurpose, mediaItem: Swift.Optional&lt;CBC.MediaItem&gt;) -&gt; ()"
-                  moduleName = "CBC"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Google%20Drive/Development/CBC%20v35%20-%20V3/CBC/MediaTableViewController.swift"
-                  timestampString = "585746028.677002"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "3660"
-                  endingLineNumber = "3660"
-                  offsetFromSymbolStart = "176">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "585746021.444892"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "3660"
-            endingLineNumber = "3660"
-            landmarkName = "rowClickedAtIndex(_:strings:purpose:mediaItem:)"
+            startingLineNumber = "667"
+            endingLineNumber = "667"
+            landmarkName = "loadWeb()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
