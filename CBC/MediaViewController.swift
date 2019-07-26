@@ -662,8 +662,10 @@ class MediaViewController : MediaItemsViewController
     
     func loadWeb()
     {
-        if wkWebView?.isHidden == false, self.wkWebView?.url == self.download?.downloadURL, self.download?.exists == true {
-//            self.wkWebView?.isHidden = false
+        // self.wkWebView?.isHidden == true,
+        if self.wkWebView?.url == self.download?.downloadURL, self.download?.exists == true {
+            self.wkWebView?.isHidden = false
+            Globals.shared.mediaPlayer.view?.isHidden = self.videoLocation == .withDocuments
             return
         }
         
@@ -682,6 +684,8 @@ class MediaViewController : MediaItemsViewController
 //            return
 //        }
         
+        Globals.shared.mediaPlayer.view?.isHidden = self.videoLocation == .withDocuments
+
         self.webQueue.cancelAllOperations()
         self.webQueue.addCancelableOperation(tag: self.download?.downloadURL?.absoluteString) { [weak self] (test:(() -> Bool)?) in
             guard self?.document?.showing(self?.selectedMediaItem) == true else {
@@ -737,7 +741,7 @@ class MediaViewController : MediaItemsViewController
                     //                    }
                     //
                     self?.wkWebView?.isHidden = true
-                    Globals.shared.mediaPlayer.view?.isHidden = self?.videoLocation == .withDocuments
+//                    Globals.shared.mediaPlayer.view?.isHidden = self?.videoLocation == .withDocuments
                     
                     if let url = self?.download?.downloadURL {
                         self?.data = data
@@ -2877,9 +2881,11 @@ class MediaViewController : MediaItemsViewController
         
         self.logo.isHidden = true
         
+        mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
         self.activityIndicator.isHidden = false
         self.activityIndicator.startAnimating()
         
+        mediaItemNotesAndSlides.bringSubviewToFront(progressIndicator)
         self.progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
         self.progressIndicator.isHidden = false
         
@@ -4061,6 +4067,7 @@ class MediaViewController : MediaItemsViewController
         setupSpinner()
         
         setupDocumentsAndVideo()
+        
         setupSwapVideoButton()
 
         setupControlView()
@@ -5424,6 +5431,8 @@ class MediaViewController : MediaItemsViewController
         case Constants.Strings.Refresh_Slides:
             // This only refreshes the visible document.
             wkWebView?.isHidden = true
+            wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
+            setupWKWebView(wkWebView)
             document?.download?.cancelOrDelete()
             setupDocumentsAndVideo()
             break
