@@ -364,12 +364,27 @@ class Download : NSObject, Size
         }
     }
     
-    var state:State = .none {
+    var state:State
+    {
+        get {
+            if _state == .downloaded {
+                if downloadURL?.exists != true {
+                    _state = .none
+                }
+            }
+            return _state
+        }
+        set {
+            _state = newValue
+        }
+    }
+    
+    var _state:State = .none {
         willSet {
             
         }
         didSet {
-            guard state != oldValue else {
+            guard _state != oldValue else {
                 return
             }
             

@@ -413,6 +413,11 @@ class MediaViewController : MediaItemsViewController
     var searchText:String?
     
     var videoLocation : VideoLocation = .withDocuments
+    {
+        didSet {
+            
+        }
+    }
     
     var scripture:Scripture?
     {
@@ -442,10 +447,13 @@ class MediaViewController : MediaItemsViewController
         }
     }
     
+    var purpose : String?
+    
     var document : Document?
     {
         get {
             if let selectedMediaItem = selectedMediaItem, let showing = selectedMediaItem.showing, let document = documents[selectedMediaItem.mediaCode,showing] {
+                purpose = document.purpose
                 return document
             }
 
@@ -468,6 +476,8 @@ class MediaViewController : MediaItemsViewController
             }
             
             documents[selectedMediaItem.mediaCode,showing] = newValue
+            
+            purpose = newValue.purpose
         }
     }
     
@@ -654,6 +664,7 @@ class MediaViewController : MediaItemsViewController
         
         Thread.onMain { [weak self] in
             self?.progressIndicator.progress = 1.0
+            self?.progressIndicator.isHidden = true
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DOWNLOADED), object: download)
         }
 
@@ -663,8 +674,18 @@ class MediaViewController : MediaItemsViewController
     func loadWeb()
     {
         // self.wkWebView?.isHidden == true,
-        if self.wkWebView?.url == self.download?.downloadURL, self.download?.exists == true {
+        if self.wkWebView?.url == self.download?.downloadURL, self.download?.exists == true, Globals.shared.settings.cacheDownloads {
             self.wkWebView?.isHidden = false
+            self.activityIndicator.stopAnimating()
+            self.activityIndicator.isHidden = true
+            Globals.shared.mediaPlayer.view?.isHidden = self.videoLocation == .withDocuments
+            return
+        }
+        
+        if self.wkWebView?.url == self.download?.downloadURL, !Globals.shared.settings.cacheDownloads {
+            self.wkWebView?.isHidden = false
+            self.activityIndicator.stopAnimating()
+            self.activityIndicator.isHidden = true
             Globals.shared.mediaPlayer.view?.isHidden = self.videoLocation == .withDocuments
             return
         }
@@ -741,7 +762,7 @@ class MediaViewController : MediaItemsViewController
                     //                    }
                     //
                     self?.wkWebView?.isHidden = true
-//                    Globals.shared.mediaPlayer.view?.isHidden = self?.videoLocation == .withDocuments
+                    Globals.shared.mediaPlayer.view?.isHidden = self?.videoLocation == .withDocuments
                     
                     if let url = self?.download?.downloadURL {
                         self?.data = data
@@ -2693,9 +2714,6 @@ class MediaViewController : MediaItemsViewController
         if (!hasSlides && !hasNotes) {
             wkWebView?.isHidden = true
 
-            mediaItemNotesAndSlides.bringSubviewToFront(logo)
-            logo.isHidden = false
-
             if selectedMediaItem.hasPosterImage {
                 operationQueue.addOperation { [weak self] in
                     Thread.onMain { [weak self] in
@@ -2709,7 +2727,7 @@ class MediaViewController : MediaItemsViewController
                         self?.activityIndicator.isHidden = false
                         self?.activityIndicator.startAnimating()
                     }
-                
+                    
                     if let posterImage = selectedMediaItem.posterImage?.image {
                         guard self?.selectedMediaItem == selectedMediaItem else {
                             return
@@ -2727,7 +2745,7 @@ class MediaViewController : MediaItemsViewController
                             self?.logo.image = posterImage
                         }
                     }
-
+                    
                     Thread.onMain { [weak self] in
                         guard self?.selectedMediaItem == selectedMediaItem else {
                             return
@@ -2739,6 +2757,9 @@ class MediaViewController : MediaItemsViewController
                 }
             }
             
+            mediaItemNotesAndSlides.bringSubviewToFront(logo)
+            logo.isHidden = false
+
             if Globals.shared.reachability.isReachable {
                 selectedMediaItem.showing = Showing.none
             }
@@ -2867,7 +2888,7 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        guard download.state != .downloaded else {
+        guard (download.state != .downloaded) || (download.downloadURL?.exists != true) else {
             loadWeb()
             return
         }
@@ -3663,6 +3684,8 @@ class MediaViewController : MediaItemsViewController
             self.setDocumentZoomScale(self.document)
             self.setDocumentContentOffset(self.document)
 
+            self.setupSwapVideoButton()
+            
             self.isTransitioning = false
         }
     }
@@ -3981,11 +4004,19 @@ class MediaViewController : MediaItemsViewController
         
         switch videoLocation {
         case .withDocuments:
-            title = "Video to Bottom"
+            if traitCollection.verticalSizeClass == .compact, splitViewController?.isCollapsed == true {
+                title = "Video to Right"
+            } else {
+                title = "Video to Bottom"
+            }
             break
             
         case .withTableView:
-            title = "Video to Top"
+            if traitCollection.verticalSizeClass == .compact, splitViewController?.isCollapsed == true {
+                title = "Video to Left"
+            } else {
+                title = "Video to Top"
+            }
             break
         }
         
@@ -4428,6 +4459,7 @@ class MediaViewController : MediaItemsViewController
         
         activityIndicator.startAnimating()
         progressIndicator.isHidden = true
+        progressIndicator.progress = 0
         
         setupVerticalSplit()
         setupControlView()
@@ -4654,7 +4686,7 @@ class MediaViewController : MediaItemsViewController
         loadTimer?.invalidate()
         
         if let document = document, let wkWebView = wkWebView {
-            if document.showing(selectedMediaItem) && wkWebView.scrollView.isDecelerating {
+            if document.showing(selectedMediaItem) && wkWebView.scrollView.isDecelerating && !wkWebView.isLoading {
                 captureContentOffset(document)
             }
 //            self.wkWebView = nil // No reason for this and if this MVC is pushed this will wreck setup on viewWillAppear when back is used to come back to it.
@@ -4682,6 +4714,94 @@ class MediaViewController : MediaItemsViewController
         // Dispose of any resources that can be recreated.
         print("didReceiveMemoryWarning: \(String(describing: selectedMediaItem?.title))")
         Globals.shared.freeMemory()
+        
+        self.data = nil
+        wkWebView?.isHidden = true
+
+        wkWebView?.removeFromSuperview()
+        wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
+        wkWebView?.isHidden = true
+        setupWKWebView(wkWebView)
+        
+        activityIndicator.stopAnimating()
+        activityIndicator.isHidden = true
+        
+        if let selectedMediaItem = selectedMediaItem, selectedMediaItem.hasPosterImage {
+            operationQueue.addOperation { [weak self] in
+                Thread.onMain { [weak self] in
+                    guard self?.selectedMediaItem == selectedMediaItem else {
+                        return
+                    }
+
+                    if let activityIndicator = self?.activityIndicator {
+                        self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
+                    }
+                    self?.activityIndicator.isHidden = false
+                    self?.activityIndicator.startAnimating()
+                }
+
+                if let posterImage = selectedMediaItem.posterImage?.image {
+                    guard self?.selectedMediaItem == selectedMediaItem else {
+                        return
+                    }
+
+                    Thread.onMain { [weak self] in
+                        guard self?.selectedMediaItem == selectedMediaItem else {
+                            return
+                        }
+
+                        // Need to adjust aspect ratio contraint
+                        let ratio = posterImage.size.width / posterImage.size.height
+
+                        self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+                        self?.logo.image = posterImage
+                    }
+                }
+
+                Thread.onMain { [weak self] in
+                    guard self?.selectedMediaItem == selectedMediaItem else {
+                        return
+                    }
+
+                    self?.activityIndicator.stopAnimating()
+                    self?.activityIndicator.isHidden = true
+                }
+            }
+        }
+
+        if selectedMediaItem?.showing == Showing.slides {
+            logo.isHidden = false
+            if let logo = logo {
+                mediaItemNotesAndSlides.bringSubviewToFront(logo)
+            }
+        }
+        
+//        if selectedMediaItem?.showing == Showing.video, let view = Globals.shared.mediaPlayer.view {
+//            mediaItemNotesAndSlides.bringSubviewToFront(view)
+//        }
+        
+        let title = "Memory Error"
+        
+        switch purpose {
+        case Purpose.slides:
+            self.alert(title:title,message:"Slides not available.")
+            break
+            
+        case Purpose.notes:
+            if let name = selectedMediaItem?.notesName {
+                self.alert(title:title,message:name + " not available.")
+            } else {
+                self.alert(title:title)
+            }
+            break
+            
+        case Purpose.outline:
+            self.alert(title:title,message:"Outline not available.")
+            break
+            
+        default:
+            break
+        }
     }
     
     /*
@@ -5431,6 +5551,7 @@ class MediaViewController : MediaItemsViewController
         case Constants.Strings.Refresh_Slides:
             // This only refreshes the visible document.
             wkWebView?.isHidden = true
+            wkWebView?.removeFromSuperview()
             wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
             setupWKWebView(wkWebView)
             document?.download?.cancelOrDelete()
