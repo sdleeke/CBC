@@ -1911,8 +1911,8 @@ extension Array where Element == String
 
         let words = self.sorted()
         
-        var wordsHTML = ""
-        var indexHTML = ""
+        var wordsHTML = String()
+        var indexHTML = String()
         
         var roots = [String:Int]()
         
@@ -3890,7 +3890,7 @@ extension UIViewController
         
         let clear = UIAlertAction(title: "Clear", style: UIAlertAction.Style.destructive, handler: {
             (action : UIAlertAction!) -> Void in
-            alert.textFields?[0].text = ""
+            alert.textFields?[0].text = String()
             searchAction?(alert)
         })
         alert.addAction(clear)
@@ -7378,7 +7378,7 @@ extension String
         
         htmlString += "<br/><br/>"
         
-        var text = ""
+        var text = String()
         
         var last = self.startIndex
         

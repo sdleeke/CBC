@@ -814,7 +814,11 @@ class MediaViewController : MediaItemsViewController
     
     func selectedMediaItemUpdate(oldValue:MediaItem?)
     {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+
         //            webData = nil
+        logo.isHidden = true // Critical.
         
         if selectedMediaItem != oldValue {
             Thread.onMain { [weak self] in
@@ -4780,7 +4784,7 @@ class MediaViewController : MediaItemsViewController
 //            mediaItemNotesAndSlides.bringSubviewToFront(view)
 //        }
         
-        let title = "Memory Error"
+        let title = "Insufficient Memory"
         
         switch purpose {
         case Purpose.slides:
@@ -5627,7 +5631,7 @@ class MediaViewController : MediaItemsViewController
             
             
         case Constants.Strings.Cancel_All_Auto_Edit_Audio:
-            var message = ""
+            var message = String()
             
             if let multiPartName = self.mediaList?.list?.multiPartName {
                 message += multiPartName + "\n\n"
@@ -5651,7 +5655,7 @@ class MediaViewController : MediaItemsViewController
             break
             
         case Constants.Strings.Cancel_All_Auto_Edit_Video:
-            var message = ""
+            var message = String()
             
             if let multiPartName = self.mediaList?.list?.multiPartName {
                 message += multiPartName + "\n\n"

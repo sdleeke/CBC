@@ -380,7 +380,7 @@ class Globals : NSObject
         // Don't include the list because we want to be warned at th start that there is no network connection
         if priorReachabilityStatus != .notReachable, !reachability.isReachable { // , mediaRepository.list != nil
             let title = "No Network Connection"
-            var message = "Without a network connection only audio, slides, and transcripts previously downloaded will be available."
+            var message = "Without a network connection only media previously downloaded will be available."
             
             if reachability.isOnWWANFlagSet {
                 message += "\n\n"
@@ -1033,18 +1033,68 @@ class Globals : NSObject
             // Fallback on earlier versions
         }
         
-        MPRemoteCommandCenter.shared().seekForwardCommand.isEnabled = false
-        MPRemoteCommandCenter.shared().seekBackwardCommand.isEnabled = false
-        
-        MPRemoteCommandCenter.shared().previousTrackCommand.isEnabled = false
-        MPRemoteCommandCenter.shared().nextTrackCommand.isEnabled = false
-        
-        MPRemoteCommandCenter.shared().changePlaybackRateCommand.isEnabled = false
-        
-        MPRemoteCommandCenter.shared().ratingCommand.isEnabled = false
-        MPRemoteCommandCenter.shared().likeCommand.isEnabled = false
-        MPRemoteCommandCenter.shared().dislikeCommand.isEnabled = false
-        MPRemoteCommandCenter.shared().bookmarkCommand.isEnabled = false
+//        MPRemoteCommandCenter.shared().seekForwardCommand.isEnabled = true
+//        MPRemoteCommandCenter.shared().seekForwardCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+//            print("seekForwardCommand")
+//
+//            return MPRemoteCommandHandlerStatus.success
+//        })
+//
+//        MPRemoteCommandCenter.shared().seekBackwardCommand.isEnabled = true
+//        MPRemoteCommandCenter.shared().seekBackwardCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+//            print("seekBackwardCommand")
+//
+//            return MPRemoteCommandHandlerStatus.success
+//        })
+//
+//        MPRemoteCommandCenter.shared().previousTrackCommand.isEnabled = true
+//        MPRemoteCommandCenter.shared().previousTrackCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+//            print("previousTrackCommand")
+//
+//            return MPRemoteCommandHandlerStatus.success
+//        })
+//
+//        MPRemoteCommandCenter.shared().nextTrackCommand.isEnabled = true
+//        MPRemoteCommandCenter.shared().nextTrackCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+//            print("nextTrackCommand")
+//
+//            return MPRemoteCommandHandlerStatus.success
+//        })
+//
+//        MPRemoteCommandCenter.shared().changePlaybackRateCommand.isEnabled = true
+//        MPRemoteCommandCenter.shared().changePlaybackRateCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+//            print("changePlaybackRateCommand")
+//
+//            return MPRemoteCommandHandlerStatus.success
+//        })
+//
+//        MPRemoteCommandCenter.shared().ratingCommand.isEnabled = true
+//        MPRemoteCommandCenter.shared().ratingCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+//            print("ratingCommand")
+//
+//            return MPRemoteCommandHandlerStatus.success
+//        })
+//
+//        MPRemoteCommandCenter.shared().likeCommand.isEnabled = true
+//        MPRemoteCommandCenter.shared().likeCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+//            print("likeCommand")
+//
+//            return MPRemoteCommandHandlerStatus.success
+//        })
+//
+//        MPRemoteCommandCenter.shared().dislikeCommand.isEnabled = true
+//        MPRemoteCommandCenter.shared().dislikeCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+//            print("dislikeCommand")
+//
+//            return MPRemoteCommandHandlerStatus.success
+//        })
+//
+//        MPRemoteCommandCenter.shared().bookmarkCommand.isEnabled = true
+//        MPRemoteCommandCenter.shared().bookmarkCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+//            print("bookmarkCommand")
+//
+//            return MPRemoteCommandHandlerStatus.success
+//        })
     }
 }
 

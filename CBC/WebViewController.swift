@@ -389,7 +389,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
             let clear = UIAlertAction(title: "Clear", style: UIAlertAction.Style.destructive, handler: { [weak self]
                 (action : UIAlertAction!) -> Void in
-                self?.searchText = ""
+                self?.searchText = String()
                 
                 self?.wkWebView?.isHidden = true
                 

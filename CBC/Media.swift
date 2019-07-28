@@ -121,7 +121,7 @@ class Media
             }
             
             json.forEach({ (dict:[String : Any]) in
-                var key = ""
+                var key = String()
                 
                 if Constants.JSON.URL.CATEGORIES == Constants.JSON.URL.CATEGORIES_OLD {
                     key = "category_name"
@@ -138,33 +138,35 @@ class Media
         }
         
         json.load(urlString: json.url, filename: json.filename) { (json:[String : Any]?) in
-            if let mediaItemDicts = json?[Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES] as? [[String:Any]] {
-                self.metadata = json?[Constants.JSON.ARRAY_KEY.META_DATA] as? [String:Any]
-                
-                self.repository.list = mediaItemDicts.compactMap({ (dict:[String : Any]) -> MediaItem? in
-                    guard (dict["published"] as? Bool) != false else {
-                        return nil
-                    }
-
-                    guard dict["error"] == nil else {
-                        return nil
-                    }
-                    
-                    let mediaItem = MediaItem(storage: dict)
-                    
-                    // Just in case it was...and something bad happened and the tag was left
-                    mediaItem?.removeTag(Constants.Strings.Downloading)
-
-                    return mediaItem
-                })
-                
-                self.sortingAndGrouping()
-                
-                if let playing = self.category.playing, !playing.isEmpty {
-                    Globals.shared.mediaPlayer.mediaItem = self.repository.index[playing]
-                } else {
-                    Globals.shared.mediaPlayer.mediaItem = nil
+            guard let mediaItemDicts = json?[Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES] as? [[String:Any]] else {
+                return
+            }
+            
+            self.metadata = json?[Constants.JSON.ARRAY_KEY.META_DATA] as? [String:Any]
+            
+            self.repository.list = mediaItemDicts.compactMap({ (dict:[String : Any]) -> MediaItem? in
+                guard (dict["published"] as? Bool) != false else {
+                    return nil
                 }
+
+                guard dict["error"] == nil else {
+                    return nil
+                }
+                
+                let mediaItem = MediaItem(storage: dict)
+                
+                // Just in case it was...and something bad happened and the tag was left
+                mediaItem?.removeTag(Constants.Strings.Downloading)
+
+                return mediaItem
+            })
+            
+            self.sortingAndGrouping()
+            
+            if let playing = self.category.playing, !playing.isEmpty {
+                Globals.shared.mediaPlayer.mediaItem = self.repository.index[playing]
+            } else {
+                Globals.shared.mediaPlayer.mediaItem = nil
             }
         }
     }

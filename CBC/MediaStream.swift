@@ -42,7 +42,7 @@ class MediaStream
             // To get a visible amount of delay
             Thread.sleep(forTimeInterval: 1.0)
             
-            var key = ""
+            var key = String()
             
             if Constants.URL.LIVE_EVENTS == Constants.URL.LIVE_EVENTS_OLD {
                 key = "streamEntries"

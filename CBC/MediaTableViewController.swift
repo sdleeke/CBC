@@ -486,6 +486,57 @@ class MediaTableViewController : MediaItemsViewController
         Globals.shared.motionEnded(motion,event: event)
     }
 
+    var keyboardShowing = false
+    
+    @objc func keyboardWillShow(_ notification: NSNotification)
+    {
+//        if let keyboardRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
+//            let kbdRect = CGRect(x: keyboardRect.minX, y: keyboardRect.minY - keyboardRect.height, width: keyboardRect.width, height: keyboardRect.height)
+//            let txtRect = textView.convert(textView.bounds, to: splitViewController?.view)
+//            let intersectRect = txtRect.intersection(kbdRect)
+//
+//            if !keyboardShowing {
+//                // The toolbar and navBar are the same height.  Which should be deducted?  Why?  Why does this work?  Why is textView.bounds.minY not 0?
+//
+//                if navigationController?.modalPresentationStyle == .formSheet {
+//                    shrink = intersectRect.height - (navigationController?.toolbar.frame.size.height ?? 0)
+//                } else {
+//                    shrink = intersectRect.height + 16
+//                }
+//
+//                bottomLayoutConstraint.constant += shrink
+//            } else {
+//                if (intersectRect.height != shrink) {
+//                    let delta = shrink - intersectRect.height
+//                    shrink -= delta
+//                    if delta != 0 {
+//                        bottomLayoutConstraint.constant -= delta
+//                    }
+//                }
+//            }
+//        }
+        
+//        view.setNeedsLayout()
+//        view.layoutIfNeeded()
+        
+        keyboardShowing = true
+    }
+    
+    @objc func keyboardWillHide(_ notification: NSNotification)
+    {
+        if keyboardShowing {
+//            bottomLayoutConstraint.constant -= shrink // textView.frame.size.height +
+        }
+        
+//        shrink = 0
+        
+        barButtonItems(isEnabled: true)
+        updateUI()
+        
+        keyboardShowing = false
+    }
+    
+
     func bulkDeleteMedia()
     {
         VoiceBase.all(completion:{ [weak self] (json:[String:Any]?) -> Void in
@@ -1028,12 +1079,12 @@ class MediaTableViewController : MediaItemsViewController
         return operationQueue
     }()
     
-    var searching : Bool
-    {
-        get {
-            return operationQueue.operationCount > 0
-        }
-    }
+//    var searching : Bool
+//    {
+//        get {
+//            return operationQueue.operationCount > 0
+//        }
+//    }
     
     func loadMediaItems(completion: (() -> Void)?)
     {
@@ -1592,6 +1643,9 @@ class MediaTableViewController : MediaItemsViewController
     
     func addNotifications()
     {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
@@ -1729,59 +1783,61 @@ class MediaTableViewController : MediaItemsViewController
     func setupActionAndTagsButtons()
     {
         guard !Globals.shared.isLoading && !Globals.shared.isRefreshing else {
-            Thread.onMain { [weak self] in 
+            Thread.onMain { [weak self] in
                 self?.navigationItem.rightBarButtonItems = nil
             }
             return
         }
         
-        var barButtons = [UIBarButtonItem]()
-        
-        if actionButton == nil {
-            actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(actions))
-            actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
-        }
-
-        if actionMenu()?.count > 0, let actionButton = actionButton {
-            if Globals.shared.isLoading || Globals.shared.isRefreshing {
-                actionButton.isEnabled = false
-            } else {
-                if !Globals.shared.media.search.isActive {
-                    actionButton.isEnabled = true
-                } else {
-                    actionButton.isEnabled = !searching && ((Globals.shared.media.search.current?.complete == true) || (Globals.shared.media.search.current?.cancelled == true))
-                }
+        Thread.onMain { [weak self] in
+            var barButtons = [UIBarButtonItem]()
+            
+            if self?.actionButton == nil {
+                self?.actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.actions))
+                self?.actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
             }
-            barButtons.append(actionButton)
-        }
-
-        if tagsButton == nil {
-            tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItem.Style.plain, target: self, action: #selector(selectingTagsAction(_:)))
-            tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags)
-        }
-
-        let tagsMenu = self.tagsMenu()
-        
-        if (tagsMenu?.count > 1) {
-            tagsButton?.title = Constants.FA.TAGS
-        } else {
-            tagsButton?.title = Constants.FA.TAG
-        }
-
-        if tagsMenu?.count > 0, let tagsButton = tagsButton {
-            if Globals.shared.isLoading || Globals.shared.isRefreshing {
-                tagsButton.isEnabled = false
-            } else {
-                if !Globals.shared.media.search.isActive {
-                    tagsButton.isEnabled = true
+            
+            if self?.actionMenu()?.count > 0, let actionButton = self?.actionButton {
+                if Globals.shared.isLoading || Globals.shared.isRefreshing {
+                    actionButton.isEnabled = false
                 } else {
-                    tagsButton.isEnabled = !searching && ((Globals.shared.media.search.current?.complete == true) || (Globals.shared.media.search.current?.cancelled == true))
+                    if !Globals.shared.media.search.isActive {
+                        actionButton.isEnabled = true
+                    } else {
+                        // !searching &&
+                        actionButton.isEnabled = ((Globals.shared.media.search.current?.complete == true) || (Globals.shared.media.search.current?.cancelled == true))
+                    }
                 }
+                barButtons.append(actionButton)
             }
-            barButtons.append(tagsButton)
-        }
-        
-        Thread.onMain { [weak self] in 
+            
+            if self?.tagsButton == nil {
+                self?.tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.selectingTagsAction(_:)))
+                self?.tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags)
+            }
+            
+            let tagsMenu = self?.tagsMenu()
+            
+            if (tagsMenu?.count > 1) {
+                self?.tagsButton?.title = Constants.FA.TAGS
+            } else {
+                self?.tagsButton?.title = Constants.FA.TAG
+            }
+            
+            if tagsMenu?.count > 0, let tagsButton = self?.tagsButton {
+                if Globals.shared.isLoading || Globals.shared.isRefreshing {
+                    tagsButton.isEnabled = false
+                } else {
+                    if !Globals.shared.media.search.isActive {
+                        tagsButton.isEnabled = true
+                    } else {
+                        // !searching &&
+                        tagsButton.isEnabled = ((Globals.shared.media.search.current?.complete == true) || (Globals.shared.media.search.current?.cancelled == true))
+                    }
+                }
+                barButtons.append(tagsButton)
+            }
+            
             if barButtons.count > 0 {
                 self?.navigationItem.setRightBarButtonItems(barButtons, animated: true)
             } else {

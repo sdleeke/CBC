@@ -185,10 +185,10 @@ class MediaListGroupSort // : NSObject
     var category : String? // lazy Default<String>({ return Globals.shared.media.category.selected })
     {
         get {
-            return Globals.shared.grouping
+            return Globals.shared.media.category.selected
         }
         set {
-            Globals.shared.grouping = newValue
+            Globals.shared.media.category.selected = newValue
         }
     }
 

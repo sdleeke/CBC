@@ -437,7 +437,7 @@ class MediaPlayer : NSObject
 //        controller?.contentOverlayView?.removeObserver(self, forKeyPath: #keyPath(UIView.frame))
         
         controller = AVPlayerViewController()
-        
+
 //        controller?.videoGravity = AVLayerVideoGravity.resizeAspectFill.rawValue
 
         controller?.contentOverlayView?.addObserver(self, forKeyPath: #keyPath(UIView.frame), options: NSKeyValueObservingOptions.new, context: nil)
@@ -460,7 +460,7 @@ class MediaPlayer : NSObject
         
         // Just replacing the item will not cause a timeout when the player can't load.
         player = AVPlayer(url: url)
-        
+
         if #available(iOS 10.0, *) {
             player?.automaticallyWaitsToMinimizeStalling = (mediaItem?.playing != Playing.audio)
         } else {
@@ -561,14 +561,14 @@ class MediaPlayer : NSObject
                             player?.play()
                         }
                     } else {
-                        if #available(iOS 10.0, *) {
-                        } else {
+//                        if #available(iOS 10.0, *) {
+//                        } else {
                             // Was playing normally and the system paused it.
                             // This is redundant to KVO monitoring of AVPlayer.timeControlStatus but that is only available in 10.0 and later.
                             if (rate == 0) {
                                 pause()
                             }
-                        }
+//                        }
                     }
                 } else {
                     // If it isn't loaded then it shouldn't be playing.

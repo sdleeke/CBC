@@ -66,7 +66,7 @@ class StreamEntry : Base
                 return name
             }
             
-            var string = ""
+            var string = String()
             
 //            if let category = Category(self["category"] as? [String:Any])?.name {
 //                string = category

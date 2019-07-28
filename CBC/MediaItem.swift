@@ -3433,7 +3433,7 @@ class MediaItem : NSObject //, Downloader
         }
         
         if hasAudio, let audioDownload = audioDownload {
-            var title = ""
+            var title = String()
             var style = UIAlertAction.Style.default
             
             switch audioDownload.state {

@@ -128,8 +128,13 @@ class JSON
                 }
             }
         } else {
-            // FileSystem first
-            guard !Globals.shared.newAPI, let json = filename?.fileSystemURL?.data?.json as? [String:Any] else {
+            // FileSystem first unless newAPI
+            guard Globals.shared.newAPI else {
+                loadURL(urlString:urlString, filename:filename, completion:completion)
+                return
+            }
+            
+            guard let json = filename?.fileSystemURL?.data?.json as? [String:Any] else {
                 loadURL(urlString:urlString, filename:filename, completion:completion)
                 return
             }

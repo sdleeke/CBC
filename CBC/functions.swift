@@ -25,7 +25,7 @@ func debug(_ any:Any...)
 
 func startAudio()
 {
-    let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
+//    let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
     
     do {
         try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
@@ -38,8 +38,6 @@ func startAudio()
     } catch let error {
         NSLog("failed to setCategory(AVAudioSessionCategoryPlayback): \(error.localizedDescription)")
     }
-    
-    
     
     UIApplication.shared.beginReceivingRemoteControlEvents()
 }

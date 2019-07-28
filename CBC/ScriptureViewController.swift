@@ -372,7 +372,7 @@ class ScriptureViewController : CBCViewController
                 if let wvc = destination as? WebViewController {
                     webViewController = wvc
                     
-                    webViewController?.html.string = "" // Why?
+                    webViewController?.html.string = String() // Why?
                     if let fontSize = fontSize {
                         webViewController?.html.fontSize = fontSize
                     }

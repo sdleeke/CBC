@@ -203,7 +203,7 @@ class MediaList // : Sequence
     func deleteAllDownloads(purpose:String)
     {
         operationQueue.addOperation {
-            var message = ""
+            var message = String()
             
             if let multiPartName = self.list?.multiPartName, !multiPartName.isEmpty {
                 message += multiPartName + "\n\n"
