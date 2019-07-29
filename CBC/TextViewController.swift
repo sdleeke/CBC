@@ -1930,31 +1930,54 @@ class TextViewController : CBCViewController
 
     @objc func keyboardWillShow(_ notification: NSNotification)
     {
-        if let keyboardRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
-            let kbdRect = CGRect(x: keyboardRect.minX, y: keyboardRect.minY - keyboardRect.height, width: keyboardRect.width, height: keyboardRect.height)
-            let txtRect = textView.convert(textView.bounds, to: splitViewController?.view)
-            let intersectRect = txtRect.intersection(kbdRect)
-            
-            if !keyboardShowing {
+        guard textView.isFirstResponder else {
+            return
+        }
+        
+        guard !keyboardShowing else {
+            return
+        }
+        
+        guard let keyboardRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue else {
+            return
+        }
+        
+        let kbdRect = CGRect(x: keyboardRect.minX, y: keyboardRect.minY - keyboardRect.height, width: keyboardRect.width, height: keyboardRect.height)
+        
+        let txtRect = textView.convert(textView.bounds, to: splitViewController?.view)
+        let intersectRect = txtRect.intersection(kbdRect)
+        
+
+//        if let keyboardRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
+//            let kbdRect = CGRect(x: keyboardRect.minX, y: keyboardRect.minY - keyboardRect.height, width: keyboardRect.width, height: keyboardRect.height)
+//            let txtRect = textView.convert(textView.bounds, to: splitViewController?.view)
+//            let intersectRect = txtRect.intersection(kbdRect)
+        
+//            if !keyboardShowing {
+        
                 // The toolbar and navBar are the same height.  Which should be deducted?  Why?  Why does this work?  Why is textView.bounds.minY not 0?
                 
-                if navigationController?.modalPresentationStyle == .formSheet {
-                    shrink = intersectRect.height - (navigationController?.toolbar.frame.size.height ?? 0)
-                } else {
-                    shrink = intersectRect.height + 16
-                }
-                
+//                if navigationController?.modalPresentationStyle == .formSheet {
+//                    shrink = intersectRect.height - (navigationController?.toolbar.frame.size.height ?? 0)
+//                } else {
+//                    shrink = intersectRect.height + 16
+//                }
+
+                shrink = intersectRect.height + 16
+
                 bottomLayoutConstraint.constant += shrink
-            } else {
-                if (intersectRect.height != shrink) {
-                    let delta = shrink - intersectRect.height
-                    shrink -= delta
-                    if delta != 0 {
-                        bottomLayoutConstraint.constant -= delta
-                    }
-                }
-            }
-        }
+                
+//            } else {
+//                if (intersectRect.height != shrink) {
+//                    let delta = shrink - intersectRect.height
+//                    shrink -= delta
+//                    if delta != 0 {
+//                        bottomLayoutConstraint.constant -= delta
+//                    }
+//                }
+//            }
+        
+//        }
 
         view.setNeedsLayout()
         view.layoutIfNeeded()
@@ -1964,11 +1987,18 @@ class TextViewController : CBCViewController
 
     @objc func keyboardWillHide(_ notification: NSNotification)
     {
-        if keyboardShowing {
-            bottomLayoutConstraint.constant -= shrink // textView.frame.size.height +
+        guard textView.isFirstResponder else {
+            return
         }
+        
+        guard keyboardShowing else {
+            return
+        }
+        
+        bottomLayoutConstraint.constant -= shrink // textView.frame.size.height +
 
         shrink = 0
+
         keyboardShowing = false
     }
     

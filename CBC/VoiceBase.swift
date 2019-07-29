@@ -537,7 +537,7 @@ extension VoiceBase // Class Methods
 //                }
             } else {
                 if alert {
-                    Alerts.shared.alert(title:"Media Removed From VoiceBase", message:"Media ID: " + mediaID)
+                    Alerts.shared.alert(notifyOnly:true, title:"Media Removed From VoiceBase", message:"Media ID: " + mediaID)
                 }
                 completion?(json)
 //                Thread.onMain { [weak self] in 

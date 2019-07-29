@@ -25,6 +25,7 @@ import UIKit
  */
 
 struct Alert {
+    let notifyOnly : Bool
     let category : String?
     let title : String?
     let message : String?
@@ -59,6 +60,19 @@ class CBCActivityViewController : UIActivityViewController
 
 class CBCAlertController : UIAlertController // DOES NOT SUPPORT SUBCLASSING!!!
 {
+    var notifyOnly = false
+    
+    override func viewWillAppear(_ animated: Bool)
+    {
+        super.viewWillAppear(animated)
+        
+        if notifyOnly {
+            Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { (Timer) in
+                self.dismiss(animated: true, completion: nil)
+            }
+        }
+    }
+    
     override func viewDidDisappear(_ animated: Bool)
     {
         super.viewDidDisappear(animated)
@@ -173,7 +187,10 @@ class Alerts
                 }
             }
         } else {
-            alertVC.addAction(UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel, handler: nil))
+            alertVC.notifyOnly = alert.notifyOnly
+            if !alertVC.notifyOnly {
+                alertVC.addAction(UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.cancel))
+            }
         }
         
         self.alertQueue.remove(at: 0)
@@ -219,7 +236,7 @@ class Alerts
     // Timer to keep looking for alerts to show.
     var alertTimer : Timer?
 
-    func alert(category:String? = nil, title:String?, message:String? = nil, attributedText:NSAttributedString? = nil, actions:[AlertAction]? = nil, items:[AlertItem]? = nil)
+    func alert(notifyOnly:Bool = false, category:String? = nil, title:String?, message:String? = nil, attributedText:NSAttributedString? = nil, actions:[AlertAction]? = nil, items:[AlertItem]? = nil)
     {
         if title == "No Network Connection" {
             alertQueue.update(storage: alertQueue.filter({ (alert:Alert) -> Bool in
@@ -240,6 +257,6 @@ class Alerts
             }
         }
         
-        alertQueue.append(Alert(category:category, title: title, message: message, attributedText: attributedText, actions: actions, items:items))
+        alertQueue.append(Alert(notifyOnly:notifyOnly, category:category, title: title, message: message, attributedText: attributedText, actions: actions, items:items))
     }
 }
