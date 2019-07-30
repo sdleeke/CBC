@@ -890,15 +890,19 @@ class TextViewController : CBCViewController
                 return
             }
 
-            assistButton.isEnabled = !searchActive
-            syncButton.isEnabled = !searchActive
-
             if searchActive {
                 oldRange = nil
             } else {
 
             }
+            
+            guard isViewLoaded else {
+                return
+            }
 
+            assistButton.isEnabled = !searchActive
+            syncButton.isEnabled = !searchActive
+            
             if !searchActive {
                 searchBar.text = nil
                 searchBar.showsCancelButton = false
@@ -928,10 +932,6 @@ class TextViewController : CBCViewController
 
             if editingActive {
                 oldRange = nil
-                
-                navigationItem.rightBarButtonItems?.append(dismissButton)
-            } else {
-                navigationItem.rightBarButtonItems?.removeLast()
             }
         }
     }
@@ -1930,22 +1930,57 @@ class TextViewController : CBCViewController
 
     @objc func keyboardWillShow(_ notification: NSNotification)
     {
-        guard textView.isFirstResponder else {
-            return
-        }
+//        guard textView.isFirstResponder else {
+//            return
+//        }
         
         guard !keyboardShowing else {
             return
         }
         
-        guard let keyboardRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue else {
+        guard let modalPresentationStyle = navigationController?.modalPresentationStyle else {
             return
         }
         
-        let kbdRect = CGRect(x: keyboardRect.minX, y: keyboardRect.minY - keyboardRect.height, width: keyboardRect.width, height: keyboardRect.height)
+        guard let keyboardFrame = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue else {
+            return
+        }
         
-        let txtRect = textView.convert(textView.bounds, to: splitViewController?.view)
-        let intersectRect = txtRect.intersection(kbdRect)
+//        let kbdRect = CGRect(x: keyboardRect.minX, y: keyboardRect.minY - keyboardRect.height, width: keyboardRect.width, height: keyboardRect.height)
+        
+//        let txtRect = textView.convert(textView.bounds, to: splitViewController?.view)
+//        let intersectRect = txtRect.intersection(keyboardFrame)
+        
+        var keyboardHeight = keyboardFrame.height
+        
+        if #available(iOS 11.0, *) {
+            let bottomPadding = UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 0.0
+            keyboardHeight -= bottomPadding
+        }
+        
+        var delta:CGFloat = 8
+        
+        // This is a magic number hack.  WHY???
+        switch modalPresentationStyle {
+        case .formSheet:
+            if UIDevice.current.userInterfaceIdiom == .pad, (UIDevice.current.orientation == .landscapeLeft) || (UIDevice.current.orientation == .landscapeRight) {
+                delta -= 48
+            }
+            break
+            
+        default:
+            break
+        }
+        
+        guard let bounds = Globals.shared.splitViewController?.view.bounds else {
+            return
+        }
+        
+        let txtRect = textView.convert(textView.bounds, to: Globals.shared.splitViewController?.view)
+        
+        shrink = min((bounds.height - keyboardHeight) - (txtRect.origin.y + txtRect.height) - delta,0) //  + delta
+        
+        bottomLayoutConstraint.constant -= shrink
         
 
 //        if let keyboardRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
@@ -1963,10 +1998,10 @@ class TextViewController : CBCViewController
 //                    shrink = intersectRect.height + 16
 //                }
 
-                shrink = intersectRect.height + 16
-
-                bottomLayoutConstraint.constant += shrink
-                
+//                shrink = intersectRect.height + 16
+//
+//                bottomLayoutConstraint.constant += shrink
+        
 //            } else {
 //                if (intersectRect.height != shrink) {
 //                    let delta = shrink - intersectRect.height
@@ -1981,23 +2016,27 @@ class TextViewController : CBCViewController
 
         view.setNeedsLayout()
         view.layoutIfNeeded()
+        
+        navigationItem.rightBarButtonItems?.append(dismissButton)
 
         keyboardShowing = true
     }
 
     @objc func keyboardWillHide(_ notification: NSNotification)
     {
-        guard textView.isFirstResponder else {
-            return
-        }
+//        guard textView.isFirstResponder else {
+//            return
+//        }
         
         guard keyboardShowing else {
             return
         }
         
-        bottomLayoutConstraint.constant -= shrink // textView.frame.size.height +
+        bottomLayoutConstraint.constant += shrink // textView.frame.size.height +
 
         shrink = 0
+
+        navigationItem.rightBarButtonItems?.removeLast()
 
         keyboardShowing = false
     }
@@ -2007,6 +2046,8 @@ class TextViewController : CBCViewController
 
     @objc func showFullScreen()
     {
+        textView.resignFirstResponder()
+        
         guard self.popover?.count == 0 else {
             return
         }
@@ -2098,6 +2139,7 @@ class TextViewController : CBCViewController
     @objc func dismissKeyboard()
     {
         textView.resignFirstResponder()
+        searchBar.resignFirstResponder()
     }
     
     @objc func actionMenu()

@@ -537,37 +537,37 @@ class MediaTableViewController : MediaItemsViewController
     }
     
 
-    func bulkDeleteMedia()
-    {
-        VoiceBase.all(completion:{ [weak self] (json:[String:Any]?) -> Void in
-            guard let mediaItems = json?["media"] as? [[String:Any]] else {
-                return
-            }
-            
-            self?.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
-                if  let date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
-                    let date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
-                    return Date(string: date0) < Date(string: date1)
-                } else {
-                    return false // arbitrary
-                }
-            })
-
-            Thread.onMain { [weak self] in 
-                if self?.stringIndex?.keys == nil {
-                    Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase.")
-                } else {
-                    var alertActions = [AlertAction]()
-                    alertActions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
-                        VoiceBase.bulkDelete(alert: true)
-                    }))
-                    alertActions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: nil))
-                    Alerts.shared.alert(title: "Confirm Bulk Deletion of VoiceBase Media",
-                                        message: "This will delete all VoiceBase media files in the cloud for all transcripts generated on all devices using the same API key that is on this device.", actions:alertActions)
-                }
-            }
-            },onError: nil)
-    }
+//    func bulkDeleteMedia()
+//    {
+//        VoiceBase.all(completion:{ [weak self] (json:[String:Any]?) -> Void in
+//            guard let mediaItems = json?["media"] as? [[String:Any]] else {
+//                return
+//            }
+//            
+//            self?.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
+//                if  let date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
+//                    let date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
+//                    return Date(string: date0) < Date(string: date1)
+//                } else {
+//                    return false // arbitrary
+//                }
+//            })
+//
+//            Thread.onMain { [weak self] in 
+//                if self?.stringIndex?.keys == nil {
+//                    Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase.")
+//                } else {
+//                    var alertActions = [AlertAction]()
+//                    alertActions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
+//                        VoiceBase.bulkDelete(alert: true)
+//                    }))
+//                    alertActions.append(AlertAction(title: Constants.Strings.No, style: UIAlertAction.Style.default, handler: nil))
+//                    Alerts.shared.alert(title: "Confirm Bulk Deletion of VoiceBase Media",
+//                                        message: "This will delete all VoiceBase media files in the cloud for all transcripts generated on all devices using the same API key that is on this device.", actions:alertActions)
+//                }
+//            }
+//            },onError: nil)
+//    }
     
 //    @objc func downloadFailed(_ notification:NSNotification)
 //    {
@@ -3219,7 +3219,7 @@ class MediaTableViewController : MediaItemsViewController
             break
             
         case Constants.Strings.VoiceBase_Bulk_Delete:
-            bulkDeleteMedia()
+            VoiceBase.bulkDeleteMedia()
             break
             
         case Constants.Strings.VoiceBase_Media:

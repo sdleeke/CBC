@@ -49,7 +49,7 @@ extension NSMutableData
 
 extension VoiceBase // Class Methods
 {
-    private static func url(path:String?, query:String? = nil) -> String // mediaID:String?,
+    private class func url(path:String?, query:String? = nil) -> String // mediaID:String?,
     {
         if path == nil, query == nil { // mediaID == nil,
             return Constants.URL.VOICE_BASE_ROOT + "?limit=1000"
@@ -72,7 +72,118 @@ extension VoiceBase // Class Methods
         }
     }
     
-    static func html(_ json:[String:Any]?) -> String?
+    class func bulkDeleteMedia()
+    {
+        VoiceBase.all(completion:{ (json:[String:Any]?) -> Void in
+            guard let json = json?["media"] as? [[String:Any]], !json.isEmpty else {
+                Alerts.shared.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase.")
+                return
+            }
+            
+            var alertActions = [AlertAction]()
+            alertActions.append(AlertAction(title: Constants.Strings.Yes, style: UIAlertAction.Style.destructive, handler: { () -> (Void) in
+                VoiceBase.bulkDelete(alert: true)
+            }))
+            alertActions.append(AlertAction(title: Constants.Strings.No))
+            Alerts.shared.alert(title: "Confirm Bulk Deletion of VoiceBase Media",
+                                message: "This will delete all VoiceBase media files in the cloud for all transcripts generated on all devices using the same API key that is on this device.", actions:alertActions)
+        },onError: nil)
+    }
+    
+    class func deleteAllVoiceBaseMedia(mediaItems:[MediaItem]?, alert:Bool, detailedAlert:Bool)
+    {
+        guard let list = mediaItems?.filter({ (mediaItem:MediaItem) -> Bool in
+            return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+                return transcript.mediaID != nil
+            }).count > 0
+        }), let multiPartName = list.multiPartName else {
+            Alerts.shared.alert(title: "No VoiceBase Media Were Deleted", message:mediaItems?.multiPartName)
+            return
+        }
+        
+        let checkIn = CheckIn()
+        
+        checkIn.reset()
+        checkIn.total = list.reduce(0, { (result, mediaItem) -> Int in
+            return result + mediaItem.transcripts.values.filter({ (voiceBase:VoiceBase) -> Bool in
+                return voiceBase.mediaID != nil
+            }).count
+        })
+        
+        // [weak self]
+        let monitorOperation = CancelableOperation() { (test:(()->Bool)?) in
+            // How do I know all of the deletions were successful?
+            
+            //            guard let checkIn = self?.checkIn else {
+            //                return
+            //            }
+            
+            while ((checkIn.success + checkIn.failure) < checkIn.total) {
+                Thread.sleep(forTimeInterval: 1.0)
+            }
+            
+            var preamble = String()
+            
+            if checkIn.success == checkIn.total, checkIn.failure == 0 {
+                preamble = "All "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:multiPartName)
+            }
+            
+            if checkIn.failure == checkIn.total, checkIn.success == 0 {
+                preamble = "No "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:multiPartName)
+                
+                preamble = "No "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Found\n(\(checkIn.failure) of \(checkIn.total))", message:multiPartName)
+            }
+            
+            if checkIn.failure > 0, checkIn.failure < checkIn.total, checkIn.success > 0, checkIn.success < checkIn.total {
+                preamble = "Some "
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:multiPartName)
+                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Not Found\n(\(checkIn.failure) of \(checkIn.total))", message:multiPartName)
+            }
+        }
+        
+        list.forEach({ (mediaItem:MediaItem) in
+            mediaItem.transcripts.values.forEach({ (voiceBase:VoiceBase) in
+                if voiceBase.mediaID != nil {
+                    // [weak self]
+                    let operation = CancelableOperation() { (test:(()->Bool)?) in
+                        voiceBase.delete(alert:detailedAlert,
+                                         // [weak self]
+                            completion: { (json:[String:Any]?) in
+                                checkIn.success += 1
+                        },
+                            // [weak self]
+                            onError: { (json:[String:Any]?) in
+                                checkIn.failure += 1
+                        }
+                        )
+                    }
+                    
+                    monitorOperation.addDependency(operation)
+                    
+                    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // Will NOT work if opQueue's maxConcurrentOperationCount == 1 WHY??? (>1, i.e. 2 or more it works fine.)
+                    // could it be that because delete() creates a dataTask that it needs a way to run that task on this
+                    // same opQueue, which it can't if the maxConcurrent is 1 and the op that calls delete() is running,
+                    // meaning both are blocked because the second, the dataTask, is.
+                    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    Globals.shared.media.mediaQueue.addOperation(operation)
+                }
+            })
+        })
+        
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Will NOT work if opQueue's maxConcurrentOperationCount == 1 WHY??? (>1, i.e. 2 or more it works fine.)
+        // could it be that because delete() creates a dataTask that it needs a way to run that task on this
+        // same opQueue, which it can't if the maxConcurrent is 1 and the op that calls delete() is running,
+        // meaning both are blocked because the second, the dataTask, is.
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////
+        Globals.shared.media.mediaQueue.addOperation(monitorOperation)
+    }
+
+    class func html(_ json:[String:Any]?) -> String?
     {
         guard let media = json else {
             return nil
@@ -80,59 +191,51 @@ extension VoiceBase // Class Methods
         
         var htmlString = "<!DOCTYPE html><html><body>"
         
-//        if let media = json?["media"] as? [String:Any] {
+        if let accountName = media["accountName"] as? String {
+            htmlString += "Account Name: \(accountName)\n"
+        }
+    
+        if let accountId = media["accountId"] as? String {
+            htmlString += "Account ID: \(accountId)\n"
+        }
+    
+        if let mediaID = media["mediaId"] as? String {
+            htmlString += "MediaID: \(mediaID)\n"
+        }
         
-            if let accountName = media["accountName"] as? String {
-                htmlString = htmlString + "Account Name: \(accountName)\n"
-            }
+        if let status = media["status"] as? String {
+            htmlString += "Status: \(status)\n"
+        }
         
-            if let accountId = media["accountId"] as? String {
-                htmlString = htmlString + "Account ID: \(accountId)\n"
-            }
-        
-            if let mediaID = media["mediaId"] as? String {
-                htmlString = htmlString + "MediaID: \(mediaID)\n"
-            }
-            
-            if let status = media["status"] as? String {
-                htmlString = htmlString + "Status: \(status)\n"
-            }
-            
-//            if let length = media["length"] as? [String:Any] {
-//                if let length = length["milliseconds"] as? Int, let hms = (Double(length) / 1000.0).secondsToHMS {
-//                    htmlString = htmlString + "Length: \(hms)\n"
-//                }
-//            }
-        
-            if let length = media["length"] as? String {
-                htmlString = htmlString + "Length: \(length)\n"
-            }
-        
-            if let dateCreated = media["dateCreated"] as? String {
-                htmlString = htmlString + "Date Created: \(dateCreated)\n"
-            }
-        
-            if let dateFinished = media["dateFinished"] as? String {
-                htmlString = htmlString + "Date Finished: \(dateFinished)\n"
-            }
-        
-            if let mediaContentType = media["mediaContentType"] as? String {
-                htmlString = htmlString + "Media Content Type: \(mediaContentType)\n"
-            }
-        
-            if let formatVersion = media["formatVersion"] as? String {
-                htmlString = htmlString + "Format Version: \(formatVersion)\n"
-            }
-        
+        if let length = media["length"] as? String {
+            htmlString += "Length: \(length)\n"
+        }
+    
+        if let dateCreated = media["dateCreated"] as? String {
+            htmlString += "Date Created: \(dateCreated)\n"
+        }
+    
+        if let dateFinished = media["dateFinished"] as? String {
+            htmlString += "Date Finished: \(dateFinished)\n"
+        }
+    
+        if let mediaContentType = media["mediaContentType"] as? String {
+            htmlString += "Media Content Type: \(mediaContentType)\n"
+        }
+    
+        if let formatVersion = media["formatVersion"] as? String {
+            htmlString += "Format Version: \(formatVersion)\n"
+        }
+    
 //            if let job = media["job"] as? [String:Any] {
-//                htmlString = htmlString + "\nJob\n"
+//                htmlString += "\nJob\n"
 //
 //                if let jobProgress = job["progress"] as? [String:Any] {
 //                    if let jobStatus = jobProgress["status"] as? String {
-//                        htmlString = htmlString + "Job Status: \(jobStatus)\n"
+//                        htmlString += "Job Status: \(jobStatus)\n"
 //                    }
 //                    if let jobTasks = jobProgress["tasks"] as? [String:Any] {
-//                        htmlString = htmlString + "Job Tasks: \(jobTasks.count)\n"
+//                        htmlString += "Job Tasks: \(jobTasks.count)\n"
 //
 //                        var stats = [String:Int]()
 //
@@ -148,118 +251,118 @@ extension VoiceBase // Class Methods
 //
 //                        for key in stats.keys {
 //                            if let value = stats[key] {
-//                                htmlString = htmlString + "\(key): \(value)\n"
+//                                htmlString += "\(key): \(value)\n"
 //                            }
 //                        }
 //                    }
 //                }
 //            }
         
-            if let metadata = media["metadata"] as? [String:Any] {
-                htmlString = htmlString + "\nMetadata\n"
+        if let metadata = media["metadata"] as? [String:Any] {
+            htmlString += "\nMetadata\n"
 
-                if let title = metadata["title"] as? String {
-                    htmlString = htmlString + "Title: \(title)\n"
-                }
-                
-                if let mediaItem = metadata["extended"] as? [String:Any] {
-                    if let category = mediaItem["category"] {
-                        htmlString = htmlString + "Category: \(category)\n"
-                    }
-                    
-                    if let id = mediaItem["id"] {
-                        htmlString = htmlString + "id: \(id)\n"
-                    }
-                    
-                    if let title = mediaItem["title"] {
-                        htmlString = htmlString + "Title: \(title)\n"
-                    }
-                    
-                    if let date = mediaItem["date"] {
-                        htmlString = htmlString + "Date: \(date)\n"
-                    }
-                    
-                    if let service = mediaItem["service"] {
-                        htmlString = htmlString + "Service: \(service)\n"
-                    }
-                    
-                    if let speaker = mediaItem["speaker"] {
-                        htmlString = htmlString + "Speaker: \(speaker)\n"
-                    }
-                    
-                    if let scripture = mediaItem["scripture"] {
-                        htmlString = htmlString + "Scripture: \(scripture)\n"
-                    }
-                    
-                    if let purpose = mediaItem["purpose"] {
-                        htmlString = htmlString + "Purpose: \(purpose)\n"
-                    }
-                    
-                    if let device = mediaItem["device"] as? [String:Any] {
-                        htmlString = htmlString + "\nDevice Information:\n"
-                        
-                        if let model = device["model"] {
-                            htmlString = htmlString + "Model: \(model)\n"
-                        }
-                        
-                        if let modelName = device["modelName"] {
-                            htmlString = htmlString + "Model Name: \(modelName)\n"
-                        }
-                        
-                        if let name = device["name"] {
-                            htmlString = htmlString + "Name: \(name)\n"
-                        }
-                        
-                        if let deviceUUID = device["UUID"] {
-                            htmlString = htmlString + "UUID: \(deviceUUID)\n"
-                        }
-                    }
-                }
+            if let title = metadata["title"] as? String {
+                htmlString += "Title: \(title)\n"
             }
             
-            if let transcript = media["transcript"] as? [String:Any] {
-                htmlString = htmlString + "\nTranscript\n"
-                
-                if let engine = transcript["engine"] as? String {
-                    htmlString = htmlString + "Engine: \(engine)\n"
+            if let mediaItem = metadata["extended"] as? [String:Any] {
+                if let category = mediaItem["category"] {
+                    htmlString += "Category: \(category)\n"
                 }
                 
-                if let confidence = transcript["confidence"] {
-                    htmlString = htmlString + "Confidence: \(confidence)\n"
+                if let id = mediaItem["id"] {
+                    htmlString += "id: \(id)\n"
                 }
                 
-                if let words = transcript["words"] as? [[String:Any]] {
-                    htmlString = htmlString + "Words: \(words.count)\n"
+                if let title = mediaItem["title"] {
+                    htmlString += "Title: \(title)\n"
+                }
+                
+                if let date = mediaItem["date"] {
+                    htmlString += "Date: \(date)\n"
+                }
+                
+                if let service = mediaItem["service"] {
+                    htmlString += "Service: \(service)\n"
+                }
+                
+                if let speaker = mediaItem["speaker"] {
+                    htmlString += "Speaker: \(speaker)\n"
+                }
+                
+                if let scripture = mediaItem["scripture"] {
+                    htmlString += "Scripture: \(scripture)\n"
+                }
+                
+                if let purpose = mediaItem["purpose"] {
+                    htmlString += "Purpose: \(purpose)\n"
+                }
+                
+                if let device = mediaItem["device"] as? [String:Any] {
+                    htmlString += "\nDevice Information:\n"
+                    
+                    if let model = device["model"] {
+                        htmlString += "Model: \(model)\n"
+                    }
+                    
+                    if let modelName = device["modelName"] {
+                        htmlString += "Model Name: \(modelName)\n"
+                    }
+                    
+                    if let name = device["name"] {
+                        htmlString += "Name: \(name)\n"
+                    }
+                    
+                    if let deviceUUID = device["UUID"] {
+                        htmlString += "UUID: \(deviceUUID)\n"
+                    }
                 }
             }
+        }
+            
+        if let transcript = media["transcript"] as? [String:Any] {
+            htmlString += "\nTranscript\n"
+            
+            if let engine = transcript["engine"] as? String {
+                htmlString += "Engine: \(engine)\n"
+            }
+            
+            if let confidence = transcript["confidence"] {
+                htmlString += "Confidence: \(confidence)\n"
+            }
+            
+            if let words = transcript["words"] as? [[String:Any]] {
+                htmlString += "Words: \(words.count)\n"
+            }
+        }
             
 //            if let keywords = media["keywords"] as? [String:Any] {
-//                htmlString = htmlString + "\nKeywords\n"
+//                htmlString += "\nKeywords\n"
 //
 //                if let keywordsLatest = keywords["latest"] as? [String:Any] {
 //                    if let words = keywordsLatest["words"] as? [[String:Any]] {
-//                        htmlString = htmlString + "Keywords: \(words.count)\n"
+//                        htmlString += "Keywords: \(words.count)\n"
 //                    }
 //                }
 //            }
 //
 //            if let topics = media["topics"] as? [String:Any] {
-//                htmlString = htmlString + "\nTopics\n"
+//                htmlString += "\nTopics\n"
 //
 //                if let topicsLatest = topics["latest"] as? [String:Any] {
 //                    if let topics = topicsLatest["topics"] as? [[String:Any]] {
-//                        htmlString = htmlString + "Topics: \(topics.count)\n"
+//                        htmlString += "Topics: \(topics.count)\n"
 //                    }
 //                }
 //            }
 //        }
         
-        htmlString = htmlString.replacingOccurrences(of: "\n", with: "<br/>") + "</body></html>"
+        htmlString = htmlString.replacingOccurrences(of: "\n", with: "<br/><br/>") + "</body></html>"
 
         return htmlString
     }
     
-    private static func get(accept:String?,path:String?,query:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil) // mediaID:String?,
+    private class func get(accept:String?,path:String?,query:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil) // mediaID:String?,
     {
         // Critical to know if we are checking VB availability or not since we make a get to check if it is available!
         // If not, then we need to know if VB is available
@@ -413,7 +516,7 @@ extension VoiceBase // Class Methods
         task.resume()
     }
     
-    private static func metadata(mediaID: String?, completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+    private class func metadata(mediaID: String?, completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
         guard let mediaID = mediaID else {
             return
@@ -422,7 +525,7 @@ extension VoiceBase // Class Methods
         get(accept:nil, path:"media/\(mediaID)/metadata", query:nil, completion:completion, onError:onError)
     }
 
-    private static func progress(mediaID:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+    private class func progress(mediaID:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
         guard let mediaID = mediaID else {
             return
@@ -432,7 +535,7 @@ extension VoiceBase // Class Methods
         get(accept:nil, path:"media/\(mediaID)/progress", query:nil, completion:completion, onError:onError)
     }
     
-    static func details(mediaID:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+    class func details(mediaID:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
         guard let mediaID = mediaID else {
             return
@@ -442,13 +545,13 @@ extension VoiceBase // Class Methods
         get(accept:nil, path:"media/\(mediaID)", query:nil, completion:completion, onError:onError)
     }
 
-    static func all(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+    class func all(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
         // mediaID:nil,
         get(accept:nil, path:"media", query:nil, completion:completion, onError:onError)
     }
     
-    static func delete(alert:Bool,mediaID:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
+    class func delete(alert:Bool,mediaID:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
     {
         print("VoiceBase.delete")
 
@@ -548,7 +651,7 @@ extension VoiceBase // Class Methods
         task.resume()
     }
     
-    static func bulkDelete(alert:Bool, alertNone:Bool = true)
+    class func bulkDelete(alert:Bool, alertNone:Bool = true)
     {
         print("VoiceBase.bulkDelete")
         // This will only return up to 100
@@ -2078,7 +2181,7 @@ class VoiceBase
         }
     }
     
-    func upload()
+    func upload(url:String?)
     {
         guard let url = url else {
             return
@@ -2822,7 +2925,7 @@ class VoiceBase
     private func getTranscript(alert:Bool, onSuccess:(()->())? = nil) // , onFailure:(()->())? = nil
     {
         guard let mediaID = mediaID else {
-            upload()
+            upload(url: url)
             return
         }
         
@@ -6151,98 +6254,5 @@ class VoiceBase
         }
         
         return action
-    }
-    
-    static func deleteAllVoiceBaseMedia(mediaItems:[MediaItem]?, alert:Bool, detailedAlert:Bool)
-    {
-        guard let list = mediaItems?.filter({ (mediaItem:MediaItem) -> Bool in
-            return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-                return transcript.mediaID != nil
-            }).count > 0
-        }), let multiPartName = list.multiPartName else {
-            Alerts.shared.alert(title: "No VoiceBase Media Were Deleted", message:mediaItems?.multiPartName)
-            return
-        }
-        
-        let checkIn = CheckIn()
-        
-        checkIn.reset()
-        checkIn.total = list.reduce(0, { (result, mediaItem) -> Int in
-            return result + mediaItem.transcripts.values.filter({ (voiceBase:VoiceBase) -> Bool in
-                return voiceBase.mediaID != nil
-            }).count
-        })
-        
-        // [weak self]
-        let monitorOperation = CancelableOperation() { (test:(()->Bool)?) in
-            // How do I know all of the deletions were successful?
-            
-//            guard let checkIn = self?.checkIn else {
-//                return
-//            }
-            
-            while ((checkIn.success + checkIn.failure) < checkIn.total) {
-                Thread.sleep(forTimeInterval: 1.0)
-            }
-            
-            var preamble = String()
-            
-            if checkIn.success == checkIn.total, checkIn.failure == 0 {
-                preamble = "All "
-                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:multiPartName)
-            }
-            
-            if checkIn.failure == checkIn.total, checkIn.success == 0 {
-                preamble = "No "
-                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:multiPartName)
-                
-                preamble = "No "
-                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Found\n(\(checkIn.failure) of \(checkIn.total))", message:multiPartName)
-            }
-            
-            if checkIn.failure > 0, checkIn.failure < checkIn.total, checkIn.success > 0, checkIn.success < checkIn.total {
-                preamble = "Some "
-                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Deleted\n(\(checkIn.success) of \(checkIn.total))", message:multiPartName)
-                Alerts.shared.alert(title: "\(preamble)VoiceBase Media Were Not Found\n(\(checkIn.failure) of \(checkIn.total))", message:multiPartName)
-            }
-        }
-        
-        list.forEach({ (mediaItem:MediaItem) in
-            mediaItem.transcripts.values.forEach({ (voiceBase:VoiceBase) in
-                if voiceBase.mediaID != nil {
-                    // [weak self]
-                    let operation = CancelableOperation() { (test:(()->Bool)?) in
-                        voiceBase.delete(alert:detailedAlert,
-                                         // [weak self]
-                                         completion: { (json:[String:Any]?) in
-                                            checkIn.success += 1
-                                        },
-                                         // [weak self]
-                                         onError: { (json:[String:Any]?) in
-                                            checkIn.failure += 1
-                                        }
-                        )
-                    }
-                    
-                    monitorOperation.addDependency(operation)
-                    
-                    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    // Will NOT work if opQueue's maxConcurrentOperationCount == 1 WHY??? (>1, i.e. 2 or more it works fine.)
-                    // could it be that because delete() creates a dataTask that it needs a way to run that task on this
-                    // same opQueue, which it can't if the maxConcurrent is 1 and the op that calls delete() is running,
-                    // meaning both are blocked because the second, the dataTask, is.
-                    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    Globals.shared.media.mediaQueue.addOperation(operation)
-                }
-            })
-        })
-        
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Will NOT work if opQueue's maxConcurrentOperationCount == 1 WHY??? (>1, i.e. 2 or more it works fine.)
-        // could it be that because delete() creates a dataTask that it needs a way to run that task on this
-        // same opQueue, which it can't if the maxConcurrent is 1 and the op that calls delete() is running,
-        // meaning both are blocked because the second, the dataTask, is.
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////
-        Globals.shared.media.mediaQueue.addOperation(monitorOperation)
     }
 }
