@@ -61,14 +61,19 @@ class CBCActivityViewController : UIActivityViewController
 class CBCAlertController : UIAlertController // DOES NOT SUPPORT SUBCLASSING!!!
 {
     var notifyOnly = false
+
+    var timer:Timer?
     
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
         
         if notifyOnly {
-            Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { (Timer) in
-                self.dismiss(animated: true, completion: nil)
+            timer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) { (Timer) in
+                self.dismiss(animated: true, completion: {
+                    self.timer?.invalidate()
+                    self.timer = nil
+                })
             }
         }
     }

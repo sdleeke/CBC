@@ -867,15 +867,15 @@ class MediaItem : NSObject //, Downloader
             switch playing {
             case Playing.audio:
                 url = audioURL?.url
-                if let path = audioFilename?.fileSystemURL?.path, FileManager.default.fileExists(atPath: path) {
-                    url = audioFilename?.fileSystemURL
+                if let path = audioURL?.fileSystemURL?.path, FileManager.default.fileExists(atPath: path) {
+                    url = audioURL?.fileSystemURL
                 }
                 break
                 
             case Playing.video:
                 url = videoURL?.url
-                if let path = videoFilename?.fileSystemURL?.path, FileManager.default.fileExists(atPath: path){
-                    url = videoFilename?.fileSystemURL
+                if let path = videoURL?.fileSystemURL?.path, FileManager.default.fileExists(atPath: path){
+                    url = videoURL?.fileSystemURL
                 }
                 break
                 
@@ -2699,12 +2699,12 @@ class MediaItem : NSObject //, Downloader
         }
     }
     
-    var audioFilename:String?
-    {
-        get {
-            return mp3Filename
-        }
-    }
+//    var audioFilename:String?
+//    {
+//        get {
+//            return mp3Filename
+//        }
+//    }
     
     var mp3Filename:String?
     {
@@ -2739,12 +2739,12 @@ class MediaItem : NSObject //, Downloader
         }
     }
     
-    var videoFilename:String?
-    {
-        get {
-            return m3u8Filename
-        }
-    }
+//    var videoFilename:String?
+//    {
+//        get {
+//            return m3u8Filename
+//        }
+//    }
     
     var slidesFilename:String?
     {

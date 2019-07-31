@@ -1888,41 +1888,43 @@ class MediaTableViewController : MediaItemsViewController
 
         self.popover?["ACTION"]?.dismiss(animated: true, completion: nil)
         
-        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            navigationController.modalPresentationStyle = localModalPresentationStyle
-
-            navigationController.popoverPresentationController?.delegate = self
-
-            if navigationController.modalPresentationStyle == .popover {
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                navigationController.popoverPresentationController?.barButtonItem = tagsButton
-            }
-
-            popover.navigationItem.title = Constants.Strings.Show
-            
-            popover.delegate = self
-            popover.purpose = .selectingTags
-            
-            popover.stringSelected = Globals.shared.media.tags.selected ?? Constants.Strings.All
-            
-            popover.section.showIndex = true
-            popover.indexStringsTransform = { [weak self] (string:String?) -> String? in
-                return string?.withoutPrefixes
-            }
-
-            popover.section.strings = tagsMenu()
-            
-            popover.search = popover.section.strings?.count > 10
-
-            self.popover?["TAGS"] = popover
-            
-            popover.completion = { [weak self] in
-                self?.popover?["TAGS"] = nil
-            }
-            
-            present(navigationController, animated: true, completion: nil)
+        guard let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController else {
+            return
         }
+        
+        navigationController.modalPresentationStyle = localModalPresentationStyle
+
+        navigationController.popoverPresentationController?.delegate = self
+
+        if navigationController.modalPresentationStyle == .popover {
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            navigationController.popoverPresentationController?.barButtonItem = tagsButton
+        }
+
+        popover.navigationItem.title = Constants.Strings.Show
+        
+        popover.delegate = self
+        popover.purpose = .selectingTags
+        
+        popover.stringSelected = Globals.shared.media.tags.selected ?? Constants.Strings.All
+        
+        popover.section.showIndex = true
+        popover.indexStringsTransform = { [weak self] (string:String?) -> String? in
+            return string?.withoutPrefixes
+        }
+
+        popover.section.strings = tagsMenu()
+        
+        popover.search = popover.section.strings?.count > 10
+
+        self.popover?["TAGS"] = popover
+        
+        popover.completion = { [weak self] in
+            self?.popover?["TAGS"] = nil
+        }
+        
+        present(navigationController, animated: true, completion: nil)
     }
     
     func updateDisplay(context:String?)
