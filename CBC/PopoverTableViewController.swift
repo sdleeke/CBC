@@ -635,18 +635,20 @@ class PopoverTableViewController : CBCViewController
 //                    print(start,end)
 //                    print(startSeconds,endSeconds)
                     
+                    let gap = 0.2
+                    
                     if isTracking {
                         // Since the player has a bias to start earlier that the requested seek time, don't let it jump back on row if is within X ms.
                         // This is an heuristic, empirical solution.  It may not work in all cases.
-                        if (seconds >= startSeconds) && (seconds <= (endSeconds)) { //  - 0.5
+                        if (seconds > (startSeconds + gap)) && (seconds < (endSeconds - gap)) { //  - 0.5
                             timeWindowFound = true
                         } else {
 
                         }
                     } else {
-                        if (seconds >= startSeconds) && (seconds <= endSeconds) {
+                        if (seconds > (startSeconds + gap)) && (seconds < (endSeconds - gap)) {
                             timeWindowFound = true
-                        } else if (seconds < startSeconds) {
+                        } else if (seconds < (startSeconds - gap)) {
                             // Why?  Because we're going forward in time and if it doesn't fall
                             // in the start end window then there are two possibilities, it is either
                             // beyond end or before start.  If it is beyond end we just need to keep marching
@@ -2164,9 +2166,9 @@ extension PopoverTableViewController : UITableViewDelegate
             self.searchBar.resignFirstResponder()
         }
         
-        if isTracking, tableView.isValid(indexPath) {
-            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-        }
+//        if isTracking, tableView.isValid(indexPath) {
+//            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+//        }
 
         var index = -1
         

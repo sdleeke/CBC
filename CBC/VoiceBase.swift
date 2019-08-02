@@ -118,8 +118,10 @@ extension VoiceBase // Class Methods
             //                return
             //            }
             
-            while ((checkIn.success + checkIn.failure) < checkIn.total) {
+            var cycles = 0
+            while cycles < 10, ((checkIn.success + checkIn.failure) < checkIn.total) {
                 Thread.sleep(forTimeInterval: 1.0)
+                cycles += 1
             }
             
             var preamble = String()
@@ -1121,6 +1123,21 @@ class VoiceBase
             }
             
             return title + " (\(transcriptPurpose))"
+        }
+    }
+    
+    var unchanged : Bool
+    {
+        get {
+            guard let transcriptString = transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) else {
+                return false
+            }
+            
+            guard let transcriptFromWordsString = transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) else {
+                return false
+            }
+            
+            return transcriptString == transcriptFromWordsString
         }
     }
     
@@ -2435,9 +2452,18 @@ class VoiceBase
     {
         details(completion: { (json:[String : Any]?) -> (Void) in
             self.mediaJSON = json
-            if alert, let text = self.mediaItem?.text {
-                Alerts.shared.alert(title: "Keywords Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare available.")
+
+            if alert {
+                if let text = self.mediaItem?.text {
+                    Alerts.shared.alert(title: "Transcript Details Available",message: "The transcript details for\n\n\(text) (\(self.transcriptPurpose))\n\nare available.")
+                } else {
+                    Alerts.shared.alert(title: "Transcript Details Available",message: "The transcript details are available.")
+                }
             }
+            
+//            if alert, let text = self.mediaItem?.text {
+//                Alerts.shared.alert(title: "Keywords Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare available.")
+//            }
 //            if let json = json?["media"] as? [String:Any] {
 //                self.mediaJSON = json
 //                if alert, let text = self.mediaItem?.text {
@@ -2451,11 +2477,21 @@ class VoiceBase
 
             atEnd?()
         }, onError: { (json:[String : Any]?) -> (Void) in
-            if alert, let text = self.mediaItem?.text {
-                Alerts.shared.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
-            } else {
-                Alerts.shared.alert(title: "Keywords Not Available",message: "The keywords are not available.")
+            if alert {
+                if let text = self.mediaItem?.text {
+                    Alerts.shared.alert(title: "Transcript Details Not Available",message: "The transcript details for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
+                } else {
+                    Alerts.shared.alert(title: "Transcript Details Not Available",message: "The transcript details are not available.")
+                }
             }
+            
+//            if alert {
+//                if let text = self.mediaItem?.text {
+//                    Alerts.shared.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
+//                } else {
+//                    Alerts.shared.alert(title: "Keywords Not Available",message: "The keywords are not available.")
+//                }
+//            }
 
             atEnd?()
         })
@@ -5062,9 +5098,11 @@ class VoiceBase
                 }
             }
             
-            if  let transcriptString = self?.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                let transcriptFromWordsString = self?.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                transcriptString == transcriptFromWordsString {
+//            let transcriptString = self?.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+//            let transcriptFromWordsString = self?.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+//            transcriptString == transcriptFromWordsString
+            
+            if self?.unchanged == true {
                 // Can insert paragraph breaks
                 
                 let mediaItems = Globals.shared.media.repository.list

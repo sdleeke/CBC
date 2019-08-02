@@ -2327,21 +2327,28 @@ class TextViewController : CBCViewController
             return
         }
         
-        if  let transcriptString = transcript.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-            let transcriptFromWordsString = transcript.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
-            
-            if transcriptString != transcriptFromWordsString {
-                print(prettyFirstDifferenceBetweenStrings(transcriptString as NSString, transcriptFromWordsString as NSString))
-            }
-            
-            if  (Globals.shared.mediaPlayer.mediaItem == transcript.mediaItem),
-                (transcript.mediaItem?.playing == transcript.purpose) { // , (transcriptString.lowercased() != transcriptFromWordsString.lowercased())
-                if wordRangeTiming.filter({ (dict:[String:Any]) -> Bool in
-                    return dict["range"] == nil
-                }).count > 0 {
-                    if let text = transcript.mediaItem?.text {
-                        Alerts.shared.alert(title: "Transcript Sync Warning",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.")
-                    }
+        guard let transcriptString = transcript.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) else {
+            return
+        }
+        
+        guard let transcriptFromWordsString = transcript.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) else {
+            return
+        }
+        
+//        if  let transcriptString = transcript.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+//            let transcriptFromWordsString = transcript.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
+        
+        if transcriptString != transcriptFromWordsString {
+            print(prettyFirstDifferenceBetweenStrings(transcriptString as NSString, transcriptFromWordsString as NSString))
+        }
+        
+        if  (Globals.shared.mediaPlayer.mediaItem == transcript.mediaItem),
+            (transcript.mediaItem?.playing == transcript.purpose) { // , (transcriptString.lowercased() != transcriptFromWordsString.lowercased())
+            if wordRangeTiming.filter({ (dict:[String:Any]) -> Bool in
+                return dict["range"] == nil
+            }).count > 0 {
+                if let text = transcript.mediaItem?.text {
+                    Alerts.shared.alert(title: "Transcript Sync Warning",message: "The transcript for\n\n\(text) (\(transcript.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.")
                 }
             }
         }
