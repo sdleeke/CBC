@@ -564,7 +564,7 @@ class MediaItem : NSObject //, Downloader
         // What are the side effects of this?
         seriesImage?.clearImageCache()
         
-        documents = ThreadSafeDN<Document>(name:mediaCode + "Documents") // ictionaryOfDictionaries
+//        documents = ThreadSafeDN<Document>(name:mediaCode + "Documents") // DictionaryOfDictionaries
 
         notesHTML?.clear()
         notesTokens?.clear()

@@ -92,7 +92,8 @@ extension MediaTableViewController : UISearchBarDelegate
             
             let yesAction = AlertAction(title: Constants.Strings.Yes, style: .destructive, handler: { [weak self]
                 () -> Void in
-                Globals.shared.media.search.searches?.clear()
+                Globals.shared.searchHistory = nil
+//                Globals.shared.media.search.searches?.clear()
                 self?.popover?["SEARCH_HISTORY"]?.dismiss(animated: true, completion: nil)
             })
             alertActions.append(yesAction)
@@ -109,46 +110,48 @@ extension MediaTableViewController : UISearchBarDelegate
     
     func searchBarResultsListButtonClicked(_ searchBar: UISearchBar)
     {
-        if  let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            navigationController.modalPresentationStyle = .popover
-            
-            navigationController.popoverPresentationController?.delegate = self
-            
-            navigationController.popoverPresentationController?.sourceRect = searchBar.frame
-            navigationController.popoverPresentationController?.sourceView = view
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
-            
-            popover.navigationItem.title = "Search History"
-            
-            popover.delegate = self
-            popover.purpose = .selectingSearch
-            
-            self.popover?["SEARCH_HISTORY"] = popover
-            
-            popover.completion = { [weak self] in
-                self?.popover?["SEARCH_HISTORY"] = nil
-            }
-            
-            popover.stringsFunction = { [weak self, weak popover] ()->[String]? in
-                let strings = Globals.shared.media.search.searches?.keys()?.filter({ (string:String) -> Bool in
-                    return Globals.shared.media.search.isActive ? string.searchText != Globals.shared.media.search.text?.uppercased() : true
-                }).map({ (string:String) -> String in
-                    return string.searchText ?? ""
-                }).set.array.sorted()
-                
-                Thread.onMain { [weak self] in 
-                    popover?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: Constants.Strings.Delete_All, style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.searchActions))
-                    popover?.navigationItem.leftBarButtonItem?.isEnabled = strings?.count > 0
-                }
-                
-                return strings
-            }
-
-            navigationController.view.isHidden = true
-            
-            present(navigationController, animated: true, completion: nil)
+        guard let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController else {
+            return
         }
+        
+        navigationController.modalPresentationStyle = .popover
+        
+        navigationController.popoverPresentationController?.delegate = self
+        
+        navigationController.popoverPresentationController?.sourceRect = searchBar.frame
+        navigationController.popoverPresentationController?.sourceView = view
+        navigationController.popoverPresentationController?.permittedArrowDirections = .up
+        
+        popover.navigationItem.title = "Search History"
+        
+        popover.delegate = self
+        popover.purpose = .selectingSearch
+        
+        self.popover?["SEARCH_HISTORY"] = popover
+        
+        popover.completion = { [weak self] in
+            self?.popover?["SEARCH_HISTORY"] = nil
+        }
+        
+        popover.stringsFunction = { [weak self, weak popover] ()->[String]? in
+//            let strings = Globals.shared.media.search.searches?.keys()?.filter({ (string:String) -> Bool in
+//                return Globals.shared.media.search.isActive ? string.searchText != Globals.shared.media.search.text?.uppercased() : true
+//            }).map({ (string:String) -> String in
+//                return string.searchText ?? ""
+//            }).set.array.sorted()
+            
+            Thread.onMain { [weak self] in
+                popover?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: Constants.Strings.Delete_All, style: UIBarButtonItem.Style.plain, target: self, action: #selector(self?.searchActions))
+                popover?.navigationItem.leftBarButtonItem?.isEnabled = Globals.shared.searchHistory?.count > 0
+            }
+            
+            return Globals.shared.searchHistory?.sorted()
+        }
+
+        navigationController.view.isHidden = true
+        
+        present(navigationController, animated: true, completion: nil)
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
@@ -190,9 +193,11 @@ extension MediaTableViewController : UISearchBarDelegate
 
         searchBar.resignFirstResponder()
 
-        let searchText = searchBar.text?.uppercased()
+        if let text = searchBar.text?.uppercased(), !text.isEmpty, Globals.shared.searchHistory?.contains(text) == false {
+            Globals.shared.searchHistory?.append(text)
+        }
         
-        Globals.shared.media.search.text = searchText
+        Globals.shared.media.search.text = searchBar.text?.uppercased()
         
         if Globals.shared.media.search.isValid {
             updateSearchResults(Globals.shared.media.active?.context,completion: nil)
@@ -2613,22 +2618,33 @@ class MediaTableViewController : MediaItemsViewController
             
         case .selectingSearch:
             actions.append(UITableViewRowAction(style: .destructive, title: "Delete") { (rowAction:UITableViewRowAction, indexPath:IndexPath) in
-                if let search = popover.section.strings?[indexPath.row] {
-                    if let keys = Globals.shared.media.search.searches?.keys() {
-                        for key in keys {
-                            if key.searchText == search {
-                                Globals.shared.media.search.searches?[key] = nil
-                                break
-                            }
-                        }
-                    }
-                    popover.section.strings?.remove(at: indexPath.row)
-                    popover.setPreferredContentSize()
-                    popover.tableView.reloadData()
-                    if popover.section.strings?.count == 0 {
-                        popover.navigationItem.leftBarButtonItem?.isEnabled = false
-                    }
+                Globals.shared.searchHistory?.remove(at: indexPath.row)
+                
+                popover.section.strings?.remove(at: indexPath.row)
+                
+                popover.setPreferredContentSize()
+                popover.tableView.reloadData()
+                
+                if popover.section.strings?.count == 0 {
+                    popover.navigationItem.leftBarButtonItem?.isEnabled = false
                 }
+
+//                if let search = popover.section.strings?[indexPath.row] {
+//                    if let keys = Globals.shared.media.search.searches?.keys() {
+//                        for key in keys {
+//                            if key.searchText == search {
+//                                Globals.shared.media.search.searches?[key] = nil
+//                                break
+//                            }
+//                        }
+//                    }
+//                    popover.section.strings?.remove(at: indexPath.row)
+//                    popover.setPreferredContentSize()
+//                    popover.tableView.reloadData()
+//                    if popover.section.strings?.count == 0 {
+//                        popover.navigationItem.leftBarButtonItem?.isEnabled = false
+//                    }
+//                }
             })
             break
             

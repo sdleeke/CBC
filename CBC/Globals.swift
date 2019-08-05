@@ -34,6 +34,35 @@ class Globals : NSObject
  
     var newAPI = false
     
+    var _searchHistory:[String]?
+    {
+        didSet {
+            guard _searchHistory?.isEmpty == false else {
+                UserDefaults.standard.removeObject(forKey: "Search History")
+                return
+            }
+            
+            UserDefaults.standard.set(_searchHistory, forKey: "Search History")
+        }
+    }
+    var searchHistory:[String]?
+    {
+        get {
+            if _searchHistory == nil {
+                _searchHistory = UserDefaults.standard.array(forKey: "Search History") as? [String]
+            }
+            
+            if _searchHistory == nil {
+                _searchHistory = [String]()
+            }
+            
+            return _searchHistory
+        }
+        set {
+            _searchHistory = newValue
+        }
+    }
+
     var streamEntry:StreamEntry?
     {
         get {

@@ -825,16 +825,17 @@ class MediaViewController : MediaItemsViewController
                 self?.wkWebView?.isHidden = true
                 self?.wkWebView?.stopLoading()
                 
-                if let image = UIImage(named:"CBC_logo") {
-                    // Need to adjust aspect ratio contraint
-                    let ratio = image.size.width / image.size.height
-                    
-                    self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
-                    self?.logo.image = image
-                    if let logo = self?.logo {
-                        self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
-                    }
-                }
+                self?.setupLogo()
+//                if let image = UIImage(named:"CBC_logo") {
+//                    // Need to adjust aspect ratio contraint
+//                    let ratio = image.size.width / image.size.height
+//
+//                    self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+//                    self?.logo.image = image
+//                    if let logo = self?.logo {
+//                        self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
+//                    }
+//                }
             }
             
             webQueue.cancelAllOperations()
@@ -2702,11 +2703,77 @@ class MediaViewController : MediaItemsViewController
     
     @IBOutlet weak var layoutAspectRatio: NSLayoutConstraint!
     
+    func setupLogo()
+    {
+        guard let selectedMediaItem = selectedMediaItem else {
+            return
+        }
+        
+        guard selectedMediaItem.hasPosterImage else {
+            return
+        }
+    
+        operationQueue.addOperation { [weak self] in
+//            Thread.onMain { [weak self] in
+//                guard self?.selectedMediaItem == selectedMediaItem else {
+//                    return
+//                }
+//
+//                if let activityIndicator = self?.activityIndicator {
+//                    self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
+//                }
+//                self?.activityIndicator.isHidden = false
+//                self?.activityIndicator.startAnimating()
+//            }
+
+            func setImage(_ image:UIImage? = nil)
+            {
+                guard let image = image ?? UIImage(named:"CBC_logo") else {
+                    self?.logo.image = nil
+                    return
+                }
+                
+                Thread.onMain { [weak self] in
+                    guard self?.selectedMediaItem == selectedMediaItem else {
+                        return
+                    }
+                    
+                    // Need to adjust aspect ratio contraint
+                    let ratio = image.size.width / image.size.height
+                    
+                    self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+                    self?.logo.image = image
+                    //                if let logo = self?.logo {
+                    //                    self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
+                    //                }
+                }
+            }
+            
+            guard let posterImage = selectedMediaItem.posterImage?.image else {
+                setImage()
+                return
+            }
+            
+            setImage(posterImage)
+            
+//            Thread.onMain { [weak self] in
+//                guard self?.selectedMediaItem == selectedMediaItem else {
+//                    return
+//                }
+//
+//                self?.activityIndicator.stopAnimating()
+//                self?.activityIndicator.isHidden = true
+//            }
+        }
+    }
+    
     fileprivate func setupDefaultDocuments()
     {
         guard let selectedMediaItem = selectedMediaItem else {
             return
         }
+        
+        setupLogo()
         
         verticalSplit.isHidden = false
         
@@ -2718,48 +2785,48 @@ class MediaViewController : MediaItemsViewController
         if (!hasSlides && !hasNotes) {
             wkWebView?.isHidden = true
 
-            if selectedMediaItem.hasPosterImage {
-                operationQueue.addOperation { [weak self] in
-                    Thread.onMain { [weak self] in
-                        guard self?.selectedMediaItem == selectedMediaItem else {
-                            return
-                        }
-                        
-                        if let activityIndicator = self?.activityIndicator {
-                            self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
-                        }
-                        self?.activityIndicator.isHidden = false
-                        self?.activityIndicator.startAnimating()
-                    }
-                    
-                    if let posterImage = selectedMediaItem.posterImage?.image {
-                        guard self?.selectedMediaItem == selectedMediaItem else {
-                            return
-                        }
-                        
-                        Thread.onMain { [weak self] in
-                            guard self?.selectedMediaItem == selectedMediaItem else {
-                                return
-                            }
-                            
-                            // Need to adjust aspect ratio contraint
-                            let ratio = posterImage.size.width / posterImage.size.height
-                            
-                            self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
-                            self?.logo.image = posterImage
-                        }
-                    }
-                    
-                    Thread.onMain { [weak self] in
-                        guard self?.selectedMediaItem == selectedMediaItem else {
-                            return
-                        }
-                        
-                        self?.activityIndicator.stopAnimating()
-                        self?.activityIndicator.isHidden = true
-                    }
-                }
-            }
+//            if selectedMediaItem.hasPosterImage {
+//                operationQueue.addOperation { [weak self] in
+//                    Thread.onMain { [weak self] in
+//                        guard self?.selectedMediaItem == selectedMediaItem else {
+//                            return
+//                        }
+//
+//                        if let activityIndicator = self?.activityIndicator {
+//                            self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
+//                        }
+//                        self?.activityIndicator.isHidden = false
+//                        self?.activityIndicator.startAnimating()
+//                    }
+//
+//                    if let posterImage = selectedMediaItem.posterImage?.image {
+//                        guard self?.selectedMediaItem == selectedMediaItem else {
+//                            return
+//                        }
+//
+//                        Thread.onMain { [weak self] in
+//                            guard self?.selectedMediaItem == selectedMediaItem else {
+//                                return
+//                            }
+//
+//                            // Need to adjust aspect ratio contraint
+//                            let ratio = posterImage.size.width / posterImage.size.height
+//
+//                            self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+//                            self?.logo.image = posterImage
+//                        }
+//                    }
+//
+//                    Thread.onMain { [weak self] in
+//                        guard self?.selectedMediaItem == selectedMediaItem else {
+//                            return
+//                        }
+//
+//                        self?.activityIndicator.stopAnimating()
+//                        self?.activityIndicator.isHidden = true
+//                    }
+//                }
+//            }
             
             mediaItemNotesAndSlides.bringSubviewToFront(logo)
             logo.isHidden = false
@@ -4451,6 +4518,8 @@ class MediaViewController : MediaItemsViewController
     {
         super.viewWillAppear(animated)
         
+        setupLogo()
+
 //        orientation = UIDevice.current.orientation
         
         addNotifications()
@@ -4710,7 +4779,7 @@ class MediaViewController : MediaItemsViewController
         super.viewDidDisappear(animated)
         
     }
-
+    
     override func didReceiveMemoryWarning()
     {
         super.didReceiveMemoryWarning()
@@ -4726,6 +4795,11 @@ class MediaViewController : MediaItemsViewController
         wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
         wkWebView?.isHidden = true
         setupWKWebView(wkWebView)
+        
+        document?.fetchData.retrieve = nil
+        document?.fetchData.fetch = nil
+
+//        document?.download?.downloadURL = nil
         
         activityIndicator.stopAnimating()
         activityIndicator.isHidden = true
