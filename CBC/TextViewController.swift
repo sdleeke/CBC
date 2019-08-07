@@ -20,7 +20,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "TextViewController:searchBarShouldBeginEditing",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "TextViewController:searchBarShouldBeginEditing",completion:nil)
             return false
         }
         
@@ -53,7 +53,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "TextViewController:searchBarTextDidBeginEditing",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "TextViewController:searchBarTextDidBeginEditing",completion:nil)
             return
         }
         
@@ -67,7 +67,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "TextViewController:searchBarTextDidEndEditing",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "TextViewController:searchBarTextDidEndEditing",completion:nil)
             return
         }
         
@@ -84,7 +84,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "TextViewController:searchBar:textDidChange",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "TextViewController:searchBar:textDidChange",completion:nil)
             return
         }
         
@@ -100,7 +100,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "TextViewController:searchBarSearchButtonClicked",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "TextViewController:searchBarSearchButtonClicked",completion:nil)
             return
         }
         
@@ -147,7 +147,7 @@ extension TextViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "TextViewController:searchBarCancelButtonClicked",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "TextViewController:searchBarCancelButtonClicked",completion:nil)
             return
         }
         
@@ -281,7 +281,7 @@ extension TextViewController : PopoverPickerControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
             return
         }
         
@@ -496,7 +496,7 @@ extension TextViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "TextViewController:rowClickedAtIndex",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "TextViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -1275,7 +1275,7 @@ class TextViewController : CBCViewController
             })
 
         case "Cancel":
-            self.yesOrNo(title: "Discard Changes?", yesAction: { () -> (Void) in
+            Alerts.shared.yesOrNo(title: "Discard Changes?", yesAction: { () -> (Void) in
                 self.dismiss(animated: true, completion: {
                     if self.isTracking {
                         self.stopTracking()
@@ -1518,7 +1518,7 @@ class TextViewController : CBCViewController
                     self?.updateBarButtons()
                 }))
                 
-                vc.alert(title:"Suggest",message:"Because it relies upon the original text and timing information from the transcription, Paragraph Breaks should be done first before any other editing is done.",actions:actions)
+                Alerts.shared.alert(title:"Suggest",message:"Because it relies upon the original text and timing information from the transcription, Paragraph Breaks should be done first before any other editing is done.",actions:actions)
             } else {
                 guard let text = self?.textView.attributedText.string else {
                     return
@@ -1917,7 +1917,7 @@ class TextViewController : CBCViewController
         
         actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
         
-        self.alert(title:"Start Assisted Editing?",message:nil,actions:actions)
+        Alerts.shared.alert(title:"Start Assisted Editing?",message:nil,actions:actions)
     }
 
     var cancelButton : UIBarButtonItem!

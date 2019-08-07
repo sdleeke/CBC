@@ -3819,70 +3819,13 @@ struct AlertAction
 extension UIViewController
 {
     /**
-     Extension of UIViewController that blocks presentation until the Alert singleton semaphore is available.
-     */
-    func present(_ viewControllerToPresent: UINavigationController, animated: Bool, completion: (() -> Void)? = nil)
-    {
-        Alerts.shared.blockPresent(presenting: self, presented: viewControllerToPresent, animated: animated,
-                                   release: { viewControllerToPresent.modalPresentationStyle != .popover },
-                                   completion: completion)
-    }
-
-    /**
-     Extension of UIViewController that presents an alert with completion on the Alert singleton.
-     */
-    func alert(title:String?,message:String? = nil,completion:(()->(Void))? = nil)
-    {
-        Alerts.shared.alert(title: title, message: message, actions: [AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: { () -> (Void) in
-            completion?()
-        })])
-    }
-
-    /**
-     Extension of UIViewController that presents an alert with actions on the Alert singleton.
-     */
-    func alert(title:String?,message:String?,actions:[AlertAction]?)
-    {
-        guard let actions = actions else {
-            Alerts.shared.alert(title: title, message: message, actions: [AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: nil)])
-            return
-        }
-
-        Alerts.shared.alert(title: title, message: message, actions: actions)
-    }
-    
-    /**
-     Extension of UIViewController that presents an alert with actions, and a specific cancel action, on the Alert singleton.
-     */
-    func alertActionsCancel(title:String?,message:String? = nil,alertActions:[AlertAction]? = nil,cancelAction:(()->(Void))? = nil)
-    {
-        var alertActions = alertActions ?? [AlertAction]()
-        
-        alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: cancelAction))
-
-        Alerts.shared.alert(title: title, message: message, actions: alertActions)
-    }
-    
-    /**
-     Extension of UIViewController that presents an alert with actions, and a specific okay action, on the Alert singleton.
-     */
-    func alertActionsOkay(title:String?,message:String? = nil,alertActions:[AlertAction]? = nil,okayAction:(()->(Void))? = nil)
-    {
-        var alertActions = alertActions ?? [AlertAction]()
-
-        alertActions.append(AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: okayAction))
-        
-        Alerts.shared.alert(title: title, message: message, actions: alertActions)
-    }
-    
-    /**
      Extension of UIViewController that presents an alert on the Alert singleton that includes a text field with searchText and a searchAction.
      */
     func searchAlert(title:String?,message:String? = nil,searchText:String?,searchAction:((_ alert:UIAlertController)->(Void))?)
     {
         let alert = CBCAlertController(  title: title,
-                                        message: message,
-                                        preferredStyle: .alert)
+                                         message: message,
+                                         preferredStyle: .alert)
         alert.makeOpaque()
         
         alert.addTextField(configurationHandler: { (textField:UITextField) in
@@ -3906,48 +3849,18 @@ extension UIViewController
             (action : UIAlertAction!) -> Void in
         })
         alert.addAction(cancel)
-
+        
         Alerts.shared.blockPresent(presenting: self, presented: alert, animated: true)
     }
-
+    
     /**
-     Extension of UIViewController that presents an alert on the Alert singleton with actions for Yes and No.
+     Extension of UIViewController that blocks presentation until the Alert singleton semaphore is available.
      */
-    func yesOrNo(title:String?,message:String? = nil,
-                 yesAction:(()->(Void))?, yesStyle: UIAlertAction.Style,
-                 noAction:(()->(Void))?, noStyle: UIAlertAction.Style)
+    func present(_ viewControllerToPresent: UINavigationController, animated: Bool, completion: (() -> Void)? = nil)
     {
-        var alertActions = [AlertAction]()
-        
-        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: yesStyle, handler: yesAction))
-        alertActions.append(AlertAction(title: Constants.Strings.No, style: noStyle, handler: noAction))
-
-        Alerts.shared.alert(title: title, message: message, actions: alertActions)
-    }
-
-    /**
-     Extension of UIViewController that presents an alert on the Alert singleton with two actions and a cancel action.
-     */
-    func firstSecondCancel(title:String?,message:String? = nil,
-                           firstTitle:String?,   firstAction:(()->(Void))?, firstStyle: UIAlertAction.Style,
-                           secondTitle:String?,  secondAction:(()->(Void))?, secondStyle: UIAlertAction.Style,
-                           cancelAction:(()->(Void))? = nil)
-    {
-        guard let firstTitle = firstTitle else {
-            return
-        }
-
-        guard let secondTitle = secondTitle else {
-            return
-        }
-
-        var alertActions = [AlertAction]()
-        
-        alertActions.append(AlertAction(title: firstTitle, style: firstStyle, handler: firstAction))
-        alertActions.append(AlertAction(title: secondTitle, style: secondStyle, handler: secondAction))
-        alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: cancelAction))
-
-        Alerts.shared.alert(title: title, message: message, actions: alertActions)
+        Alerts.shared.blockPresent(presenting: self, presented: viewControllerToPresent, animated: animated,
+                                   release: { viewControllerToPresent.modalPresentationStyle != .popover },
+                                   completion: completion)
     }
     
     /**
@@ -3960,7 +3873,7 @@ extension UIViewController
         }
         
         guard MFMailComposeViewController.canSendMail() else {
-            self.showSendMailErrorAlert()
+            Alerts.shared.showSendMailErrorAlert()
             return
         }
         
@@ -3986,7 +3899,7 @@ extension UIViewController
     func mailHTML(to: [String]?,subject: String?, htmlString:String)
     {
         guard MFMailComposeViewController.canSendMail() else {
-            showSendMailErrorAlert()
+            Alerts.shared.showSendMailErrorAlert()
             return
         }
         
@@ -4094,14 +4007,14 @@ extension UIViewController
             return
         }
         
-        pageOrientation(portrait: ({
+        Alerts.shared.pageOrientation(portrait: ({
             self.printTextJob(string:string,orientation:.portrait)
         }),
-                        landscape: ({
-                            self.printTextJob(string:string,orientation:.landscape)
-                        }),
-                        cancel: ({
-                        })
+            landscape: ({
+                self.printTextJob(string:string,orientation:.landscape)
+            }),
+            cancel: ({
+            })
         )
     }
     
@@ -4160,7 +4073,7 @@ extension UIViewController
             return
         }
 
-        pageOrientation(
+        Alerts.shared.pageOrientation(
             portrait: ({
                 self.printImageJob(image:image,orientation:.portrait)
             }),
@@ -4223,7 +4136,7 @@ extension UIViewController
             return
         }
         
-        self.pageOrientation(
+        Alerts.shared.pageOrientation(
             portrait: ({
                 self.printHTMLJob(html:htmlString,orientation:.portrait)
             }),
@@ -4268,17 +4181,6 @@ extension UIViewController
     }
     
     /**
-     Extension of UIViewController that ask user for page orientation or to cancel.
-     */
-    func pageOrientation(portrait:(()->(Void))?,landscape:(()->(Void))?,cancel:(()->(Void))?)
-    {
-        self.firstSecondCancel(title: "Page Orientation",
-                          firstTitle: "Portrait", firstAction: portrait, firstStyle: .default,
-                          secondTitle: "Landscape", secondAction: landscape, secondStyle: .default,
-                          cancelAction: cancel)
-    }
-    
-    /**
      Extension of UIViewController to print an array of mediaItems.
      */
     func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?,Bool,Bool)->String?)?,links:Bool,columns:Bool)
@@ -4296,7 +4198,7 @@ extension UIViewController
             })
         }
         
-        self.pageOrientation(   portrait: ({
+        Alerts.shared.pageOrientation(   portrait: ({
                                     processMediaItems(orientation:.portrait)
                                 }),
                                 landscape: ({
@@ -4313,7 +4215,7 @@ extension UIViewController
     func mailMediaItems(mediaItems:[MediaItem]?, stringFunction:(([MediaItem]?,Bool,Bool)->String?)?, links:Bool, columns:Bool, attachments:Bool)
     {
         guard (mediaItems != nil) && (stringFunction != nil) && MFMailComposeViewController.canSendMail() else {
-            self.showSendMailErrorAlert()
+            Alerts.shared.showSendMailErrorAlert()
             return
         }
         
@@ -4348,7 +4250,7 @@ extension UIViewController
     func mailMediaItem(mediaItem:MediaItem?,stringFunction:((MediaItem?)->String?)?)
     {
         guard MFMailComposeViewController.canSendMail() else {
-            self.showSendMailErrorAlert()
+            Alerts.shared.showSendMailErrorAlert()
             return
         }
         
@@ -4365,7 +4267,7 @@ extension UIViewController
         if MFMailComposeViewController.canSendMail() {
             Alerts.shared.blockPresent(presenting: self, presented: mailComposeViewController, animated: true, release: {true})
         } else {
-            self.showSendMailErrorAlert()
+            Alerts.shared.showSendMailErrorAlert()
         }
     }
     
@@ -4420,14 +4322,6 @@ extension UIViewController
     }
     
     /**
-     Extension of UIViewController to alert user that mail could not be sent.
-     */
-    func showSendMailErrorAlert()
-    {
-        alert(title: "Could Not Send Email",message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",completion:nil)
-    }
-
-    /**
      Extension of UIViewController to return the preferred modal presentation style based on traits.
      */
     var preferredModalPresentationStyle : UIModalPresentationStyle
@@ -4453,7 +4347,7 @@ extension UIViewController
     func popoverHTML(title:String?, mediaItem:MediaItem? = nil, bodyHTML:String? = nil, headerHTML:String? = nil, barButtonItem:UIBarButtonItem? = nil, sourceView:UIView? = nil, sourceRectView:UIView? = nil, htmlString:String? = nil, search:Bool)
     {
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "functions:popoverHTML", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "functions:popoverHTML", completion: nil)
             return
         }
         
@@ -4627,7 +4521,7 @@ extension UIViewController
      */
     func networkUnavailable(_ message:String?)
     {
-        self.alert(title:Constants.Network_Error,message:message,completion:nil)
+        Alerts.shared.alert(title:Constants.Network_Error,message:message,completion:nil)
     }
     
     /**

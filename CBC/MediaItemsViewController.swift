@@ -99,7 +99,7 @@ class MediaItemsViewController : CBCViewController, PopoverTableViewControllerDe
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:rowClickedAtIndex", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:rowClickedAtIndex", completion: nil)
             return
         }
         

@@ -334,4 +334,97 @@ class Alerts
         }
 //        alertQueue.append(Alert(notifyOnly:notifyOnly, category:category, title: title, message: message, attributedText: attributedText, actions: actions, items:items))
     }
+    
+    /**
+     Ask user for page orientation or to cancel.
+     */
+    func pageOrientation(portrait:(()->(Void))?,landscape:(()->(Void))?,cancel:(()->(Void))?)
+    {
+        self.firstSecondCancel(title: "Page Orientation",
+                               firstTitle: "Portrait", firstAction: portrait, firstStyle: .default,
+                               secondTitle: "Landscape", secondAction: landscape, secondStyle: .default,
+                               cancelAction: cancel)
+    }
+    
+    /**
+     Alert user that mail could not be sent.
+     */
+    func showSendMailErrorAlert()
+    {
+        alert(title: "Could Not Send Email",message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",completion:nil)
+    }
+    
+    /**
+     Alert with completion on the Alert singleton.
+     */
+    func alert(title:String?,message:String? = nil,buttonTitle:String? = nil, completion:(()->(Void))? = nil)
+    {
+        alert(title: title, message: message, actions: [AlertAction(title: buttonTitle ?? Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: { () -> (Void) in
+            completion?()
+        })])
+    }
+    
+    /**
+     Alert with actions, and a specific cancel action, on the Alert singleton.
+     */
+    func alertActionsCancel(title:String?,message:String? = nil,alertActions:[AlertAction]? = nil,cancelAction:(()->(Void))? = nil)
+    {
+        var alertActions = alertActions ?? [AlertAction]()
+        
+        alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: cancelAction))
+        
+        alert(title: title, message: message, actions: alertActions)
+    }
+    
+    /**
+     Alert with actions, and a specific okay action, on the Alert singleton.
+     */
+    func alertActionsOkay(title:String?,message:String? = nil,alertActions:[AlertAction]? = nil,okayAction:(()->(Void))? = nil)
+    {
+        var alertActions = alertActions ?? [AlertAction]()
+        
+        alertActions.append(AlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: okayAction))
+        
+        alert(title: title, message: message, actions: alertActions)
+    }
+    
+    /**
+     Alert on the Alert singleton with actions for Yes and No.
+     */
+    func yesOrNo(title:String?,message:String? = nil,
+                 yesAction:(()->(Void))?, yesStyle: UIAlertAction.Style,
+                 noAction:(()->(Void))?, noStyle: UIAlertAction.Style)
+    {
+        var alertActions = [AlertAction]()
+        
+        alertActions.append(AlertAction(title: Constants.Strings.Yes, style: yesStyle, handler: yesAction))
+        alertActions.append(AlertAction(title: Constants.Strings.No, style: noStyle, handler: noAction))
+        
+        alert(title: title, message: message, actions: alertActions)
+    }
+    
+    /**
+     Alert on the Alert singleton with two actions and a cancel action.
+     */
+    func firstSecondCancel(title:String?,message:String? = nil,
+                           firstTitle:String?,   firstAction:(()->(Void))?, firstStyle: UIAlertAction.Style,
+                           secondTitle:String?,  secondAction:(()->(Void))?, secondStyle: UIAlertAction.Style,
+                           cancelAction:(()->(Void))? = nil)
+    {
+        guard let firstTitle = firstTitle else {
+            return
+        }
+        
+        guard let secondTitle = secondTitle else {
+            return
+        }
+        
+        var alertActions = [AlertAction]()
+        
+        alertActions.append(AlertAction(title: firstTitle, style: firstStyle, handler: firstAction))
+        alertActions.append(AlertAction(title: secondTitle, style: secondStyle, handler: secondAction))
+        alertActions.append(AlertAction(title: Constants.Strings.Cancel, style: UIAlertAction.Style.cancel, handler: cancelAction))
+        
+        alert(title: title, message: message, actions: alertActions)
+    }
 }

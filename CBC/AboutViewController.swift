@@ -42,7 +42,7 @@ extension AboutViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "AboutViewController:rowClickedAtIndex",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "AboutViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -187,7 +187,7 @@ class AboutViewController: CBCViewController
         
         let querystring = "comgooglemaps://?q="+urlAddress
         UIApplication.shared.open(scheme: querystring) {
-            self.alert(title: "Google Maps is not available", message: "", completion: nil)
+            Alerts.shared.alert(title: "Google Maps is not available", message: "", completion: nil)
         }
     }
     

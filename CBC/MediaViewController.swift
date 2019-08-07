@@ -154,7 +154,7 @@ extension MediaViewController : WKNavigationDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:webView", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:webView", completion: nil)
             return
         }
         
@@ -383,7 +383,7 @@ extension MediaViewController: UIScrollViewDelegate
 //        }
 //        
 //        guard Thread.isMainThread else {
-//            self.alert(title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
+//            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
 //            return
 //        }
 //        
@@ -869,7 +869,7 @@ class MediaViewController : MediaItemsViewController
                 if let url = selectedMediaItem.playingURL {
                     playerURL(url: url)
                 } else {
-                    self.alert(title:"No Media Available")
+                    Alerts.shared.alert(title:"No Media Available")
                 }
             }
         } else {
@@ -1011,7 +1011,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:audioOrVideoSelection", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:audioOrVideoSelection", completion: nil)
             return
         }
         
@@ -1115,7 +1115,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:stvAction", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:stvAction", completion: nil)
             return
         }
         
@@ -1235,7 +1235,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:setupSTVControl", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:setupSTVControl", completion: nil)
             return
         }
 
@@ -1852,7 +1852,7 @@ class MediaViewController : MediaItemsViewController
 
     func showSendMessageErrorAlert()
     {
-        self.alert(title: "Could Not Send a Message",
+        Alerts.shared.alert(title: "Could Not Send a Message",
               message: "Your device could not send a text message.  Please check your configuration and try again.",
               completion:nil)
     }
@@ -2299,7 +2299,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:swapVideoLocation", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:swapVideoLocation", completion: nil)
             return
         }
         
@@ -2525,7 +2525,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:readyToPlay", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:readyToPlay", completion: nil)
             return
         }
         
@@ -2622,7 +2622,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:showPlaying", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:showPlaying", completion: nil)
             return
         }
         
@@ -2921,7 +2921,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:loadDocument", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:loadDocument", completion: nil)
             return
         }
 
@@ -3143,7 +3143,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:setupDocumentsAndVideo", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:setupDocumentsAndVideo", completion: nil)
             return
         }
         
@@ -3286,15 +3286,15 @@ class MediaViewController : MediaItemsViewController
                 if document?.fetchData.result == nil, !Globals.shared.settings.cacheDownloads || (download?.exists == false) {
                     switch showing {
                     case Showing.slides:
-                        self.alert(title: "Slides Not Available")
+                        Alerts.shared.alert(title: "Slides Not Available")
                         break
                         
                     case Showing.notes:
-                        self.alert(title: "Transcript Not Available")
+                        Alerts.shared.alert(title: "Transcript Not Available")
                         break
                         
                     case Showing.outline:
-                        self.alert(title: "Outline Not Available")
+                        Alerts.shared.alert(title: "Outline Not Available")
                         break
 
                     default:
@@ -3454,7 +3454,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:setupPlayPauseButton", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:setupPlayPauseButton", completion: nil)
             return
         }
         
@@ -3516,7 +3516,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:tags", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:tags", completion: nil)
             return
         }
 
@@ -4455,7 +4455,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:stopEditing", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:stopEditing", completion: nil)
             return
         }
         
@@ -4862,19 +4862,19 @@ class MediaViewController : MediaItemsViewController
         
         switch purpose {
         case Purpose.slides:
-            self.alert(title:title,message:"Slides not available.")
+            Alerts.shared.alert(title:title,message:"Slides not available.")
             break
             
         case Purpose.notes:
             if let name = selectedMediaItem?.notesName {
-                self.alert(title:title,message:name + " not available.")
+                Alerts.shared.alert(title:title,message:name + " not available.")
             } else {
-                self.alert(title:title)
+                Alerts.shared.alert(title:title)
             }
             break
             
         case Purpose.outline:
-            self.alert(title:title,message:"Outline not available.")
+            Alerts.shared.alert(title:title,message:"Outline not available.")
             break
             
         default:
@@ -4924,7 +4924,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:setTimes", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:setTimes", completion: nil)
             return
         }
         
@@ -4951,7 +4951,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:setSliderAndTimesToAudio", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:setSliderAndTimesToAudio", completion: nil)
             return
         }
      
@@ -5097,7 +5097,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:setupSliderAndTimes", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:setupSliderAndTimes", completion: nil)
             return
         }
         
@@ -5159,7 +5159,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:sliderTimer", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:sliderTimer", completion: nil)
             return
         }
         
@@ -5318,7 +5318,7 @@ class MediaViewController : MediaItemsViewController
             }
             
             if doNotPlay {
-                self.alert(title: "Media Not Available",
+                Alerts.shared.alert(title: "Media Not Available",
                            message: "Please check your network connection and try again.",
                            completion: nil)
                 return
@@ -5356,7 +5356,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:setupSpinner", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:setupSpinner", completion: nil)
             return
         }
         
@@ -5777,7 +5777,7 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaViewController:rowClickedAtIndex", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaViewController:rowClickedAtIndex", completion: nil)
             return
         }
         

@@ -5207,7 +5207,7 @@ class VoiceBase
                                 Globals.shared.checkVoiceBaseAvailability {
                                     if !self.transcribing {
                                         if Globals.shared.reachability.isReachable {
-                                            viewController.yesOrNo(title: "Begin Creating\nMachine Generated Transcript?",
+                                            Alerts.shared.yesOrNo(title: "Begin Creating\nMachine Generated Transcript?",
                                                     message: "\(text) (\(self.transcriptPurpose))",
                                                     yesAction: { () -> (Void) in
                                                         self.getTranscript() // alert:true,detailedAlerts:true
@@ -5246,7 +5246,7 @@ class VoiceBase
                 
                 if !self.transcribing {
                     if Globals.shared.reachability.isReachable {
-                        viewController.yesOrNo(title: "Begin Creating\nMachine Generated Transcript?",
+                        Alerts.shared.yesOrNo(title: "Begin Creating\nMachine Generated Transcript?",
                                 message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
                                 self.getTranscript()
@@ -5320,13 +5320,13 @@ class VoiceBase
                             })
                         }))
                         
-                        viewController.alertActionsCancel(  title: "Transcript with Timing",
+                        Alerts.shared.alertActionsCancel(  title: "Transcript with Timing",
                                                             message: "\(text) (\(self.transcriptPurpose))",
                                                             alertActions: alertActions,
                                                             cancelAction:nil)
                     }))
 
-                    viewController.alertActionsCancel(  title: "View",
+                    Alerts.shared.alertActionsCancel(  title: "View",
                                                         message: "This is a machine generated transcript for \n\n\(text) (\(self.transcriptPurpose))\n\nIt may lack proper formatting and have signifcant errors.",
                                                         alertActions: alertActions,
                                                         cancelAction:nil)
@@ -5340,12 +5340,12 @@ class VoiceBase
                     
                     guard !self.aligning else {
                         if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
-                            viewController.alertActionsCancel( title: "Alignment Underway",
+                            Alerts.shared.alertActionsCancel( title: "Alignment Underway",
                                                                message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
                         } else {
-                            viewController.alertActionsCancel( title: "Alignment Underway",
+                            Alerts.shared.alertActionsCancel( title: "Alignment Underway",
                                                                message: "There is an alignment underway for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
@@ -5444,10 +5444,10 @@ class VoiceBase
                     alertActions.append(AlertAction(title: Constants.Strings.Align, style: .destructive, handler: {
                         guard !self.aligning else {
                             if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
-                                viewController.alertActionsCancel( title: "Alignment Underway",
+                                Alerts.shared.alertActionsCancel( title: "Alignment Underway",
                                                                    message: "There is an alignment already underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.")
                             } else {
-                                viewController.alertActionsCancel( title: "Alignment Underway",
+                                Alerts.shared.alertActionsCancel( title: "Alignment Underway",
                                                                    message: "There is an alignment already underway.\n\nPlease try again later.")
                             }
                             return
@@ -5460,12 +5460,12 @@ class VoiceBase
                 alertActions.append(AlertAction(title: "Restore", style: .destructive, handler: {
                     guard !self.aligning else {
                         if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
-                            viewController.alertActionsCancel( title: "Alignment Underway",
+                            Alerts.shared.alertActionsCancel( title: "Alignment Underway",
                                                                message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
                         } else {
-                            viewController.alertActionsCancel( title: "Alignment Underway",
+                            Alerts.shared.alertActionsCancel( title: "Alignment Underway",
                                                                message: "There is an alignment underway for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
@@ -5476,7 +5476,7 @@ class VoiceBase
                     var alertActions = [AlertAction]()
                     
                     alertActions.append(AlertAction(title: "Regenerate Transcript", style: .destructive, handler: {
-                        viewController.yesOrNo(title: "Confirm Regeneration of Transcript",
+                        Alerts.shared.yesOrNo(title: "Confirm Regeneration of Transcript",
                                 message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be regenerated from the individually recognized words.",
                                 yesAction: { () -> (Void) in
                                     self.transcript = self.transcriptFromWords
@@ -5489,7 +5489,7 @@ class VoiceBase
                             // This metadata call is how we verify that it is on VB.
                             self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                                 // If so, confirm reloading.
-                                viewController.yesOrNo(title: "Confirm Reloading",
+                                Alerts.shared.yesOrNo(title: "Confirm Reloading",
                                         message: "The results of speech recognition for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
                                         yesAction: { () -> (Void) in
                                             Alerts.shared.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
@@ -5520,7 +5520,7 @@ class VoiceBase
                         }))
                     }
                     
-                    viewController.alertActionsCancel( title: "Restore Options",
+                    Alerts.shared.alertActionsCancel( title: "Restore Options",
                                                        message: "\(text) (\(self.transcriptPurpose))",
                         alertActions: alertActions,
                         cancelAction: nil)
@@ -5529,12 +5529,12 @@ class VoiceBase
                 alertActions.append(AlertAction(title: "Delete", style: .destructive, handler: {
                     guard !self.aligning else {
                         if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
-                            viewController.alertActionsCancel( title: "Alignment Underway",
+                            Alerts.shared.alertActionsCancel( title: "Alignment Underway",
                                                                message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
                         } else {
-                            viewController.alertActionsCancel(  title: "Alignment Underway",
+                            Alerts.shared.alertActionsCancel(  title: "Alignment Underway",
                                                                 message: "There is an alignment underway for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                                                 alertActions: nil,
                                                                 cancelAction: nil)
@@ -5547,7 +5547,7 @@ class VoiceBase
                         return
                     }
                     
-                    viewController.yesOrNo(title: "Confirm Deletion of Machine Generated Transcript",
+                    Alerts.shared.yesOrNo(title: "Confirm Deletion of Machine Generated Transcript",
                             message: "\(text) (\(self.transcriptPurpose))",
                             yesAction: { () -> (Void) in
                                 self.delete(alert:false)
@@ -5558,7 +5558,7 @@ class VoiceBase
                             noStyle: .default)
                 }))
                 
-                viewController.alertActionsCancel(title: Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript,
+                Alerts.shared.alertActionsCancel(title: Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript,
                     message: text + " (\(self.transcriptPurpose))",
                     alertActions: alertActions,
                     cancelAction: nil)
@@ -6287,7 +6287,7 @@ class VoiceBase
                 }
             }))
             
-            viewController.alertActionsCancel( title: "Show Timing Index",
+            Alerts.shared.alertActionsCancel( title: "Show Timing Index",
                                                alertActions: alertActions)
         }
         

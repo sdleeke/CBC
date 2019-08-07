@@ -3740,7 +3740,7 @@ class MediaItem : NSObject //, Downloader
             }
             
             if alertActions.count > 1 {
-                viewController.alertActionsCancel( title: Constants.Strings.VoiceBase,
+                Alerts.shared.alertActionsCancel( title: Constants.Strings.VoiceBase,
                                                    message: message,
                                                    alertActions: alertActions,
                                                    cancelAction: nil)

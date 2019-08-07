@@ -932,7 +932,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:index",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:index",completion:nil)
             return
         }
 
@@ -972,7 +972,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:selectOrScrollToMediaItem",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:selectOrScrollToMediaItem",completion:nil)
             return
         }
         
@@ -1067,7 +1067,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateText", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateText", completion: nil)
             return
         }
         
@@ -1113,7 +1113,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenUI", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenUI", completion: nil)
             return
         }
         
@@ -1140,7 +1140,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenNumberAndTableUI", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenNumberAndTableUI", completion: nil)
             return
         }
         
@@ -1157,7 +1157,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updatePicker", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updatePicker", completion: nil)
             return
         }
         
@@ -1195,7 +1195,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateSwitches", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateSwitches", completion: nil)
             return
         }
         
@@ -1238,7 +1238,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateUI", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateUI", completion: nil)
             return
         }
     
@@ -1283,7 +1283,7 @@ class ScriptureIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
             return
         }
         

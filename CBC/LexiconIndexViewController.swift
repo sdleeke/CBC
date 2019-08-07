@@ -20,7 +20,7 @@ extension LexiconIndexViewController : PopoverPickerControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:stringPicked",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "LexiconIndexViewController:stringPicked",completion:nil)
             return
         }
         
@@ -1142,7 +1142,7 @@ class LexiconIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:actions", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "LexiconIndexViewController:actions", completion: nil)
             return
         }
         
@@ -1266,7 +1266,7 @@ class LexiconIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:index", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "LexiconIndexViewController:index", completion: nil)
             return
         }
         
@@ -1321,7 +1321,7 @@ class LexiconIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateText", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateText", completion: nil)
             return
         }
      
@@ -1334,7 +1334,7 @@ class LexiconIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenUI", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenUI", completion: nil)
             return
         }
         
@@ -1353,7 +1353,7 @@ class LexiconIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenNumberAndTableUI", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenNumberAndTableUI", completion: nil)
             return
         }
         
@@ -1370,7 +1370,7 @@ class LexiconIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateActionMenu", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateActionMenu", completion: nil)
             return
         }
         
@@ -1403,7 +1403,7 @@ class LexiconIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateUI", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateUI", completion: nil)
             return
         }
 
@@ -1451,7 +1451,7 @@ class LexiconIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:actionMenu", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "LexiconIndexViewController:actionMenu", completion: nil)
             return
         }
         
@@ -1546,7 +1546,7 @@ class LexiconIndexViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex", completion: nil)
             return
         }
         

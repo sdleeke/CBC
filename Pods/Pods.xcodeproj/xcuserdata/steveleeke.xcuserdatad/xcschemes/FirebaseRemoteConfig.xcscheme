@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0930"
+   LastUpgradeVersion = "1100"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,7 +14,7 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "5AAD465FECAE9083F45E3DB9252A8302"
+               BlueprintIdentifier = "51471EE35F2E9E19E51A74944E5ABB7F"
                BuildableName = "FirebaseRemoteConfig"
                BlueprintName = "FirebaseRemoteConfig"
                ReferencedContainer = "container:Pods.xcodeproj">

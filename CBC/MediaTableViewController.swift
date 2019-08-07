@@ -161,7 +161,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBar:textDidChange", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBar:textDidChange", completion: nil)
             return
         }
         
@@ -187,7 +187,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarSearchButtonClicked", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarSearchButtonClicked", completion: nil)
             return
         }
 
@@ -217,7 +217,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarShouldBeginEditing", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarShouldBeginEditing", completion: nil)
             return false
         }
         
@@ -231,7 +231,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidBeginEditing", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidBeginEditing", completion: nil)
             return
         }
 
@@ -261,7 +261,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidEndEditing", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidEndEditing", completion: nil)
             return
         }
         
@@ -274,7 +274,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarCancelButtonClicked", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarCancelButtonClicked", completion: nil)
             return
         }
         
@@ -290,7 +290,7 @@ extension MediaTableViewController : UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:didDismissSearch", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:didDismissSearch", completion: nil)
             return
         }
         
@@ -600,7 +600,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:mediaCategoryButtonAction", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:mediaCategoryButtonAction", completion: nil)
             return
         }
 
@@ -682,7 +682,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:show", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:show", completion: nil)
             return
         }
 
@@ -841,7 +841,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:index", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:index", completion: nil)
             return
         }
 
@@ -944,7 +944,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:grouping", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:grouping", completion: nil)
             return
         }
 
@@ -995,7 +995,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:sorting", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:sorting", completion: nil)
             return
         }
 
@@ -1433,7 +1433,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:handleRefresh", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:handleRefresh", completion: nil)
             return
         }
         
@@ -1445,7 +1445,7 @@ class MediaTableViewController : MediaItemsViewController
         
         Globals.shared.isRefreshing = true
         
-        self.yesOrNo(title: "Reload Media List?",
+        Alerts.shared.yesOrNo(title: "Reload Media List?",
                 yesAction: { () -> (Void) in
                     self.setupListActivityIndicator()
                     
@@ -1533,7 +1533,7 @@ class MediaTableViewController : MediaItemsViewController
                 Globals.shared.isRefreshing = false
             }
 
-            self.alert(title: "No Media Available",message: "Please check your network connection and try again.")
+            Alerts.shared.alert(title: "No Media Available",message: "Please check your network connection and try again.")
         } else {
             if Globals.shared.isRefreshing {
                 self.refreshControl?.endRefreshing()
@@ -1602,7 +1602,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:load", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:load", completion: nil)
             return
         }
         
@@ -1729,7 +1729,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
             return
         }
         
@@ -1874,7 +1874,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:selectingTagsAction", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:selectingTagsAction", completion: nil)
             return
         }
 
@@ -2387,7 +2387,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:stopEditing", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:stopEditing", completion: nil)
             return
         }
         
@@ -2406,7 +2406,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:didBecomeActive", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:didBecomeActive", completion: nil)
             return
         }
         
@@ -2969,7 +2969,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:showMenu", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:showMenu", completion: nil)
             return
         }
         
@@ -2998,11 +2998,11 @@ class MediaTableViewController : MediaItemsViewController
                     }
                 } else {
                     if let text = mediaItem.text, let contextTitle = Globals.shared.contextTitle {
-                        self.alert(title: "Not in List",message: "\(text)\nis not in the list \n\(contextTitle)\nSelect the All tag and try again.",completion:nil)
+                        Alerts.shared.alert(title: "Not in List",message: "\(text)\nis not in the list \n\(contextTitle)\nSelect the All tag and try again.",completion:nil)
                     }
                 }
             } else {
-                self.alert(title: "Media Item Not Found!",message: "Oops, this should never happen!",completion:nil)
+                Alerts.shared.alert(title: "Media Item Not Found!",message: "Oops, this should never happen!",completion:nil)
             }
             break
             
@@ -3017,7 +3017,7 @@ class MediaTableViewController : MediaItemsViewController
             
         case Constants.Strings.Scripture_Index:
             if (Globals.shared.media.active?.scriptureIndex?.eligible == nil) {
-                self.alert(title:"No Scripture Index Available",message: "The Scripture references for these media items are not specific.",completion:nil)
+                Alerts.shared.alert(title:"No Scripture Index Available",message: "The Scripture references for these media items are not specific.",completion:nil)
             } else {
                 performSegue(withIdentifier: Constants.SEGUE.SHOW_SCRIPTURE_INDEX, sender: nil)
             }
@@ -3025,7 +3025,7 @@ class MediaTableViewController : MediaItemsViewController
             
         case Constants.Strings.Lexicon_Index:
             guard (Globals.shared.media.active?.lexicon?.eligible != nil) else {
-                self.alert(title:"No Lexicon Index Available",
+                Alerts.shared.alert(title:"No Lexicon Index Available",
                            message: "These media items do not have HTML transcripts.",
                            completion:nil)
                 break
@@ -3171,7 +3171,7 @@ class MediaTableViewController : MediaItemsViewController
                     popover?.section.stringIndex = Globals.shared.media.stream.streamStringIndex
                     self?.present(navigationController, animated: true, completion: nil)
                 } else {
-                    self?.alert(title: "No Live Events Available")
+                    Alerts.shared.alert(title: "No Live Events Available")
                 }
             }
             break
@@ -3372,7 +3372,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "MediaTableViewController:rowClickedAtIndex", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "MediaTableViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -3553,13 +3553,13 @@ class MediaTableViewController : MediaItemsViewController
                             self.selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: UITableView.ScrollPosition.top) // was Middle
                         } else {
                             if let text = mediaItem.text, let contextTitle = Globals.shared.contextTitle {
-                                self.alert( title:"Not in List",
+                                Alerts.shared.alert( title:"Not in List",
                                             message: "\(text)\nis not in the list \n\(contextTitle)\nSelect the All tag and try again.",
                                     completion:nil)
                             }
                         }
                     } else {
-                        self.alert(title:"Media Item Not Found!",
+                        Alerts.shared.alert(title:"Media Item Not Found!",
                                    message: "Oops, this should never happen!",
                                    completion:nil)
                     }

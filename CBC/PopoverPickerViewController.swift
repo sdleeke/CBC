@@ -242,7 +242,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverPickerViewController:pickerView", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverPickerViewController:pickerView", completion: nil)
             return
         }
         
@@ -299,7 +299,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverPickerViewController:rowClickedAtIndex",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverPickerViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -785,7 +785,7 @@ class PopoverPickerViewController : CBCViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverPickerViewController:setPreferredContentSize",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverPickerViewController:setPreferredContentSize",completion:nil)
             return
         }
 

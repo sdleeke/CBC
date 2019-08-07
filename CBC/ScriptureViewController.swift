@@ -102,7 +102,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureViewController:rowClickedAtIndex",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "ScriptureViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -137,7 +137,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     
                 case Constants.Strings.Print:
                     if let string = self?.webViewController?.html.string, string.contains(" href=") {
-                        self?.firstSecondCancel(title: "Remove Links?", // message: nil, //"This can take some time.",
+                        Alerts.shared.firstSecondCancel(title: "Remove Links?", // message: nil, //"This can take some time.",
                             firstTitle: Constants.Strings.Yes,
                             firstAction: {
                                 // test:(()->(Bool))?
@@ -405,7 +405,7 @@ class ScriptureViewController : CBCViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "ScriptureViewController:actions", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "ScriptureViewController:actions", completion: nil)
             return
         }
 

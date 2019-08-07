@@ -172,7 +172,7 @@ extension WebViewController : PopoverPickerControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
             return
         }
         
@@ -260,7 +260,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -274,7 +274,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Print:
             if let string = html.string, string.contains(" href=") {
-                self.firstSecondCancel(title: "Remove Links?", // message: nil, //"This can take some time.",
+                Alerts.shared.firstSecondCancel(title: "Remove Links?", // message: nil, //"This can take some time.",
                     firstTitle: Constants.Strings.Yes,
                     firstAction: { [weak self] in
                         // test:(()->(Bool))?
@@ -621,7 +621,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -1014,7 +1014,7 @@ class WebViewController: CBCViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "WebViewController:done", completion: nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "WebViewController:done", completion: nil)
             return
         }
 

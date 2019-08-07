@@ -105,7 +105,7 @@ class JSON
             return
         }
         
-        guard let json = data.json as? [String:Any] else {
+        guard let json = data.json as? [String:Any], !json.isEmpty else {
             // completion?(nil) // ???
             return
         }
@@ -128,7 +128,7 @@ class JSON
                 }
             }
         } else {
-            // FileSystem first unless newAPI
+            // FileSystem first unless we're moving to the newAPI
             guard Globals.shared.newAPI else {
                 loadURL(urlString:urlString, filename:filename, completion:completion)
                 return

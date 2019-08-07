@@ -73,7 +73,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarShouldBeginEditing",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarShouldBeginEditing",completion:nil)
             return false
         }
         
@@ -224,7 +224,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidBeginEditing",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidBeginEditing",completion:nil)
             return
         }
         
@@ -276,7 +276,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidEndEditing",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidEndEditing",completion:nil)
             return
         }
         
@@ -304,7 +304,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBar:textDidChange",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBar:textDidChange",completion:nil)
             return
         }
         
@@ -333,7 +333,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarSearchButtonClicked",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarSearchButtonClicked",completion:nil)
             return
         }
         
@@ -369,7 +369,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarCancelButtonClicked",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarCancelButtonClicked",completion:nil)
             return
         }
         
@@ -435,7 +435,7 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:rowClickedAtIndex",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverTableViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -961,7 +961,7 @@ class PopoverTableViewController : CBCViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:setPreferredContentSize",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverTableViewController:setPreferredContentSize",completion:nil)
             return
         }
 
@@ -1086,7 +1086,7 @@ class PopoverTableViewController : CBCViewController
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:handleRefresh",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverTableViewController:handleRefresh",completion:nil)
             return
         }
         
@@ -1180,7 +1180,7 @@ class PopoverTableViewController : CBCViewController
         
         actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
         
-        self.alert(title:"Start Assisted Editing?",message:nil,actions:actions)
+        Alerts.shared.alert(title:"Start Assisted Editing?",message:nil,actions:actions)
     }
     
     func actions()
@@ -1215,7 +1215,7 @@ class PopoverTableViewController : CBCViewController
 
         actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, handler: nil))
         
-        self.alert(title:"Actions",message:nil,actions:actions)
+        Alerts.shared.alert(title:"Actions",message:nil,actions:actions)
     }
     
     @objc func playPause()
@@ -1342,7 +1342,7 @@ class PopoverTableViewController : CBCViewController
             }
         } else {
             if let selectedText = selectedText {
-                self.alert(title:"String not found!",message:"Search is active and the string \(selectedText) is not in the results.",completion:nil)
+                Alerts.shared.alert(title:"String not found!",message:"Search is active and the string \(selectedText) is not in the results.",completion:nil)
             }
         }
     }
@@ -2133,7 +2133,7 @@ extension PopoverTableViewController : UITableViewDelegate
         }
         
         guard Thread.isMainThread else {
-            self.alert(title: "Not Main Thread", message: "PopoverTableViewController:didSelectRowAt",completion:nil)
+            Alerts.shared.alert(title: "Not Main Thread", message: "PopoverTableViewController:didSelectRowAt",completion:nil)
             return
         }
         

@@ -232,9 +232,15 @@ class Globals : NSObject
                 }
             }
             
+            #if targetEnvironment(simulator)
+            // Simulator
+            return "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE"
+            #else
+            // Device
             if UIDevice.current.name.contains("Leeke-") {
                 return "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE"
             }
+            #endif
             
             return _voiceBaseAPIKey
         }
