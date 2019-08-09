@@ -338,7 +338,7 @@ class Alerts
     /**
      Ask user for page orientation or to cancel.
      */
-    func pageOrientation(portrait:(()->(Void))?,landscape:(()->(Void))?,cancel:(()->(Void))?)
+    func pageOrientation(portrait:(()->(Void))?,landscape:(()->(Void))?,cancel:(()->(Void))? = nil)
     {
         self.firstSecondCancel(title: "Page Orientation",
                                firstTitle: "Portrait", firstAction: portrait, firstStyle: .default,

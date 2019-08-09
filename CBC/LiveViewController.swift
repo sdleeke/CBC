@@ -71,10 +71,28 @@ class LiveViewController: CBCViewController
         
     }
 
+    func setImage(_ image:UIImage? = nil)
+    {
+        guard let image = image ?? UIImage(named:"CBC_logo") else {
+            self.logo.image = nil
+            return
+        }
+        
+        Thread.onMain { [weak self] in
+            // Need to adjust aspect ratio contraint
+            let ratio = image.size.width / image.size.height
+            
+            self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+            
+            self?.logo.image = image
+        }
+    }
+    
     @objc func clearView()
     {
         Thread.onMain { [weak self] in 
             Globals.shared.mediaPlayer.view?.isHidden = true
+            self?.setImage(UIImage(named:"CBC_logo"))
             self?.logo.isHidden = false
         }
     }
@@ -169,7 +187,9 @@ class LiveViewController: CBCViewController
         // Dispose of any resources that can be recreated.
         Globals.shared.freeMemory()
     }
-
+    
+    @IBOutlet weak var layoutAspectRatio: NSLayoutConstraint!
+    
     @IBOutlet weak var logo: UIImageView!
     
     @IBOutlet weak var webView: UIView!

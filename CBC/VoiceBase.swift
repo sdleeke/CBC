@@ -1099,6 +1099,149 @@ extension VoiceBase
 
 class VoiceBase
 {
+    // flag whether machine generated transcripts are allowed
+    static var allowMGTs = true
+    
+    // Timer to keep checking on whether VoiceBase is available
+    static var checkVoiceBaseTimer : Timer?
+    
+    // Shadow property for voicebase availability.
+    static var _isVoiceBaseAvailable : Bool? // = false
+    {
+        didSet {
+            guard _isVoiceBaseAvailable != oldValue else {
+                return
+            }
+            
+            guard let _isVoiceBaseAvailable = _isVoiceBaseAvailable else {
+                return
+            }
+            
+            if !_isVoiceBaseAvailable {
+                if checkVoiceBaseTimer == nil {
+                    checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.ckVBA), userInfo:nil, repeats:true)
+                }
+            } else {
+                checkVoiceBaseTimer?.invalidate()
+                checkVoiceBaseTimer = nil
+            }
+            
+            // Why?
+            Thread.onMain {
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+            }
+        }
+    }
+    static var isVoiceBaseAvailable : Bool? // = false
+    {
+        get {
+            guard allowMGTs else {
+                return false
+            }
+            
+            guard Globals.shared.reachability.isReachable else {
+                return false
+            }
+            
+            return _isVoiceBaseAvailable ?? false // checkingVoiceBaseAvailability
+        }
+        set {
+            _isVoiceBaseAvailable = newValue
+        }
+    }
+    
+    // This is critical since we make a VB call to see if VB is available so we need to ignore the isVBAvailable nil or false
+    static var checkingVoiceBaseAvailability = false
+    
+    class func checkVoiceBaseAvailability(completion:(()->(Void))? = nil)
+    {
+        isVoiceBaseAvailable = nil
+        
+        guard Globals.shared.reachability.isReachable else {
+            isVoiceBaseAvailable = false
+            completion?()
+            return
+        }
+        
+        // Tell the world we are checking
+        checkingVoiceBaseAvailability = true
+        
+        VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in
+            self.isVoiceBaseAvailable = true
+            completion?()
+            }, onError: { (json:[String : Any]?) -> (Void) in
+                self.isVoiceBaseAvailable = false
+                completion?()
+        })
+        
+        // Tell the world we are done checking
+        checkingVoiceBaseAvailability = false
+    }
+    
+    @objc class func ckVBA()
+    {
+        checkVoiceBaseAvailability()
+    }
+    
+    static var _voiceBaseAPIKey : String?
+    {
+        didSet {
+            if let key = _voiceBaseAPIKey, !key.isEmpty {
+                UserDefaults.standard.set(key, forKey: Constants.Strings.VoiceBase_API_Key)
+                
+                // Do we need to notify VoiceBase objects?
+                // No, because if it was nil before there shouldn't be anything on VB.com
+                // No, because if it was not nil before then they either the new KEY is good or bad.
+                // If bad, then it will fail.  If good, then they will finish.
+                // So, nothing needs to be done.
+            } else {
+                isVoiceBaseAvailable = false
+                UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
+            }
+            
+            UserDefaults.standard.synchronize()
+            
+            if isVoiceBaseAvailable == true {
+                checkVoiceBaseAvailability()
+            }
+        }
+    }
+    static var voiceBaseAPIKey : String?
+    {
+        get {
+            if _voiceBaseAPIKey == nil {
+                if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key), !key.isEmpty {
+                    if key == Obfuscator().decode(key: [36, 9, 58, 116, 0, 52, 36, 14, 46, 29, 47, 5, 5, 126, 51, 3, 41, 32, 62, 41, 18, 55, 39, 12, 35, 12, 45, 40, 33, 31, 7, 98, 1, 11, 32, 92, 77, 17, 56, 58, 1, 32, 34, 7, 12, 40, 8, 61, 87, 0, 7, 25, 9, 48, 34, 50, 64, 12, 35, 65, 46, 40, 22, 35, 13, 45, 32, 52, 54, 9, 37, 51, 30, 42, 39, 33, 112, 41, 35, 116, 29, 54, 33, 49, 12, 45, 31, 4, 56, 22, 24, 2, 9, 58, 70, 8, 25, 60, 7, 47, 93, 6, 85, 55, 13, 54, 25, 2, 38, 45, 3, 47, 11, 16, 25, 34, 31, 9, 45, 27, 84, 40, 53, 50, 14, 23, 4, 26, 86, 48, 50, 54, 69, 24, 10, 61, 51, 63, 6, 35, 14, 56, 35, 48, 54, 30, 8, 36, 3, 42, 39, 31, 40, 60, 51, 14, 19, 15, 8, 3, 9, 22, 8, 34, 101, 22, 58, 56, 21, 1, 70, 116, 58, 42, 7, 44, 90, 44, 10, 59, 31, 60, 25, 30, 53, 44, 0, 52, 80, 56, 21, 49, 9, 10, 34, 33, 17, 61, 37, 57, 80, 0, 42, 127, 24, 36, 49, 4, 14, 13, 36, 50, 44, 42, 40, 36, 82, 44, 35, 44, 123, 30, 53, 59, 88, 40, 48, 61, 50, 57, 29, 18, 18, 13, 34, 49, 21, 46, 61, 4, 59, 45, 33, 35, 83, 57, 25, 7, 3, 19, 118, 48, 31, 44, 10, 13, 28, 1, 13, 26, 121, 47, 62, 48, 20, 57, 5, 61, 68, 9, 33, 15, 86, 41, 37, 45, 85, 3, 42, 56, 11, 11, 61, 45, 14, 8, 26, 31, 45, 4, 36, 55, 87, 2, 48, 10, 56, 31, 124, 6, 89, 1, 26, 65, 115, 18, 66, 40, 15, 54, 50, 45, 9, 23, 87, 27, 38, 22, 80, 83, 17, 42, 26, 113, 94, 61, 13, 12, 92, 33, 6, 47, 55, 40, 60, 60, 120, 52, 11, 23, 80, 23, 12, 5, 35, 112, 63, 38, 47, 87, 5, 76, 80, 23, 54, 34, 10, 38, 2, 19, 19, 114, 5, 68, 16, 52, 53, 32]) {
+
+//"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE" {
+                        
+                        UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
+                    } else {
+                        _voiceBaseAPIKey = key
+                    }
+                }
+            }
+            
+            #if targetEnvironment(simulator)
+            // Simulator
+                return Obfuscator().decode(key: [36, 9, 58, 116, 0, 52, 36, 14, 46, 29, 47, 5, 5, 126, 51, 3, 41, 32, 62, 41, 18, 55, 39, 12, 35, 12, 45, 40, 33, 31, 7, 98, 1, 11, 32, 92, 77, 17, 56, 58, 1, 32, 34, 7, 12, 40, 8, 61, 87, 0, 7, 25, 9, 48, 34, 50, 64, 12, 35, 65, 46, 40, 22, 35, 13, 45, 32, 52, 54, 9, 37, 51, 30, 42, 39, 33, 112, 41, 35, 116, 29, 54, 33, 49, 12, 45, 31, 4, 56, 22, 24, 2, 9, 58, 70, 8, 25, 60, 7, 47, 93, 6, 85, 55, 13, 54, 25, 2, 38, 45, 3, 47, 11, 16, 25, 34, 31, 9, 45, 27, 84, 40, 53, 50, 14, 23, 4, 26, 86, 48, 50, 54, 69, 24, 10, 61, 51, 63, 6, 35, 14, 56, 35, 48, 54, 30, 8, 36, 3, 42, 39, 31, 40, 60, 51, 14, 19, 15, 8, 3, 9, 22, 8, 34, 101, 22, 58, 56, 21, 1, 70, 116, 58, 42, 7, 44, 90, 44, 10, 59, 31, 60, 25, 30, 53, 44, 0, 52, 80, 56, 21, 49, 9, 10, 34, 33, 17, 61, 37, 57, 80, 0, 42, 127, 24, 36, 49, 4, 14, 13, 36, 50, 44, 42, 40, 36, 82, 44, 35, 44, 123, 30, 53, 59, 88, 40, 48, 61, 50, 57, 29, 18, 18, 13, 34, 49, 21, 46, 61, 4, 59, 45, 33, 35, 83, 57, 25, 7, 3, 19, 118, 48, 31, 44, 10, 13, 28, 1, 13, 26, 121, 47, 62, 48, 20, 57, 5, 61, 68, 9, 33, 15, 86, 41, 37, 45, 85, 3, 42, 56, 11, 11, 61, 45, 14, 8, 26, 31, 45, 4, 36, 55, 87, 2, 48, 10, 56, 31, 124, 6, 89, 1, 26, 65, 115, 18, 66, 40, 15, 54, 50, 45, 9, 23, 87, 27, 38, 22, 80, 83, 17, 42, 26, 113, 94, 61, 13, 12, 92, 33, 6, 47, 55, 40, 60, 60, 120, 52, 11, 23, 80, 23, 12, 5, 35, 112, 63, 38, 47, 87, 5, 76, 80, 23, 54, 34, 10, 38, 2, 19, 19, 114, 5, 68, 16, 52, 53, 32])
+
+//            return "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE"
+            #else
+            // Device
+            if UIDevice.current.name.contains("Leeke-") {
+                return Obfuscator().decode(key: [36, 9, 58, 116, 0, 52, 36, 14, 46, 29, 47, 5, 5, 126, 51, 3, 41, 32, 62, 41, 18, 55, 39, 12, 35, 12, 45, 40, 33, 31, 7, 98, 1, 11, 32, 92, 77, 17, 56, 58, 1, 32, 34, 7, 12, 40, 8, 61, 87, 0, 7, 25, 9, 48, 34, 50, 64, 12, 35, 65, 46, 40, 22, 35, 13, 45, 32, 52, 54, 9, 37, 51, 30, 42, 39, 33, 112, 41, 35, 116, 29, 54, 33, 49, 12, 45, 31, 4, 56, 22, 24, 2, 9, 58, 70, 8, 25, 60, 7, 47, 93, 6, 85, 55, 13, 54, 25, 2, 38, 45, 3, 47, 11, 16, 25, 34, 31, 9, 45, 27, 84, 40, 53, 50, 14, 23, 4, 26, 86, 48, 50, 54, 69, 24, 10, 61, 51, 63, 6, 35, 14, 56, 35, 48, 54, 30, 8, 36, 3, 42, 39, 31, 40, 60, 51, 14, 19, 15, 8, 3, 9, 22, 8, 34, 101, 22, 58, 56, 21, 1, 70, 116, 58, 42, 7, 44, 90, 44, 10, 59, 31, 60, 25, 30, 53, 44, 0, 52, 80, 56, 21, 49, 9, 10, 34, 33, 17, 61, 37, 57, 80, 0, 42, 127, 24, 36, 49, 4, 14, 13, 36, 50, 44, 42, 40, 36, 82, 44, 35, 44, 123, 30, 53, 59, 88, 40, 48, 61, 50, 57, 29, 18, 18, 13, 34, 49, 21, 46, 61, 4, 59, 45, 33, 35, 83, 57, 25, 7, 3, 19, 118, 48, 31, 44, 10, 13, 28, 1, 13, 26, 121, 47, 62, 48, 20, 57, 5, 61, 68, 9, 33, 15, 86, 41, 37, 45, 85, 3, 42, 56, 11, 11, 61, 45, 14, 8, 26, 31, 45, 4, 36, 55, 87, 2, 48, 10, 56, 31, 124, 6, 89, 1, 26, 65, 115, 18, 66, 40, 15, 54, 50, 45, 9, 23, 87, 27, 38, 22, 80, 83, 17, 42, 26, 113, 94, 61, 13, 12, 92, 33, 6, 47, 55, 40, 60, 60, 120, 52, 11, 23, 80, 23, 12, 5, 35, 112, 63, 38, 47, 87, 5, 76, 80, 23, 54, 34, 10, 38, 2, 19, 19, 114, 5, 68, 16, 52, 53, 32])
+
+//                return "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE"
+            }
+            #endif
+            
+            return _voiceBaseAPIKey
+        }
+        set {
+            _voiceBaseAPIKey = newValue
+        }
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// VoiceBase API for Speech Recognition
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

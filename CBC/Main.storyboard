@@ -1203,6 +1203,7 @@ Web site: www.countrysidebible.org</string>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="72" id="7jg-fc-VJb"/>
                                     <constraint firstAttribute="width" constant="279" id="egM-gh-Pys"/>
+                                    <constraint firstAttribute="width" secondItem="vLD-jU-3Sf" secondAttribute="height" multiplier="31:8" id="x8k-JZ-8vj"/>
                                 </constraints>
                             </imageView>
                         </subviews>
@@ -1227,6 +1228,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="Countryside Bible Church Live" id="S8U-Cv-Cw0"/>
                     <connections>
+                        <outlet property="layoutAspectRatio" destination="x8k-JZ-8vj" id="XDM-6F-jbU"/>
                         <outlet property="logo" destination="vLD-jU-3Sf" id="SR7-0O-xwj"/>
                         <outlet property="webView" destination="z2d-eT-0hV" id="bwE-eh-h2m"/>
                     </connections>

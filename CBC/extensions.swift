@@ -4007,14 +4007,13 @@ extension UIViewController
             return
         }
         
-        Alerts.shared.pageOrientation(portrait: ({
-            self.printTextJob(string:string,orientation:.portrait)
-        }),
-            landscape: ({
+        Alerts.shared.pageOrientation(
+            portrait: {
+                self.printTextJob(string:string,orientation:.portrait)
+            },
+            landscape: {
                 self.printTextJob(string:string,orientation:.landscape)
-            }),
-            cancel: ({
-            })
+            }
         )
     }
     
@@ -4074,14 +4073,12 @@ extension UIViewController
         }
 
         Alerts.shared.pageOrientation(
-            portrait: ({
+            portrait: {
                 self.printImageJob(image:image,orientation:.portrait)
-            }),
-            landscape: ({
+            },
+            landscape: {
                 self.printImageJob(image:image,orientation:.landscape)
-            }),
-            cancel: ({
-            })
+            }
         )
     }
     
@@ -4137,14 +4134,12 @@ extension UIViewController
         }
         
         Alerts.shared.pageOrientation(
-            portrait: ({
+            portrait: {
                 self.printHTMLJob(html:htmlString,orientation:.portrait)
-            }),
-            landscape: ({
+            },
+            landscape: {
                 self.printHTMLJob(html:htmlString,orientation:.landscape)
-            }),
-            cancel: ({
-            })
+            }
         )
     }
     
@@ -4198,14 +4193,13 @@ extension UIViewController
             })
         }
         
-        Alerts.shared.pageOrientation(   portrait: ({
-                                    processMediaItems(orientation:.portrait)
-                                }),
-                                landscape: ({
-                                    processMediaItems(orientation:.landscape)
-                                }),
-                                cancel: ({
-                                })
+        Alerts.shared.pageOrientation(
+            portrait: {
+                processMediaItems(orientation:.portrait)
+            },
+            landscape: {
+                processMediaItems(orientation:.landscape)
+            }
         )
     }
     

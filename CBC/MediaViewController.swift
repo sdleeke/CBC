@@ -2703,13 +2703,36 @@ class MediaViewController : MediaItemsViewController
     
     @IBOutlet weak var layoutAspectRatio: NSLayoutConstraint!
     
+    func setImage(_ image:UIImage? = nil, mediaItem:MediaItem? = nil)
+    {
+        guard let image = image ?? UIImage(named:"CBC_logo") else {
+            self.logo.image = nil
+            return
+        }
+        
+        Thread.onMain { [weak self] in
+            if mediaItem != nil, mediaItem != self?.selectedMediaItem {
+                return
+            }
+            
+            // Need to adjust aspect ratio contraint
+            let ratio = image.size.width / image.size.height
+            
+            self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+
+            self?.logo.image = image
+        }
+    }
+    
     func setupLogo()
     {
         guard let selectedMediaItem = selectedMediaItem else {
+            self.setImage()
             return
         }
         
         guard selectedMediaItem.hasPosterImage else {
+            self.setImage()
             return
         }
     
@@ -2726,35 +2749,35 @@ class MediaViewController : MediaItemsViewController
 //                self?.activityIndicator.startAnimating()
 //            }
 
-            func setImage(_ image:UIImage? = nil)
-            {
-                guard let image = image ?? UIImage(named:"CBC_logo") else {
-                    self?.logo.image = nil
-                    return
-                }
-                
-                Thread.onMain { [weak self] in
-                    guard self?.selectedMediaItem == selectedMediaItem else {
-                        return
-                    }
-                    
-                    // Need to adjust aspect ratio contraint
-                    let ratio = image.size.width / image.size.height
-                    
-                    self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
-                    self?.logo.image = image
-                    //                if let logo = self?.logo {
-                    //                    self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
-                    //                }
-                }
-            }
+//            func setImage(_ image:UIImage? = nil)
+//            {
+//                guard let image = image ?? UIImage(named:"CBC_logo") else {
+//                    self?.logo.image = nil
+//                    return
+//                }
+//
+//                Thread.onMain { [weak self] in
+//                    guard self?.selectedMediaItem == selectedMediaItem else {
+//                        return
+//                    }
+//
+//                    // Need to adjust aspect ratio contraint
+//                    let ratio = image.size.width / image.size.height
+//
+//                    self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+//                    self?.logo.image = image
+//                    //                if let logo = self?.logo {
+//                    //                    self?.mediaItemNotesAndSlides.bringSubviewToFront(logo)
+//                    //                }
+//                }
+//            }
             
             guard let posterImage = selectedMediaItem.posterImage?.image else {
-                setImage()
+                self?.setImage(mediaItem:selectedMediaItem)
                 return
             }
             
-            setImage(posterImage)
+            self?.setImage(posterImage,mediaItem:selectedMediaItem)
             
 //            Thread.onMain { [weak self] in
 //                guard self?.selectedMediaItem == selectedMediaItem else {
@@ -4819,21 +4842,22 @@ class MediaViewController : MediaItemsViewController
                 }
 
                 if let posterImage = selectedMediaItem.posterImage?.image {
-                    guard self?.selectedMediaItem == selectedMediaItem else {
-                        return
-                    }
-
-                    Thread.onMain { [weak self] in
-                        guard self?.selectedMediaItem == selectedMediaItem else {
-                            return
-                        }
-
-                        // Need to adjust aspect ratio contraint
-                        let ratio = posterImage.size.width / posterImage.size.height
-
-                        self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
-                        self?.logo.image = posterImage
-                    }
+                    self?.setImage(posterImage,mediaItem: selectedMediaItem)
+//                    guard self?.selectedMediaItem == selectedMediaItem else {
+//                        return
+//                    }
+//
+//                    Thread.onMain { [weak self] in
+//                        guard self?.selectedMediaItem == selectedMediaItem else {
+//                            return
+//                        }
+//
+//                        // Need to adjust aspect ratio contraint
+//                        let ratio = posterImage.size.width / posterImage.size.height
+//
+//                        self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+//                        self?.logo.image = posterImage
+//                    }
                 }
 
                 Thread.onMain { [weak self] in

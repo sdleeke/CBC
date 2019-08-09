@@ -70,6 +70,7 @@
 		17A95A5D22B0239800DDAFC6 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A95A5C22B0239800DDAFC6 /* Settings.swift */; };
 		17A960CE1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */; };
 		17AE16BF225B9C08001ED072 /* ScripturePickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17AE16BE225B9C08001ED072 /* ScripturePickerViewController.swift */; };
+		17B608FF22FD8E0000158EBD /* Obfuscator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17B608FE22FD8E0000158EBD /* Obfuscator.swift */; };
 		17C28566228302B0005654A1 /* CBCViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17C28565228302B0005654A1 /* CBCViewController.swift */; };
 		17C6CF852269168100F7BFC1 /* MediaPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17C6CF842269168100F7BFC1 /* MediaPlayer.swift */; };
 		17CDEF0E2167762A00B21C87 /* FetchImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17CDEF0D2167762900B21C87 /* FetchImage.swift */; };
@@ -195,6 +196,7 @@
 		17A95A5C22B0239800DDAFC6 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		17A960CD1FDAC12E00A12BE9 /* firstDifferenceBetweenStrings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = firstDifferenceBetweenStrings.swift; sourceTree = "<group>"; };
 		17AE16BE225B9C08001ED072 /* ScripturePickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScripturePickerViewController.swift; sourceTree = "<group>"; };
+		17B608FE22FD8E0000158EBD /* Obfuscator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Obfuscator.swift; sourceTree = "<group>"; };
 		17C28565228302B0005654A1 /* CBCViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCViewController.swift; sourceTree = "<group>"; };
 		17C6CF842269168100F7BFC1 /* MediaPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaPlayer.swift; sourceTree = "<group>"; };
 		17CDEF0D2167762900B21C87 /* FetchImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchImage.swift; sourceTree = "<group>"; };
@@ -296,6 +298,7 @@
 				17C28565228302B0005654A1 /* CBCViewController.swift */,
 				17A9438422931EE8005FE50B /* MediaItemsViewController.swift */,
 				1798C74D1CA93BC900CED4A5 /* Globals.swift */,
+				17B608FE22FD8E0000158EBD /* Obfuscator.swift */,
 				17A95A5C22B0239800DDAFC6 /* Settings.swift */,
 				17A9438622934D72005FE50B /* History.swift */,
 				1702604C228C77C800100525 /* JSON.swift */,
@@ -786,6 +789,7 @@
 				17CDEF0E2167762A00B21C87 /* FetchImage.swift in Sources */,
 				17FF98912030DC84002AD442 /* Tags.swift in Sources */,
 				17FF988F2030DBC9002AD442 /* Media.swift in Sources */,
+				17B608FF22FD8E0000158EBD /* Obfuscator.swift in Sources */,
 				171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */,
 				177A74B51EF576CB00D36BE2 /* StringTree.swift in Sources */,
 				17DFD9511F029A7C000AC63D /* VoiceBase.swift in Sources */,
