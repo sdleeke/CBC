@@ -63,7 +63,6 @@
 		1798C74E1CA93BC900CED4A5 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C74D1CA93BC900CED4A5 /* Globals.swift */; };
 		1798C7501CA93BF600CED4A5 /* LiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C74F1CA93BF600CED4A5 /* LiveViewController.swift */; };
 		1798C7581CA93CC700CED4A5 /* CBCUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C7571CA93CC700CED4A5 /* CBCUITests.swift */; };
-		17A45ED322A1F7610085E14D /* Podcast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A45ED222A1F7610085E14D /* Podcast.swift */; };
 		17A9438522931EE8005FE50B /* MediaItemsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A9438422931EE8005FE50B /* MediaItemsViewController.swift */; };
 		17A9438722934D72005FE50B /* History.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A9438622934D72005FE50B /* History.swift */; };
 		17A952682158FE830033903C /* generics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A952672158FE830033903C /* generics.swift */; };
@@ -189,7 +188,6 @@
 		1798C7551CA93CC700CED4A5 /* CBCUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CBCUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1798C7571CA93CC700CED4A5 /* CBCUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCUITests.swift; sourceTree = "<group>"; };
 		1798C7591CA93CC700CED4A5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		17A45ED222A1F7610085E14D /* Podcast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Podcast.swift; sourceTree = "<group>"; };
 		17A9438422931EE8005FE50B /* MediaItemsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaItemsViewController.swift; sourceTree = "<group>"; };
 		17A9438622934D72005FE50B /* History.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = History.swift; sourceTree = "<group>"; };
 		17A952672158FE830033903C /* generics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = generics.swift; sourceTree = "<group>"; };
@@ -311,7 +309,6 @@
 				17E1890122946ED300A7F333 /* SpeakerNotesParagraph.swift */,
 				17E188FF22946D6500A7F333 /* CheckIn.swift */,
 				1732FF8B229713AA00735358 /* Storage.swift */,
-				17A45ED222A1F7610085E14D /* Podcast.swift */,
 				1732FF9322971A0A00735358 /* Audio.swift */,
 				1732FF9522971A2600735358 /* Video.swift */,
 				1732FF8D229713E800735358 /* Streaming.swift */,
@@ -702,7 +699,6 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-CBC/Pods-CBC-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/FeedKit/FeedKit.framework",
 				"${BUILT_PRODUCTS_DIR}/GTMSessionFetcher/GTMSessionFetcher.framework",
 				"${BUILT_PRODUCTS_DIR}/GoogleToolboxForMac/GoogleToolboxForMac.framework",
 				"${BUILT_PRODUCTS_DIR}/GoogleUtilities/GoogleUtilities.framework",
@@ -711,7 +707,6 @@
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FeedKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GTMSessionFetcher.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleToolboxForMac.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleUtilities.framework",
@@ -776,7 +771,6 @@
 				1732FF92229719F000735358 /* Base.swift in Sources */,
 				1732FF9822971A5300735358 /* Suffix.swift in Sources */,
 				17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */,
-				17A45ED322A1F7610085E14D /* Podcast.swift in Sources */,
 				174A14A91E02128700736CEC /* MediaListGroupSort.swift in Sources */,
 				17AE16BF225B9C08001ED072 /* ScripturePickerViewController.swift in Sources */,
 				174EEE921B74C11E004F6942 /* MediaTableViewCell.swift in Sources */,

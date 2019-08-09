@@ -3813,7 +3813,7 @@ class MediaItem : NSObject //, Downloader
             actions.append(download)
         }
         
-        if Globals.shared.allowMGTs {
+        if VoiceBase.allowMGTs {
             actions.append(voiceBase)
         }
 

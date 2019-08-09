@@ -2071,37 +2071,37 @@ class MediaViewController : MediaItemsViewController
             }
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.toTranscribeAudio > 0 { // , !((mediaItemsToTranscribeAudio == 1) && (mediaItems.count == 1)) {
+        if VoiceBase.isAvailable ?? false, self.mediaList?.list?.toTranscribeAudio > 0 { // , !((mediaItemsToTranscribeAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.toTranscribeVideo > 0 { // , !((mediaItemsToTranscribeVideo == 1) && (mediaItems.count == 1)) {
+        if VoiceBase.isAvailable ?? false, self.mediaList?.list?.toTranscribeVideo > 0 { // , !((mediaItemsToTranscribeVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Transcribe_All_Video)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.transcribedAudio > self.mediaList?.list?.autoEditingAudio {
+        if VoiceBase.isAvailable ?? false, self.mediaList?.list?.transcribedAudio > self.mediaList?.list?.autoEditingAudio {
             actionMenu.append(Constants.Strings.Auto_Edit_All_Audio_Transcripts)
             actionMenu.append(Constants.Strings.Delete_All_Audio_Transcripts)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.transcribedVideo > self.mediaList?.list?.autoEditingVideo {
+        if VoiceBase.isAvailable ?? false, self.mediaList?.list?.transcribedVideo > self.mediaList?.list?.autoEditingVideo {
             actionMenu.append(Constants.Strings.Auto_Edit_All_Video_Transcripts)
             actionMenu.append(Constants.Strings.Delete_All_Video_Transcripts)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.autoEditingAudio > 0 {
+        if VoiceBase.isAvailable ?? false, self.mediaList?.list?.autoEditingAudio > 0 {
             actionMenu.append(Constants.Strings.Cancel_All_Auto_Edit_Audio)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.autoEditingVideo > 0 {
+        if VoiceBase.isAvailable ?? false, self.mediaList?.list?.autoEditingVideo > 0 {
             actionMenu.append(Constants.Strings.Cancel_All_Auto_Edit_Video)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.toAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
+        if VoiceBase.isAvailable ?? false, self.mediaList?.list?.toAlignAudio > 0 { // , !((mediaItemsToAlignAudio == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Audio_Transcripts)
         }
         
-        if Globals.shared.isVoiceBaseAvailable ?? false, self.mediaList?.list?.toAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
+        if VoiceBase.isAvailable ?? false, self.mediaList?.list?.toAlignVideo > 0 { // , !((mediaItemsToAlignVideo == 1) && (mediaItems.count == 1)) {
             actionMenu.append(Constants.Strings.Align_All_Video_Transcripts)
         }
 

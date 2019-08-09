@@ -368,13 +368,13 @@ extension VoiceBase // Class Methods
     {
         // Critical to know if we are checking VB availability or not since we make a get to check if it is available!
         // If not, then we need to know if VB is available
-        if !Globals.shared.checkingVoiceBaseAvailability {
-            if !(Globals.shared.isVoiceBaseAvailable ?? false){
+        if !VoiceBase.checkingAvailability {
+            if !(VoiceBase.isAvailable ?? false){
                 return
             }
         }
         
-        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey else {
+        guard let voiceBaseAPIKey = VoiceBase.APIKey else {
             return
         }
         
@@ -557,11 +557,11 @@ extension VoiceBase // Class Methods
     {
         print("VoiceBase.delete")
 
-        guard Globals.shared.isVoiceBaseAvailable ?? false else {
+        guard VoiceBase.isAvailable ?? false else {
             return
         }
         
-        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey else {
+        guard let voiceBaseAPIKey = VoiceBase.APIKey else {
             return
         }
         
@@ -1103,27 +1103,27 @@ class VoiceBase
     static var allowMGTs = true
     
     // Timer to keep checking on whether VoiceBase is available
-    static var checkVoiceBaseTimer : Timer?
+    static var checkTimer : Timer?
     
     // Shadow property for voicebase availability.
-    static var _isVoiceBaseAvailable : Bool? // = false
+    static var _isAvailable : Bool? // = false
     {
         didSet {
-            guard _isVoiceBaseAvailable != oldValue else {
+            guard _isAvailable != oldValue else {
                 return
             }
             
-            guard let _isVoiceBaseAvailable = _isVoiceBaseAvailable else {
+            guard let _isAvailable = _isAvailable else {
                 return
             }
             
-            if !_isVoiceBaseAvailable {
-                if checkVoiceBaseTimer == nil {
-                    checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.ckVBA), userInfo:nil, repeats:true)
+            if !_isAvailable {
+                if checkTimer == nil {
+                    checkTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.ckVBA), userInfo:nil, repeats:true)
                 }
             } else {
-                checkVoiceBaseTimer?.invalidate()
-                checkVoiceBaseTimer = nil
+                checkTimer?.invalidate()
+                checkTimer = nil
             }
             
             // Why?
@@ -1132,7 +1132,7 @@ class VoiceBase
             }
         }
     }
-    static var isVoiceBaseAvailable : Bool? // = false
+    static var isAvailable : Bool? // = false
     {
         get {
             guard allowMGTs else {
@@ -1143,50 +1143,50 @@ class VoiceBase
                 return false
             }
             
-            return _isVoiceBaseAvailable ?? false // checkingVoiceBaseAvailability
+            return _isAvailable ?? false // checkingAvailability
         }
         set {
-            _isVoiceBaseAvailable = newValue
+            _isAvailable = newValue
         }
     }
     
     // This is critical since we make a VB call to see if VB is available so we need to ignore the isVBAvailable nil or false
-    static var checkingVoiceBaseAvailability = false
+    static var checkingAvailability = false
     
-    class func checkVoiceBaseAvailability(completion:(()->(Void))? = nil)
+    class func checkAvailability(completion:(()->(Void))? = nil)
     {
-        isVoiceBaseAvailable = nil
+        isAvailable = nil
         
         guard Globals.shared.reachability.isReachable else {
-            isVoiceBaseAvailable = false
+            isAvailable = false
             completion?()
             return
         }
         
         // Tell the world we are checking
-        checkingVoiceBaseAvailability = true
+        checkingAvailability = true
         
         VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in
-            self.isVoiceBaseAvailable = true
+            self.isAvailable = true
             completion?()
             }, onError: { (json:[String : Any]?) -> (Void) in
-                self.isVoiceBaseAvailable = false
+                self.isAvailable = false
                 completion?()
         })
         
         // Tell the world we are done checking
-        checkingVoiceBaseAvailability = false
+        checkingAvailability = false
     }
     
     @objc class func ckVBA()
     {
-        checkVoiceBaseAvailability()
+        checkAvailability()
     }
     
-    static var _voiceBaseAPIKey : String?
+    static var _APIKey : String?
     {
         didSet {
-            if let key = _voiceBaseAPIKey, !key.isEmpty {
+            if let key = _APIKey, !key.isEmpty {
                 UserDefaults.standard.set(key, forKey: Constants.Strings.VoiceBase_API_Key)
                 
                 // Do we need to notify VoiceBase objects?
@@ -1195,21 +1195,21 @@ class VoiceBase
                 // If bad, then it will fail.  If good, then they will finish.
                 // So, nothing needs to be done.
             } else {
-                isVoiceBaseAvailable = false
+                isAvailable = false
                 UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
             }
             
             UserDefaults.standard.synchronize()
             
-            if isVoiceBaseAvailable == true {
-                checkVoiceBaseAvailability()
+            if isAvailable == true {
+                checkAvailability()
             }
         }
     }
-    static var voiceBaseAPIKey : String?
+    static var APIKey : String?
     {
         get {
-            if _voiceBaseAPIKey == nil {
+            if _APIKey == nil {
                 if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key), !key.isEmpty {
                     if key == Obfuscator().decode(key: [36, 9, 58, 116, 0, 52, 36, 14, 46, 29, 47, 5, 5, 126, 51, 3, 41, 32, 62, 41, 18, 55, 39, 12, 35, 12, 45, 40, 33, 31, 7, 98, 1, 11, 32, 92, 77, 17, 56, 58, 1, 32, 34, 7, 12, 40, 8, 61, 87, 0, 7, 25, 9, 48, 34, 50, 64, 12, 35, 65, 46, 40, 22, 35, 13, 45, 32, 52, 54, 9, 37, 51, 30, 42, 39, 33, 112, 41, 35, 116, 29, 54, 33, 49, 12, 45, 31, 4, 56, 22, 24, 2, 9, 58, 70, 8, 25, 60, 7, 47, 93, 6, 85, 55, 13, 54, 25, 2, 38, 45, 3, 47, 11, 16, 25, 34, 31, 9, 45, 27, 84, 40, 53, 50, 14, 23, 4, 26, 86, 48, 50, 54, 69, 24, 10, 61, 51, 63, 6, 35, 14, 56, 35, 48, 54, 30, 8, 36, 3, 42, 39, 31, 40, 60, 51, 14, 19, 15, 8, 3, 9, 22, 8, 34, 101, 22, 58, 56, 21, 1, 70, 116, 58, 42, 7, 44, 90, 44, 10, 59, 31, 60, 25, 30, 53, 44, 0, 52, 80, 56, 21, 49, 9, 10, 34, 33, 17, 61, 37, 57, 80, 0, 42, 127, 24, 36, 49, 4, 14, 13, 36, 50, 44, 42, 40, 36, 82, 44, 35, 44, 123, 30, 53, 59, 88, 40, 48, 61, 50, 57, 29, 18, 18, 13, 34, 49, 21, 46, 61, 4, 59, 45, 33, 35, 83, 57, 25, 7, 3, 19, 118, 48, 31, 44, 10, 13, 28, 1, 13, 26, 121, 47, 62, 48, 20, 57, 5, 61, 68, 9, 33, 15, 86, 41, 37, 45, 85, 3, 42, 56, 11, 11, 61, 45, 14, 8, 26, 31, 45, 4, 36, 55, 87, 2, 48, 10, 56, 31, 124, 6, 89, 1, 26, 65, 115, 18, 66, 40, 15, 54, 50, 45, 9, 23, 87, 27, 38, 22, 80, 83, 17, 42, 26, 113, 94, 61, 13, 12, 92, 33, 6, 47, 55, 40, 60, 60, 120, 52, 11, 23, 80, 23, 12, 5, 35, 112, 63, 38, 47, 87, 5, 76, 80, 23, 54, 34, 10, 38, 2, 19, 19, 114, 5, 68, 16, 52, 53, 32]) {
 
@@ -1217,7 +1217,7 @@ class VoiceBase
                         
                         UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
                     } else {
-                        _voiceBaseAPIKey = key
+                        _APIKey = key
                     }
                 }
             }
@@ -1236,10 +1236,10 @@ class VoiceBase
             }
             #endif
             
-            return _voiceBaseAPIKey
+            return _APIKey
         }
         set {
-            _voiceBaseAPIKey = newValue
+            _APIKey = newValue
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2076,11 +2076,11 @@ class VoiceBase
     // mediaID:String?,
     func post(path:String?, parameters:[String:String]?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
     {
-        guard Globals.shared.isVoiceBaseAvailable ?? false else {
+        guard VoiceBase.isAvailable ?? false else {
             return
         }
         
-        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey else {
+        guard let voiceBaseAPIKey = VoiceBase.APIKey else {
             return
         }
         
@@ -2457,7 +2457,7 @@ class VoiceBase
     {
         VoiceBase.delete(alert: alert, mediaID: self.mediaID, completion: completion, onError: onError)
         
-//        guard Globals.shared.isVoiceBaseAvailable ?? false else {
+//        guard VoiceBase.isAvailable ?? false else {
 //            return
 //        }
 //        
@@ -3435,11 +3435,11 @@ class VoiceBase
     
     func search(string:String?, completion:(([String:Any]?)->(Void))? = nil, onError:(([String:Any]?)->(Void))? = nil)
     {
-        guard Globals.shared.isVoiceBaseAvailable ?? false else {
+        guard VoiceBase.isAvailable ?? false else {
             return
         }
         
-        guard let voiceBaseAPIKey = Globals.shared.voiceBaseAPIKey else {
+        guard let voiceBaseAPIKey = VoiceBase.APIKey else {
             return
         }
         
@@ -5330,24 +5330,24 @@ class VoiceBase
 
         action = AlertAction(title: prefix + " " + Constants.Strings.Transcript, style: .default) {
             if self.transcript == nil {
-                guard Globals.shared.isVoiceBaseAvailable ?? false else {
-                    if Globals.shared.voiceBaseAPIKey == nil {
+                guard VoiceBase.isAvailable ?? false else {
+                    if VoiceBase.APIKey == nil {
                         let alert = CBCAlertController( title: "Please add an API Key to use VoiceBase",
                                                         message: nil,
                                                         preferredStyle: .alert)
                         alert.makeOpaque()
                         
                         alert.addTextField(configurationHandler: { (textField:UITextField) in
-                            textField.text = Globals.shared.voiceBaseAPIKey
+                            textField.text = VoiceBase.APIKey
                         })
                         
                         let okayAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: {
                             (action : UIAlertAction) -> Void in
-                            Globals.shared.voiceBaseAPIKey = alert.textFields?[0].text
+                            VoiceBase.APIKey = alert.textFields?[0].text
                             
                             // If this is a valid API key then should pass a completion block to start the transcript!
-                            if Globals.shared.voiceBaseAPIKey != nil {
-                                Globals.shared.checkVoiceBaseAvailability {
+                            if VoiceBase.APIKey != nil {
+                                VoiceBase.checkAvailability {
                                     if !self.transcribing {
                                         if Globals.shared.reachability.isReachable {
                                             Alerts.shared.yesOrNo(title: "Begin Creating\nMachine Generated Transcript?",
@@ -5551,7 +5551,7 @@ class VoiceBase
                     Alerts.shared.alert(title: "VoiceBase Media ID", message: text + " (\(self.transcriptPurpose))", items: alertItems)
                 }))
                 
-                if Globals.shared.isVoiceBaseAvailable ?? false {
+                if VoiceBase.isAvailable ?? false {
                     alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, handler: {
                         self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                             if let mediaID = self.mediaID {
@@ -5627,7 +5627,7 @@ class VoiceBase
                                 noAction: nil, noStyle: .default)
                     }))
                     
-                    if Globals.shared.isVoiceBaseAvailable ?? false {
+                    if VoiceBase.isAvailable ?? false {
                         alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, handler: {
                             // This metadata call is how we verify that it is on VB.
                             self.metadata(completion: { (dict:[String:Any]?)->(Void) in

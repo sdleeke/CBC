@@ -32,13 +32,13 @@ class Suffix : Base
 
 class Category : Suffix
 {
-    lazy var podcast : Podcast? = {
-        guard let id = id else {
-            return nil
-        }
-
-        return Podcast(url: "https://countrysidebible.org/mediafeed.php?return=podcast&categoryID=\(id)".url)
-    }()
+//    lazy var podcast : Podcast? = {
+//        guard let id = id else {
+//            return nil
+//        }
+//
+//        return Podcast(url: "https://countrysidebible.org/mediafeed.php?return=podcast&categoryID=\(id)".url)
+//    }()
 }
 
 /**

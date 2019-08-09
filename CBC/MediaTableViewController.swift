@@ -807,7 +807,7 @@ class MediaTableViewController : MediaItemsViewController
             
             showMenu.append(Constants.Strings.VoiceBase_API_Key)
             
-            if Globals.shared.isVoiceBaseAvailable ?? false {
+            if VoiceBase.isAvailable ?? false {
                 showMenu.append(Constants.Strings.VoiceBase_Media)
                 showMenu.append(Constants.Strings.VoiceBase_Bulk_Delete)
                 
@@ -3197,12 +3197,12 @@ class MediaTableViewController : MediaItemsViewController
             alert.makeOpaque()
             
             alert.addTextField(configurationHandler: { (textField:UITextField) in
-                textField.text = Globals.shared.voiceBaseAPIKey
+                textField.text = VoiceBase.APIKey
             })
             
             let okayAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertAction.Style.default, handler: {
                 (action : UIAlertAction) -> Void in
-                Globals.shared.voiceBaseAPIKey = alert.textFields?[0].text
+                VoiceBase.APIKey = alert.textFields?[0].text
             })
             alert.addAction(okayAction)
             

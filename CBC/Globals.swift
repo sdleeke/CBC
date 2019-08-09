@@ -112,142 +112,142 @@ class Globals : NSObject
     // Global queue for activity that should not be on the main queue
     var queue = DispatchQueue(label: "CBC")
     
-    // flag whether machine generated transcripts are allowed
-    var allowMGTs = true
-
-    // Timer to keep checking on whether VoiceBase is available
-    var checkVoiceBaseTimer : Timer?
-
-    // Shadow property for voicebase availability.
-    private var _isVoiceBaseAvailable : Bool? // = false
-    {
-        didSet {
-            guard _isVoiceBaseAvailable != oldValue else {
-                return
-            }
-
-            guard let _isVoiceBaseAvailable = _isVoiceBaseAvailable else {
-                return
-            }
-
-            if !_isVoiceBaseAvailable {
-                if checkVoiceBaseTimer == nil {
-                    checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.ckVBA), userInfo:nil, repeats:true)
-                }
-            } else {
-                checkVoiceBaseTimer?.invalidate()
-                checkVoiceBaseTimer = nil
-            }
-
-            // Why?
-            Thread.onMain { [weak self] in 
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
-            }
-        }
-    }
-    var isVoiceBaseAvailable : Bool? // = false
-    {
-        get {
-            guard allowMGTs else {
-                return false
-            }
-
-            guard reachability.isReachable else {
-                return false
-            }
-
-            return _isVoiceBaseAvailable ?? false // checkingVoiceBaseAvailability
-        }
-        set {
-            _isVoiceBaseAvailable = newValue
-        }
-    }
-
-    // This is critical since we make a VB call to see if VB is available so we need to ignore the isVBAvailable nil or false
-    var checkingVoiceBaseAvailability = false
-    
-    func checkVoiceBaseAvailability(completion:(()->(Void))? = nil)
-    {
-        isVoiceBaseAvailable = nil
-
-        guard reachability.isReachable else {
-            isVoiceBaseAvailable = false
-            completion?()
-            return
-        }
-        
-        // Tell the world we are checking
-        checkingVoiceBaseAvailability = true
-        
-        VoiceBase.all(completion: { [weak self] (json:[String : Any]?) -> (Void) in
-            self?.isVoiceBaseAvailable = true
-            completion?()
-        }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
-            self?.isVoiceBaseAvailable = false
-            completion?()
-        })
-        
-        // Tell the world we are done checking
-        checkingVoiceBaseAvailability = false
-    }
-    
-    @objc func ckVBA()
-    {
-        checkVoiceBaseAvailability()
-    }
-
-    private var _voiceBaseAPIKey : String?
-    {
-        didSet {
-            if let key = _voiceBaseAPIKey, !key.isEmpty {
-                UserDefaults.standard.set(key, forKey: Constants.Strings.VoiceBase_API_Key)
-
-                // Do we need to notify VoiceBase objects?
-                // No, because if it was nil before there shouldn't be anything on VB.com
-                // No, because if it was not nil before then they either the new KEY is good or bad.
-                // If bad, then it will fail.  If good, then they will finish.
-                // So, nothing needs to be done.
-            } else {
-                isVoiceBaseAvailable = false
-                UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
-            }
-            
-            UserDefaults.standard.synchronize()
-            
-            if isVoiceBaseAvailable == true {
-                checkVoiceBaseAvailability()
-            }
-        }
-    }
-    var voiceBaseAPIKey : String?
-    {
-        get {
-            if _voiceBaseAPIKey == nil {
-                if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key), !key.isEmpty {
-                    if key == "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE" {
-                        UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
-                    } else {
-                        _voiceBaseAPIKey = key
-                    }
-                }
-            }
-            
-            #if targetEnvironment(simulator)
-            // Simulator
-            return "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE"
-            #else
-            // Device
-            if UIDevice.current.name.contains("Leeke-") {
-                return "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE"
-            }
-            #endif
-            
-            return _voiceBaseAPIKey
-        }
-        set {
-            _voiceBaseAPIKey = newValue
-        }
-    }
+//    // flag whether machine generated transcripts are allowed
+//    var allowMGTs = true
+//
+//    // Timer to keep checking on whether VoiceBase is available
+//    var checkVoiceBaseTimer : Timer?
+//
+//    // Shadow property for voicebase availability.
+//    private var _isVoiceBaseAvailable : Bool? // = false
+//    {
+//        didSet {
+//            guard _isVoiceBaseAvailable != oldValue else {
+//                return
+//            }
+//
+//            guard let _isVoiceBaseAvailable = _isVoiceBaseAvailable else {
+//                return
+//            }
+//
+//            if !_isVoiceBaseAvailable {
+//                if checkVoiceBaseTimer == nil {
+//                    checkVoiceBaseTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.ckVBA), userInfo:nil, repeats:true)
+//                }
+//            } else {
+//                checkVoiceBaseTimer?.invalidate()
+//                checkVoiceBaseTimer = nil
+//            }
+//
+//            // Why?
+//            Thread.onMain { [weak self] in 
+//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+//            }
+//        }
+//    }
+//    var isVoiceBaseAvailable : Bool? // = false
+//    {
+//        get {
+//            guard allowMGTs else {
+//                return false
+//            }
+//
+//            guard reachability.isReachable else {
+//                return false
+//            }
+//
+//            return _isVoiceBaseAvailable ?? false // checkingVoiceBaseAvailability
+//        }
+//        set {
+//            _isVoiceBaseAvailable = newValue
+//        }
+//    }
+//
+//    // This is critical since we make a VB call to see if VB is available so we need to ignore the isVBAvailable nil or false
+//    var checkingVoiceBaseAvailability = false
+//    
+//    func checkVoiceBaseAvailability(completion:(()->(Void))? = nil)
+//    {
+//        isVoiceBaseAvailable = nil
+//
+//        guard reachability.isReachable else {
+//            isVoiceBaseAvailable = false
+//            completion?()
+//            return
+//        }
+//        
+//        // Tell the world we are checking
+//        checkingVoiceBaseAvailability = true
+//        
+//        VoiceBase.all(completion: { [weak self] (json:[String : Any]?) -> (Void) in
+//            self?.isVoiceBaseAvailable = true
+//            completion?()
+//        }, onError: { [weak self] (json:[String : Any]?) -> (Void) in
+//            self?.isVoiceBaseAvailable = false
+//            completion?()
+//        })
+//        
+//        // Tell the world we are done checking
+//        checkingVoiceBaseAvailability = false
+//    }
+//    
+//    @objc func ckVBA()
+//    {
+//        checkVoiceBaseAvailability()
+//    }
+//
+//    private var _voiceBaseAPIKey : String?
+//    {
+//        didSet {
+//            if let key = _voiceBaseAPIKey, !key.isEmpty {
+//                UserDefaults.standard.set(key, forKey: Constants.Strings.VoiceBase_API_Key)
+//
+//                // Do we need to notify VoiceBase objects?
+//                // No, because if it was nil before there shouldn't be anything on VB.com
+//                // No, because if it was not nil before then they either the new KEY is good or bad.
+//                // If bad, then it will fail.  If good, then they will finish.
+//                // So, nothing needs to be done.
+//            } else {
+//                isVoiceBaseAvailable = false
+//                UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
+//            }
+//            
+//            UserDefaults.standard.synchronize()
+//            
+//            if isVoiceBaseAvailable == true {
+//                checkVoiceBaseAvailability()
+//            }
+//        }
+//    }
+//    var voiceBaseAPIKey : String?
+//    {
+//        get {
+//            if _voiceBaseAPIKey == nil {
+//                if let key = UserDefaults.standard.string(forKey: Constants.Strings.VoiceBase_API_Key), !key.isEmpty {
+//                    if key == "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE" {
+//                        UserDefaults.standard.removeObject(forKey: Constants.Strings.VoiceBase_API_Key)
+//                    } else {
+//                        _voiceBaseAPIKey = key
+//                    }
+//                }
+//            }
+//            
+//            #if targetEnvironment(simulator)
+//            // Simulator
+//            return "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE"
+//            #else
+//            // Device
+//            if UIDevice.current.name.contains("Leeke-") {
+//                return "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NTVkZGQ4MS1jMzFjLTQxZjQtODU1YS0xZDVmYzJkYzhlY2IiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTUwMDM4MDc3NDY0MywiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.MIi0DaNCMro7Var3cMuS4ZJJ0d85YemhLgpg3u4TQYE"
+//            }
+//            #endif
+//            
+//            return _voiceBaseAPIKey
+//        }
+//        set {
+//            _voiceBaseAPIKey = newValue
+//        }
+//    }
 
 //    private var _voiceBaseAPIKey : String?
 //    {
@@ -413,7 +413,7 @@ class Globals : NSObject
         if priorReachabilityStatus == .notReachable, reachability.isReachable, media.repository.list != nil {
             Alerts.shared.alert(title: "Network Connection Restored",message: "")
 
-            checkVoiceBaseAvailability()
+            VoiceBase.checkAvailability()
 //            media.stream.loadLive(completion: nil)
         }
         
@@ -429,7 +429,7 @@ class Globals : NSObject
 
             Alerts.shared.alert(title: title,message: message)
 
-            isVoiceBaseAvailable = false
+            VoiceBase.isAvailable = false
         }
         
         priorReachabilityStatus = reachability.currentReachabilityStatus

@@ -545,7 +545,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         svc.delegate = self
         svc.preferredDisplayMode = .allVisible
 
-        Globals.shared.checkVoiceBaseAvailability()
+        VoiceBase.checkAvailability()
         
         let hClass = svc.traitCollection.horizontalSizeClass
         let vClass = svc.traitCollection.verticalSizeClass
