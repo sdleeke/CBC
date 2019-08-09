@@ -1476,6 +1476,17 @@ class VoiceBase
     
     var totalChanges = 0
     
+    var percentCompleteFormatted:String?
+    {
+        get {
+            guard let percentComplete = percentComplete else {
+                return nil
+            }
+            
+            return String(format: "%0.0f",percentComplete * 100)
+        }
+    }
+    
     var percentComplete:Double?
     {
         get {
@@ -3550,7 +3561,7 @@ class VoiceBase
             return
         }
         
-        let completion = " (\(transcriptPurpose))" + (percentComplete != nil ? "\n(\(String(format: "%0.0f",percentComplete! * 100))% complete)" : "")
+        let completion = " (\(transcriptPurpose))" + (percentCompleteFormatted != nil ? "\n(\(percentCompleteFormatted!)% complete)" : "")
         
         var title = "Machine Generated Transcript "
         
@@ -5060,8 +5071,8 @@ class VoiceBase
         if let text = self.mediaItem?.text {
             message = "for\n\n\(text)"
             message += "\n(\(self.transcriptPurpose))"
-            if let percentComplete = self.percentComplete {
-                message += "\n(\(String(format: "%0.0f",percentComplete * 100))% complete)"
+            if let percentCompleteFormatted = self.percentCompleteFormatted {
+                message += "\n(\(percentCompleteFormatted)% complete)"
             }
             message += "\n\n"
         }
@@ -5125,8 +5136,8 @@ class VoiceBase
             if let text = self.mediaItem?.text {
                 message = "for\n\n\(text)"
                 message += "\n(\(self.transcriptPurpose))"
-                if let percentComplete = self.percentComplete {
-                    message += "\n(\(String(format: "%0.0f",percentComplete * 100))% complete)"
+                if let percentCompleteFormatted = self.percentCompleteFormatted {
+                    message += "\n(\(percentCompleteFormatted)% complete)"
                 }
                 message += "\n\n"
             }
@@ -5141,9 +5152,9 @@ class VoiceBase
         
         guard !self.aligning else {
             if notify {
-                if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
+                if let percentCompleteFormatted = self.percentCompleteFormatted { // , let text = self.mediaItem?.text
                     Alerts.shared.alert(title: "Alignment Underway",
-                                        message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.")
+                                        message: "There is an alignment underway (\(percentCompleteFormatted)% complete) for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.")
                 } else {
                     Alerts.shared.alert(title: "Alignment Underway",
                                         message: "There is an alignment underway for:\n\n\(self.mediaItem?.text ?? "") (\(self.transcriptPurpose))\n\nPlease try again later.")
@@ -5482,9 +5493,9 @@ class VoiceBase
                     }
                     
                     guard !self.aligning else {
-                        if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
+                        if let percentCompleteFormatted = self.percentCompleteFormatted { // , let text = self.mediaItem?.text
                             Alerts.shared.alertActionsCancel( title: "Alignment Underway",
-                                                               message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                                               message: "There is an alignment underway (\(percentCompleteFormatted)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
                         } else {
@@ -5586,9 +5597,9 @@ class VoiceBase
                     
                     alertActions.append(AlertAction(title: Constants.Strings.Align, style: .destructive, handler: {
                         guard !self.aligning else {
-                            if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
+                            if let percentCompleteFormatted = self.percentCompleteFormatted { // , let text = self.mediaItem?.text
                                 Alerts.shared.alertActionsCancel( title: "Alignment Underway",
-                                                                   message: "There is an alignment already underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.")
+                                                                   message: "There is an alignment already underway (\(percentCompleteFormatted)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.")
                             } else {
                                 Alerts.shared.alertActionsCancel( title: "Alignment Underway",
                                                                    message: "There is an alignment already underway.\n\nPlease try again later.")
@@ -5602,9 +5613,9 @@ class VoiceBase
                 
                 alertActions.append(AlertAction(title: "Restore", style: .destructive, handler: {
                     guard !self.aligning else {
-                        if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
+                        if let percentCompleteFormatted = self.percentCompleteFormatted { // , let text = self.mediaItem?.text
                             Alerts.shared.alertActionsCancel( title: "Alignment Underway",
-                                                               message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                                               message: "There is an alignment underway (\(percentCompleteFormatted)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
                         } else {
@@ -5671,9 +5682,9 @@ class VoiceBase
                 
                 alertActions.append(AlertAction(title: "Delete", style: .destructive, handler: {
                     guard !self.aligning else {
-                        if let percentComplete = self.percentComplete { // , let text = self.mediaItem?.text
+                        if let percentCompleteFormatted = self.percentCompleteFormatted { // , let text = self.mediaItem?.text
                             Alerts.shared.alertActionsCancel( title: "Alignment Underway",
-                                                               message: "There is an alignment underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                                               message: "There is an alignment underway (\(percentCompleteFormatted)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
                                 alertActions: nil,
                                 cancelAction: nil)
                         } else {
