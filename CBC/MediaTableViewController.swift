@@ -2618,7 +2618,15 @@ class MediaTableViewController : MediaItemsViewController
             
         case .selectingSearch:
             actions.append(UITableViewRowAction(style: .destructive, title: "Delete") { (rowAction:UITableViewRowAction, indexPath:IndexPath) in
-                Globals.shared.searchHistory?.remove(at: indexPath.row)
+                guard let string = popover.section.strings?[indexPath.row] else {
+                    return
+                }
+                
+                guard let index = Globals.shared.searchHistory?.firstIndex(of: string) else {
+                    return
+                }
+                
+                Globals.shared.searchHistory?.remove(at: index)
                 
                 popover.section.strings?.remove(at: indexPath.row)
                 
@@ -2628,6 +2636,17 @@ class MediaTableViewController : MediaItemsViewController
                 if popover.section.strings?.count == 0 {
                     popover.navigationItem.leftBarButtonItem?.isEnabled = false
                 }
+
+//                Globals.shared.searchHistory?.remove(at: indexPath.row)
+//                
+//                popover.section.strings?.remove(at: indexPath.row)
+//                
+//                popover.setPreferredContentSize()
+//                popover.tableView.reloadData()
+//                
+//                if popover.section.strings?.count == 0 {
+//                    popover.navigationItem.leftBarButtonItem?.isEnabled = false
+//                }
 
 //                if let search = popover.section.strings?[indexPath.row] {
 //                    if let keys = Globals.shared.media.search.searches?.keys() {
