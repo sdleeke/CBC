@@ -2660,6 +2660,7 @@ class MediaViewController : MediaItemsViewController
         if self.selectedMediaItem != Globals.shared.media.selected.detail {
             self.selectedMediaItem = Globals.shared.media.selected.detail
         }
+        setupControlView()
 
 //        tableView.reloadData()
 //
@@ -4492,7 +4493,8 @@ class MediaViewController : MediaItemsViewController
     
     @objc func didBecomeActive()
     {
-//        updateView()
+        // Mandatory for split screen.  No idea why.
+        updateView()
 
         setDVCLeftBarButton()
     }

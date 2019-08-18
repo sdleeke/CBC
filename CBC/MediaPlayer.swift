@@ -1064,9 +1064,7 @@ class MediaPlayer : NSObject
                     seek = 0
                 }
                 
-                if seek >= length {
-                    mediaItem?.atEnd = true
-                }
+                mediaItem?.atEnd = seek >= length
 
                 operationQueue.addOperation { [weak self] in
                     self?.isSeeking = true

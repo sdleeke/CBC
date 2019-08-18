@@ -1039,7 +1039,7 @@ enum Constants {
         static let outline = Field.outline + PDF
         static let poster = "poster" + JPEG
         static let HTMLTranscript = ".HTMLTranscript"
-        static let NotesTokensMarkMismatches = ".NotesTokensMarkMismatches"
+//        static let NotesTokensMarkMismatches = ".NotesTokensMarkMismatches"
         static let NotesParagraphLengths = ".NotesParagraphLengths"
         static let NotesParagraphWords = ".NotesParagraphWords"
         static let NotesHTMLTokens = ".NotesHTMLTokens"
@@ -1056,9 +1056,9 @@ enum Constants {
                                  Constants.FILENAME_EXTENSION.HTMLTranscript,
                                  Constants.FILENAME_EXTENSION.NotesHTMLTokens,
                                  Constants.FILENAME_EXTENSION.NotesParagraphWords,
-                                 Constants.FILENAME_EXTENSION.NotesParagraphLengths,
-                                 Constants.FILENAME_EXTENSION.NotesTokensMarkMismatches]
-
+                                 Constants.FILENAME_EXTENSION.NotesParagraphLengths]
+    // , Constants.FILENAME_EXTENSION.NotesTokensMarkMismatches
+    
     enum SCRIPTURE_INDEX {
         static let BASE         = "SCRIPTURE INDEX"
         static let TESTAMENT    = BASE + " TESTAMENT"

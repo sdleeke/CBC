@@ -3127,7 +3127,9 @@ class MediaTableViewController : MediaItemsViewController
                     
                     if indexPath.section < sortedKeys.count {
                         let key = sortedKeys[indexPath.section]
-                        
+
+                        self?.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: nil)
+
                         if key == Constants.Strings.Playing {
                             self?.popover?["LIVE"]?.dismiss(animated: true, completion: {
                                 if indexPath.row < Globals.shared.media.stream.streamEntryIndex?[key]?.count {

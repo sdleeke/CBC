@@ -1384,12 +1384,12 @@ extension Array where Element == MediaItem
         })
     }
     
-    func loadTokenCountMarkCountMismatches()
-    {
-        self.forEach { (mediaItem) in
-            mediaItem.loadTokenCountMarkCountMismatches()
-        }
-    }
+//    func loadTokenCountMarkCountMismatches()
+//    {
+//        self.forEach { (mediaItem) in
+//            mediaItem.loadTokenCountMarkCountMismatches()
+//        }
+//    }
 
     func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
     {
@@ -4523,154 +4523,162 @@ extension UIViewController
      */
     func selectWord(title:String?, purpose:PopoverPurpose, allowsSelection:Bool = true,strings:[String]? = nil, stringsFunction:(()->([String]?))? = nil, completion:((PopoverTableViewController)->())? = nil)
     {
-        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            navigationController.modalPresentationStyle = .overCurrentContext
-            
-            navigationController.popoverPresentationController?.delegate = self as? UIPopoverPresentationControllerDelegate
-            
-            popover.navigationController?.isNavigationBarHidden = false
-            
-            popover.navigationItem.title = title // navigationItem.title
-            
-            popover.delegate = self as? PopoverTableViewControllerDelegate
-            popover.purpose = purpose
-            
-            popover.segments = true
-            
-            popover.section.function = { [weak self] (method:String?,strings:[String]?) in
-                return strings?.sort(method: method)
-            }
-            popover.section.method = Constants.Sort.Alphabetical
-            
-            popover.bottomBarButton = true
-            
-            popover.allowsSelection = allowsSelection
-            
-            var segmentActions = [SegmentAction]()
-            
-            segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak self, weak popover] in
-                guard let popover = popover else {
-                    return
-                }
-                
-                let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
-                
-                if popover.segmentedControl.selectedSegmentIndex == 0 {
-                    popover.section.method = Constants.Sort.Alphabetical
-                    
-                    popover.section.showHeaders = false
-                    popover.section.showIndex = true
-                    
-                    popover.section.indexStringsTransform = nil
-                    popover.section.indexHeadersTransform = nil
-                    popover.section.indexSort = nil
-                    
-                    popover.section.strings = strings
-                    
-                    popover.section.stringsAction?(strings, popover.section.sorting)
-                    
-                    popover.tableView?.reloadData()
-                }
-            }))
-            
-            segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak self, weak popover] in
-                guard let popover = popover else {
-                    return
-                }
-                
-                let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
-                
-                if popover.segmentedControl.selectedSegmentIndex == 1 {
-                    popover.section.method = Constants.Sort.Frequency
-                    
-                    popover.section.showHeaders = false
-                    popover.section.showIndex = true
-                    
-                    popover.section.indexStringsTransform = { [weak self] (string:String?) -> String? in
-                        return string?.log
-                    }
-                    
-                    popover.section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
-                        return string
-                    }
-                    
-                    popover.section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
-                        guard let first = first else {
-                            return false
-                        }
-                        guard let second = second else {
-                            return true
-                        }
-                        return Int(first) > Int(second)
-                    }
-                    
-                    popover.section.strings = strings
-                    
-                    popover.section.stringsAction?(strings, popover.section.sorting)
-                    
-                    popover.tableView?.reloadData()
-                }
-            }))
-            
-            segmentActions.append(SegmentAction(title: Constants.Sort.Length, position: 2, action: { [weak self, weak popover] in
-                guard let popover = popover else {
-                    return
-                }
-                
-                let strings = popover.section.function?(Constants.Sort.Length,popover.section.strings)
-                
-                if popover.segmentedControl.selectedSegmentIndex == 2 {
-                    popover.section.method = Constants.Sort.Length
-                    
-                    popover.section.showHeaders = false
-                    popover.section.showIndex = true
-                    
-                    popover.section.indexStringsTransform = { [weak self] (string:String?) -> String? in
-                        return string?.components(separatedBy: Constants.SINGLE_SPACE).first?.count.description
-                    }
-                    
-                    popover.section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
-                        return string
-                    }
-                    
-                    popover.section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
-                        guard let first = first else {
-                            return false
-                        }
-                        guard let second = second else {
-                            return true
-                        }
-                        return Int(first) > Int(second)
-                    }
-                    
-                    popover.section.strings = strings
-                    
-                    popover.section.stringsAction?(strings, popover.section.sorting)
-                    
-                    popover.tableView?.reloadData()
-                }
-            }))
-            
-            popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
-            
-            popover.section.showIndex = true
-            
-            popover.search = true
-            
-            popover.section.strings = strings
-            popover.stringsFunction = stringsFunction
-
-            (self as? PopoverTableViewControllerDelegate)?.popover?["WORD"] = popover
-            
-            popover.completion = { [weak self] in
-                (self as? PopoverTableViewControllerDelegate)?.popover?["WORD"] = nil
-            }
-            
-            completion?(popover)
-            
-            present(navigationController, animated: true, completion: nil)
+        guard let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController else {
+            return
         }
+        
+        (self as? MediaItemsViewController)?.popover?["CELLSEARCH"] = popover
+        
+        popover.completion = { [weak self] in
+            (self as? MediaItemsViewController)?.popover?["CELLSEARCH"] = nil
+        }
+
+        navigationController.modalPresentationStyle = .overCurrentContext
+        
+        navigationController.popoverPresentationController?.delegate = self as? UIPopoverPresentationControllerDelegate
+        
+        popover.navigationController?.isNavigationBarHidden = false
+        
+        popover.navigationItem.title = title // navigationItem.title
+        
+        popover.delegate = self as? PopoverTableViewControllerDelegate
+        popover.purpose = purpose
+        
+        popover.segments = true
+        
+        popover.section.function = { [weak self] (method:String?,strings:[String]?) in
+            return strings?.sort(method: method)
+        }
+        popover.section.method = Constants.Sort.Alphabetical
+        
+        popover.bottomBarButton = true
+        
+        popover.allowsSelection = allowsSelection
+        
+        var segmentActions = [SegmentAction]()
+        
+        segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: { [weak self, weak popover] in
+            guard let popover = popover else {
+                return
+            }
+            
+            let strings = popover.section.function?(Constants.Sort.Alphabetical,popover.section.strings)
+            
+            if popover.segmentedControl.selectedSegmentIndex == 0 {
+                popover.section.method = Constants.Sort.Alphabetical
+                
+                popover.section.showHeaders = false
+                popover.section.showIndex = true
+                
+                popover.section.indexStringsTransform = nil
+                popover.section.indexHeadersTransform = nil
+                popover.section.indexSort = nil
+                
+                popover.section.strings = strings
+                
+                popover.section.stringsAction?(strings, popover.section.sorting)
+                
+                popover.tableView?.reloadData()
+            }
+        }))
+        
+        segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: { [weak self, weak popover] in
+            guard let popover = popover else {
+                return
+            }
+            
+            let strings = popover.section.function?(Constants.Sort.Frequency,popover.section.strings)
+            
+            if popover.segmentedControl.selectedSegmentIndex == 1 {
+                popover.section.method = Constants.Sort.Frequency
+                
+                popover.section.showHeaders = false
+                popover.section.showIndex = true
+                
+                popover.section.indexStringsTransform = { [weak self] (string:String?) -> String? in
+                    return string?.log
+                }
+                
+                popover.section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
+                    return string
+                }
+                
+                popover.section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
+                    guard let first = first else {
+                        return false
+                    }
+                    guard let second = second else {
+                        return true
+                    }
+                    return Int(first) > Int(second)
+                }
+                
+                popover.section.strings = strings
+                
+                popover.section.stringsAction?(strings, popover.section.sorting)
+                
+                popover.tableView?.reloadData()
+            }
+        }))
+        
+        segmentActions.append(SegmentAction(title: Constants.Sort.Length, position: 2, action: { [weak self, weak popover] in
+            guard let popover = popover else {
+                return
+            }
+            
+            let strings = popover.section.function?(Constants.Sort.Length,popover.section.strings)
+            
+            if popover.segmentedControl.selectedSegmentIndex == 2 {
+                popover.section.method = Constants.Sort.Length
+                
+                popover.section.showHeaders = false
+                popover.section.showIndex = true
+                
+                popover.section.indexStringsTransform = { [weak self] (string:String?) -> String? in
+                    return string?.components(separatedBy: Constants.SINGLE_SPACE).first?.count.description
+                }
+                
+                popover.section.indexHeadersTransform = { [weak self] (string:String?) -> String? in
+                    return string
+                }
+                
+                popover.section.indexSort = { [weak self] (first:String?,second:String?) -> Bool in
+                    guard let first = first else {
+                        return false
+                    }
+                    guard let second = second else {
+                        return true
+                    }
+                    return Int(first) > Int(second)
+                }
+                
+                popover.section.strings = strings
+                
+                popover.section.stringsAction?(strings, popover.section.sorting)
+                
+                popover.tableView?.reloadData()
+            }
+        }))
+        
+        popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
+        
+        popover.section.showIndex = true
+        
+        popover.search = true
+        
+        popover.section.strings = strings
+        popover.stringsFunction = stringsFunction
+
+        (self as? PopoverTableViewControllerDelegate)?.popover?["WORD"] = popover
+        
+        popover.completion = { [weak self] in
+            (self as? PopoverTableViewControllerDelegate)?.popover?["WORD"] = nil
+        }
+        
+        completion?(popover)
+        
+        present(navigationController, animated: true, completion: nil)
     }
 }
 

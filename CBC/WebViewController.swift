@@ -399,6 +399,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 self?.process(work: { (test:(() -> Bool)?) -> (Any?) in
                     if let isEmpty = self?.searchText?.isEmpty, isEmpty {
                         self?.html.string = self?.html.original?.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
+                        return self?.html.string
                     } else {
                         if self?.bodyHTML != nil { // , self.headerHTML != nil // Not necessary
                             return self?.bodyHTML?.markHTML(headerHTML: self?.headerHTML, searchText:self?.searchText, wholeWordsOnly: false, lemmas: false, index: true, test:test)?.0.stripHead.insertHead(fontSize: self?.html.fontSize ?? Constants.FONT_SIZE)
@@ -489,20 +490,20 @@ extension WebViewController : PopoverTableViewControllerDelegate
             self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
                     // By using cache this only looks at mismatches if they are loaded
-                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.result {
-                        var dict = [String:(String,String)]()
-                        for mismatch in mismatches {
-                            let parts = mismatch.components(separatedBy: " ")
-                            dict[parts[0]] = (parts[1],parts[2])
-                        }
-                        if let tuple = dict[word] {
-                            return "\(word) (\(count)) (\(tuple.0),\(tuple.1)) "
-                        } else {
-                            return "\(word) (\(count))"
-                        }
-                    } else {
+//                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.result {
+//                        var dict = [String:(String,String)]()
+//                        for mismatch in mismatches {
+//                            let parts = mismatch.components(separatedBy: " ")
+//                            dict[parts[0]] = (parts[1],parts[2])
+//                        }
+//                        if let tuple = dict[word] {
+//                            return "\(word) (\(count)) (\(tuple.0),\(tuple.1)) "
+//                        } else {
+//                            return "\(word) (\(count))"
+//                        }
+//                    } else {
                         return "\(word) (\(count))"
-                    }
+//                    }
                 }).sorted().tableHTML(title:self?.navigationItem.title?.qualifier(Constants.Strings.Word_Index), test:test)
             }, completion: { [weak self] (data:Any?,test:(()->(Bool))?) in
                 self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: self?.navigationItem.title?.qualifier(Constants.Strings.Word_Index), htmlString: data as? String)
@@ -514,20 +515,20 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
                     // By using cache this only looks at mismatches if they are loaded
-                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.result {
-                        var dict = [String:(String,String)]()
-                        for mismatch in mismatches {
-                            let parts = mismatch.components(separatedBy: " ")
-                            dict[parts[0]] = (parts[1],parts[2])
-                        }
-                        if let tuple = dict[word] {
-                            return "\(word) (\(count)) (\(tuple.0),\(tuple.1)) "
-                        } else {
-                            return "\(word) (\(count))"
-                        }
-                    } else {
+//                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.result {
+//                        var dict = [String:(String,String)]()
+//                        for mismatch in mismatches {
+//                            let parts = mismatch.components(separatedBy: " ")
+//                            dict[parts[0]] = (parts[1],parts[2])
+//                        }
+//                        if let tuple = dict[word] {
+//                            return "\(word) (\(count)) (\(tuple.0),\(tuple.1)) "
+//                        } else {
+//                            return "\(word) (\(count))"
+//                        }
+//                    } else {
                         return "\(word) (\(count))"
-                    }
+//                    }
                 }).sorted()
             })
             
@@ -537,20 +538,20 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
                     // By using cache this only looks at mismatches if they are loaded
-                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.result {
-                        var dict = [String:(String,String)]()
-                        for mismatch in mismatches {
-                            let parts = mismatch.components(separatedBy: " ")
-                            dict[parts[0]] = (parts[1],parts[2])
-                        }
-                        if let tuple = dict[word] {
-                            return "\(word) (\(count)) (\(tuple.0),\(tuple.1)) "
-                        } else {
-                            return "\(word) (\(count))"
-                        }
-                    } else {
+//                    if let mismatches = self?.mediaItem?.notesTokensMarkMismatches?.result {
+//                        var dict = [String:(String,String)]()
+//                        for mismatch in mismatches {
+//                            let parts = mismatch.components(separatedBy: " ")
+//                            dict[parts[0]] = (parts[1],parts[2])
+//                        }
+//                        if let tuple = dict[word] {
+//                            return "\(word) (\(count)) (\(tuple.0),\(tuple.1)) "
+//                        } else {
+//                            return "\(word) (\(count))"
+//                        }
+//                    } else {
                         return "\(word) (\(count))"
-                    }
+//                    }
                 }).sorted()
             })
 
@@ -576,12 +577,20 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Lexical_Analysis:
             self.process(disableEnable: false, work: { (test:(()->(Bool))?) -> (Any?) in
+                var string:String?
+                
                 if #available(iOS 12.0, *) {
-                    return self.bodyHTML?.stripHTML.nlNameAndLexicalTypesMarkup(annotated:true, test:test)
+                    string = self.bodyHTML?.stripHTML.nlNameAndLexicalTypesMarkup(annotated:true, test:test)
                 } else {
                     // Fallback on earlier versions
-                    return self.bodyHTML?.stripHTML.nsNameAndLexicalTypesMarkup(annotated:true, test:test)
+                    string = self.bodyHTML?.stripHTML.nsNameAndLexicalTypesMarkup(annotated:true, test:test)
                 }
+                
+                if let string = string, let headerHTML = self.headerHTML {
+                    return  headerHTML + "<br/>" +  string
+                }
+                
+                return string
             }) { (data:Any?,test:(()->(Bool))?) in
                 guard test?() != true else {
                     return

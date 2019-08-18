@@ -1324,60 +1324,60 @@ class MediaItem : NSObject //, Downloader
         return fetch
     }()
     
-    var notesTokensMarkMismatchesFilename : String?
-    {
-        get {
-            guard let mediaCode = mediaCode else {
-                return nil
-            }
-            
-            return mediaCode + Constants.FILENAME_EXTENSION.NotesTokensMarkMismatches
-        }
-    }
+//    var notesTokensMarkMismatchesFilename : String?
+//    {
+//        get {
+//            guard let mediaCode = mediaCode else {
+//                return nil
+//            }
+//            
+//            return mediaCode + Constants.FILENAME_EXTENSION.NotesTokensMarkMismatches
+//        }
+//    }
 
     // Runs a comparison between token frequency as parsed from the html transcript and
     // the frequency as found when trying to mark the same token in the html.
-    lazy var notesTokensMarkMismatches:FetchCodable<[String]>? = { [weak self] in
-        guard let mediaCode = mediaCode else {
-            return nil
-        }
-        
-        let fetch = FetchCodable<[String]>(name: notesTokensMarkMismatchesFilename)
-
-//        fetch.didSet = { [weak self] (strings:[String]?) in
-//            guard let strings = strings, strings.count > 0 else {
-//                return
-//            }
-//            
-//            print("Token Count vs. Mark Count Mismatch(es) Found")
-//            print(self?.text ?? "NO MEDIA ITEM TEXT")
-//            print(strings)
-//            print("\n\n")
+//    lazy var notesTokensMarkMismatches:FetchCodable<[String]>? = { [weak self] in
+//        guard let mediaCode = mediaCode else {
+//            return nil
 //        }
-        
-        fetch.fetch = {
-            guard let notesTokens = self?.notesTokens?.result else {
-                return nil
-            }
-
-            var mismatches = [String]()
-            
-            for notesToken in notesTokens {
-                let tokenWord = notesToken.key
-                let tokenCount = notesToken.value
-                
-                let markCount = self?.notesText?.markHTML(searchText: tokenWord, wholeWordsOnly: true, index: false)?.1
-
-                if tokenCount != markCount {
-                    mismatches.append("\(tokenWord) \(tokenCount) \(markCount)")
-                }
-            }
-            // Should we return empty rather than nil?  YES.  Nil may mean fetch never stores so it never retrieves so it does the calculation over again.
-            return mismatches // .count > 0 ? mismatches : nil
-        }
-        
-        return fetch
-    }()
+//
+//        let fetch = FetchCodable<[String]>(name: notesTokensMarkMismatchesFilename)
+//
+////        fetch.didSet = { [weak self] (strings:[String]?) in
+////            guard let strings = strings, strings.count > 0 else {
+////                return
+////            }
+////
+////            print("Token Count vs. Mark Count Mismatch(es) Found")
+////            print(self?.text ?? "NO MEDIA ITEM TEXT")
+////            print(strings)
+////            print("\n\n")
+////        }
+//
+//        fetch.fetch = {
+//            guard let notesTokens = self?.notesTokens?.result else {
+//                return nil
+//            }
+//
+//            var mismatches = [String]()
+//
+//            for notesToken in notesTokens {
+//                let tokenWord = notesToken.key
+//                let tokenCount = notesToken.value
+//
+//                let markCount = self?.notesText?.markHTML(searchText: tokenWord, wholeWordsOnly: true, index: false)?.1
+//
+//                if tokenCount != markCount {
+//                    mismatches.append("\(tokenWord) \(tokenCount) \(markCount)")
+//                }
+//            }
+//            // Should we return empty rather than nil?  YES.  Nil may mean fetch never stores so it never retrieves so it does the calculation over again.
+//            return mismatches // .count > 0 ? mismatches : nil
+//        }
+//
+//        return fetch
+//    }()
     
     var notesTokens:FetchCodable<[String:Int]>?
     {
@@ -1507,12 +1507,12 @@ class MediaItem : NSObject //, Downloader
         }
     }
 
-    func loadTokenCountMarkCountMismatches()
-    {
-        self.operationQueue.addOperation {
-            _ = self.notesTokensMarkMismatches?.result
-        }
-    }
+//    func loadTokenCountMarkCountMismatches()
+//    {
+//        self.operationQueue.addOperation {
+//            _ = self.notesTokensMarkMismatches?.result
+//        }
+//    }
     
     private lazy var operationQueue : OperationQueue! = {
         let operationQueue = OperationQueue()
@@ -3637,7 +3637,7 @@ class MediaItem : NSObject //, Downloader
             guard let mtvc = viewController as? MediaTableViewController else {
                 return
             }
-
+            
             // test:(()->(Bool))?
             mtvc.process(work: { [weak self] () -> (Any?) in
                 _ = self?.notesTokens?.result // Have to do this because transcriptTokens has UI.

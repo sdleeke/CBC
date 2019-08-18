@@ -21,19 +21,21 @@ extension AppDelegate : UISplitViewControllerDelegate
         guard let secondaryAsNavController = secondaryViewController as? UINavigationController else {
             return false // Tells the system to try and collapse the secondary (detail) view controller.
         }
+
+        // Return true to indicate that we have handled the collapse by doing nothing; the secondary controller will be discarded.
+        // This is what causes a collapsed split view controller to always start w/ the master view.
+        // Tells the system to NOT do anything with the secondary (detail) view controller.
         
-        guard let topAsDetailController = secondaryAsNavController.topViewController as? MediaViewController else {
-            return false // Tells the system to try and collapse the secondary (detail) view controller.
+        if secondaryAsNavController.topViewController as? LiveViewController != nil {
+            return true
         }
 
-        if topAsDetailController.selectedMediaItem == nil {
-            // Return true to indicate that we have handled the collapse by doing nothing; the secondary controller will be discarded.
-            // This is what causes a collapsed split view controller to always start w/ the master view.
-            return true // Tells the system to NOT do anything with the secondary (detail) view controller.
+        if secondaryAsNavController.topViewController as? MediaViewController != nil {
+            return true
         }
 
         // THIS MUST BE TRUE OR EVERYTHING BREAKS ON PLUS SIZE PHONES
-        return true // Tells the system to NOT do anything with the secondary (detail) view controller.
+        return true
     }
     
     func primaryViewController(forExpanding splitViewController: UISplitViewController) -> UIViewController?
@@ -103,6 +105,18 @@ extension AppDelegate : UISplitViewControllerDelegate
                     }
                 }
                 
+                if let lvc = nvc?.viewControllers[0] as? LiveViewController {
+                    if master.visibleViewController == lvc {
+                        if UIDevice.current.userInterfaceIdiom == .phone {
+                            mtvc.navigationController?.popToRootViewController(animated: false)
+                        } else {
+                            // For master.viewControllers.count == 3 this assumes SIVC/LIVC navCon is the same as the mtvc's navCon.
+                            mtvc.navigationController?.popViewController(animated: false)
+                        }
+                        return mtvc.navigationController
+                    }
+                }
+                
                 // The following is like case 1: above in that it implies there is no MVC in the heirarchy.
                 // BUT it contradicts the comment above let nvc, which implies that the nvc is the detail vc.
                 
@@ -117,6 +131,7 @@ extension AppDelegate : UISplitViewControllerDelegate
                         return sivc.navigationController
                     }
                 }
+                
                 if let livc = nvc?.viewControllers[0] as? LexiconIndexViewController {
                     if master.visibleViewController == livc, UIDevice.current.userInterfaceIdiom == .pad {
                         return livc.navigationController
@@ -143,7 +158,7 @@ extension AppDelegate : UISplitViewControllerDelegate
     
     func primaryViewController(forCollapsing splitViewController: UISplitViewController) -> UIViewController?
     {
-        // For phones this is only called by plus sized phones.
+        // For phones this is only called by plus sized phones OR IN SPLIT SCREN SITUATIONS.
         // And in plus sized phones neither an SIVC nor an LIVC can be anywhere in the SVC vc's when the SVC is expanded
         // So neither an SIVC nor an LIVC should ever show up as the primary after collapsing
         
