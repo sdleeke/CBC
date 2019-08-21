@@ -474,11 +474,12 @@ class Download : NSObject, Size
     var exists : Bool
     {
         get {
-            if let fileSystemURL = fileSystemURL {
-                return FileManager.default.fileExists(atPath: fileSystemURL.path)
-            } else {
-                return false
-            }
+            return fileSystemURL?.exists ?? false
+//            if let fileSystemURL = fileSystemURL {
+//                return FileManager.default.fileExists(atPath: fileSystemURL.path)
+//            } else {
+//                return false
+//            }
         }
     }
     

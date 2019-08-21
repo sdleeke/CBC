@@ -690,7 +690,7 @@ class Globals : NSObject
         mediaPlayer.reload()
     }
     
-    @objc func handleInterruption(_ notification: Notification)
+    @objc func handleInterruption(_ notification:Notification)
     {
         guard let userInfo = notification.userInfo,
             let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,

@@ -1928,7 +1928,7 @@ class TextViewController : CBCViewController
     var keyboardShowing = false
     var shrink:CGFloat = 0.0
 
-    @objc func keyboardWillShow(_ notification: NSNotification)
+    @objc func keyboardWillShow(_ notification:Notification)
     {
 //        guard textView.isFirstResponder else {
 //            return

@@ -698,7 +698,7 @@ class MediaListGroupSort // : NSObject
     }
     //////////////////////////////////////////////////////////////////////////////////////////////
 
-    @objc func tagAdded(_ notification : NSNotification)
+    @objc func tagAdded(_ notification:Notification)
     {
         guard let mediaItem = notification.object as? MediaItem else {
             return
@@ -742,7 +742,7 @@ class MediaListGroupSort // : NSObject
         }
     }
     
-    @objc func tagRemoved(_ notification : NSNotification)
+    @objc func tagRemoved(_ notification:Notification)
     {
         guard let mediaItem = notification.object as? MediaItem else {
             return

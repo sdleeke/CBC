@@ -7514,6 +7514,10 @@ extension URL
     var exists : Bool
     {
         get {
+            guard !self.isFileURL else {
+                return FileManager.default.fileExists(atPath: self.path)
+            }
+            
             if let fileSystemURL = fileSystemURL {
                 return FileManager.default.fileExists(atPath: fileSystemURL.path)
             } else {

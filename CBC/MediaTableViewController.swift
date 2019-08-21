@@ -493,7 +493,7 @@ class MediaTableViewController : MediaItemsViewController
 
     var keyboardShowing = false
     
-    @objc func keyboardWillShow(_ notification: NSNotification)
+    @objc func keyboardWillShow(_ notification:Notification)
     {
 //        if let keyboardRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
 //            let kbdRect = CGRect(x: keyboardRect.minX, y: keyboardRect.minY - keyboardRect.height, width: keyboardRect.width, height: keyboardRect.height)
@@ -3127,8 +3127,6 @@ class MediaTableViewController : MediaItemsViewController
                     
                     if indexPath.section < sortedKeys.count {
                         let key = sortedKeys[indexPath.section]
-
-                        self?.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: nil)
 
                         if key == Constants.Strings.Playing {
                             self?.popover?["LIVE"]?.dismiss(animated: true, completion: {
