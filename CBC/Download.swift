@@ -452,10 +452,11 @@ class Download : NSObject, Size
                     break
                     
                 case .downloaded:
-                    Thread.onMain { [weak self] in 
-                        // The following must appear AFTER we change the state
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self?.mediaItem)
-                    }
+                    // There is no need for this *and* it solves a recursion problem when updateUI is called from updateView.
+//                    Thread.onMain { [weak self] in 
+//                        // The following must appear AFTER we change the state
+//                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self?.mediaItem)
+//                    }
                     break
                     
                 case .none:

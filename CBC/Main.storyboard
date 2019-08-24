@@ -70,7 +70,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xkb-5P-JA1">
-                                                    <rect key="frame" x="20" y="4" width="456" height="61.5"/>
+                                                    <rect key="frame" x="20" y="4" width="544" height="61.5"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="YuD-lX-SbJ"/>
                                                     </constraints>
@@ -84,19 +84,19 @@
                                                     </variation>
                                                 </label>
                                                 <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zia-hB-2Dv" userLabel="DetailText">
-                                                    <rect key="frame" x="16" y="65.5" width="460" height="30"/>
+                                                    <rect key="frame" x="16" y="65.5" width="548" height="30"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <attributedString key="attributedText"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IWS-RY-DB5">
-                                                    <rect key="frame" x="20" y="67.5" width="456" height="22"/>
+                                                    <rect key="frame" x="20" y="67.5" width="544" height="22"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eA8-mK-b7w">
-                                                    <rect key="frame" x="478" y="97.5" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="566" y="97.5" width="0.0" height="0.0"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="12" id="Y74-HO-YFP"/>
@@ -111,7 +111,7 @@
                                                     </variation>
                                                 </label>
                                                 <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="IgM-pT-w8s" userLabel="Progress Bar">
-                                                    <rect key="frame" x="20" y="97.5" width="460" height="2"/>
+                                                    <rect key="frame" x="20" y="97.5" width="548" height="2"/>
                                                 </progressView>
                                             </subviews>
                                             <constraints>
@@ -654,13 +654,13 @@
                                 <exclude reference="EC7-xr-i5p"/>
                                 <exclude reference="UIA-aB-fuC"/>
                                 <exclude reference="wWa-1o-oXk"/>
-                                <exclude reference="hHn-qT-3ih"/>
                                 <exclude reference="0Jv-l5-4Tu"/>
+                                <exclude reference="hHn-qT-3ih"/>
                                 <exclude reference="OsV-IC-JLv"/>
                                 <exclude reference="f9R-Gt-YvP"/>
+                                <exclude reference="XcF-SL-vQ7"/>
                                 <exclude reference="UTu-1b-fA3"/>
                                 <exclude reference="d7L-W7-98W"/>
-                                <exclude reference="XcF-SL-vQ7"/>
                                 <exclude reference="Bnz-L0-ebT"/>
                                 <exclude reference="Gee-mK-zaj"/>
                             </mask>
@@ -678,19 +678,19 @@
                                 <exclude reference="HOe-Ks-3kR"/>
                                 <include reference="UIA-aB-fuC"/>
                                 <include reference="wWa-1o-oXk"/>
-                                <exclude reference="VmD-wu-0aL"/>
-                                <include reference="hHn-qT-3ih"/>
                                 <include reference="0Jv-l5-4Tu"/>
                                 <exclude reference="qUY-iM-EXz"/>
+                                <exclude reference="VmD-wu-0aL"/>
+                                <include reference="hHn-qT-3ih"/>
                                 <exclude reference="KCd-mo-EHx"/>
                                 <exclude reference="Ujg-Dd-jZe"/>
                                 <exclude reference="ahL-wp-zfw"/>
                                 <exclude reference="nmy-u3-oU6"/>
+                                <include reference="XcF-SL-vQ7"/>
                                 <exclude reference="UTu-1b-fA3"/>
                                 <include reference="d7L-W7-98W"/>
                                 <exclude reference="dAk-pk-tVX"/>
                                 <exclude reference="wn1-va-00m"/>
-                                <include reference="XcF-SL-vQ7"/>
                                 <include reference="Bnz-L0-ebT"/>
                                 <include reference="Gee-mK-zaj"/>
                             </mask>
@@ -1714,7 +1714,7 @@ Web site: www.countrysidebible.org</string>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qyy-zD-jgt">
-                                                    <rect key="frame" x="20" y="4" width="216" height="61.5"/>
+                                                    <rect key="frame" x="20" y="4" width="260" height="61.5"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="RNJ-QR-xJ9"/>
                                                     </constraints>
@@ -1728,25 +1728,25 @@ Web site: www.countrysidebible.org</string>
                                                     </variation>
                                                 </label>
                                                 <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CW5-2J-de4" userLabel="DetailText">
-                                                    <rect key="frame" x="20" y="65.5" width="216" height="30"/>
+                                                    <rect key="frame" x="20" y="65.5" width="260" height="30"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <attributedString key="attributedText"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Detail" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="e1j-7E-JH8">
-                                                    <rect key="frame" x="20" y="67.5" width="216" height="30"/>
+                                                    <rect key="frame" x="20" y="67.5" width="260" height="30"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xii-Pk-dwa">
-                                                    <rect key="frame" x="238" y="97.5" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="282" y="97.5" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="a84-WN-2lC">
-                                                    <rect key="frame" x="20" y="97.5" width="220" height="2"/>
+                                                    <rect key="frame" x="20" y="97.5" width="264" height="2"/>
                                                 </progressView>
                                             </subviews>
                                             <constraints>
@@ -2053,7 +2053,7 @@ Web site: www.countrysidebible.org</string>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gxs-R4-h4B">
-                                                    <rect key="frame" x="15" y="11" width="208" height="13"/>
+                                                    <rect key="frame" x="8" y="8" width="222" height="18.5"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -2504,7 +2504,7 @@ Web site: www.countrysidebible.org</string>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Q0U-i7-ChV">
-                                                    <rect key="frame" x="20" y="4" width="216" height="61.5"/>
+                                                    <rect key="frame" x="20" y="4" width="260" height="61.5"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="Js2-n8-Mgq"/>
                                                     </constraints>
@@ -2518,25 +2518,25 @@ Web site: www.countrysidebible.org</string>
                                                     </variation>
                                                 </label>
                                                 <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OXz-ER-jY2" userLabel="DetailText">
-                                                    <rect key="frame" x="20" y="65.5" width="216" height="30"/>
+                                                    <rect key="frame" x="20" y="65.5" width="260" height="30"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <attributedString key="attributedText"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Detail" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mqs-L6-uck">
-                                                    <rect key="frame" x="20" y="67.5" width="216" height="30"/>
+                                                    <rect key="frame" x="20" y="67.5" width="260" height="30"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a6p-xn-ies">
-                                                    <rect key="frame" x="238" y="97.5" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="282" y="97.5" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="R0F-oJ-ptu">
-                                                    <rect key="frame" x="20" y="97.5" width="220" height="2"/>
+                                                    <rect key="frame" x="20" y="97.5" width="264" height="2"/>
                                                 </progressView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZqQ-Jh-Doi" userLabel="Count">
                                                     <rect key="frame" x="20" y="97.5" width="0.0" height="0.0"/>

@@ -3688,8 +3688,86 @@ extension Dictionary
     }
 }
 
+extension UIPrintPageRenderer
+{
+    //    var pdf : PDFDocument?
+    //    {
+    //        get {
+    //            let data = NSMutableData()
+    //
+    //            UIGraphicsBeginPDFContextToData(data, CGRect.zero, nil)
+    //
+    //            for page in 0..<self.numberOfPages {
+    //                UIGraphicsBeginPDFPage()
+    //                self.drawPage(at: page, in: UIGraphicsGetPDFContextBounds())
+    //            }
+    //
+    //            //            UIGraphicsGetCurrentContext()?.endPDFPage()
+    //
+    //            UIGraphicsEndPDFContext()
+    //
+    //            return PDFDocument(data: data as Data)
+    //        }
+    //    }
+    
+    func pdf(_ filename:String? = nil) -> URL?
+    {
+        let data = NSMutableData()
+        
+        UIGraphicsBeginPDFContextToData(data, CGRect.zero, nil)
+        
+        for page in 0..<self.numberOfPages {
+            UIGraphicsBeginPDFPage()
+            self.drawPage(at: page, in: UIGraphicsGetPDFContextBounds())
+        }
+        
+        //            UIGraphicsGetCurrentContext()?.endPDFPage()
+        
+        UIGraphicsEndPDFContext()
+        
+        let filename = (filename ?? UUID().uuidString) + ".pdf"
+        if let path = filename.cachesURL?.path {
+            data.write(toFile: path, atomically: true)
+        }
+        
+        return filename.cachesURL
+    }
+}
+
 extension String
 {
+    func htmlToPDF(_ filename:String? = nil) -> URL?
+    {
+        guard !self.isEmpty else {
+            return nil
+        }
+        
+        let printFormatter = UIMarkupTextPrintFormatter(markupText: self)
+        let margin:CGFloat = 0.5 * 72
+        printFormatter.perPageContentInsets = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+        
+        let printPageRenderer = UIPrintPageRenderer()
+        printPageRenderer.headerHeight = margin
+        printPageRenderer.footerHeight = margin
+        let page = CGRect(x: 0, y: 0, width: 612, height: 792) // Letter, 72 dpi
+        printPageRenderer.setValue(page, forKey: "paperRect")
+        printPageRenderer.setValue(page, forKey: "printableRect")
+        printPageRenderer.addPrintFormatter(printFormatter, startingAtPageAt: 0)
+        
+        return printPageRenderer.pdf(filename)
+    }
+    
+    var encapsulateHTML : String?
+    {
+        get {
+            guard !self.isEmpty else {
+                return nil
+            }
+            
+            return "<!DOCTYPE html><html><body>\(self)</body></html>"
+        }
+    }
+
     /**
      Extension of String that <mark/>'s a searchText in self, returning the string with marking inserted.
      */
@@ -6581,6 +6659,13 @@ extension String
         }
     }
 
+    var cachesURL : URL?
+    {
+        get {
+            return FileManager.default.cachesURL?.appendingPathComponent(self)
+        }
+    }
+    
     /**
      Extension of String that saves it in a specified file of name filename in the cache directory in utf8 format.
      */

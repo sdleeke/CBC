@@ -673,22 +673,24 @@ class MediaViewController : MediaItemsViewController
     
     func loadWeb()
     {
-        // self.wkWebView?.isHidden == true,
-        if self.wkWebView?.url == self.download?.downloadURL, self.download?.exists == true, Globals.shared.settings.cacheDownloads {
-            self.wkWebView?.isHidden = false
-            self.activityIndicator.stopAnimating()
-            self.activityIndicator.isHidden = true
-            Globals.shared.mediaPlayer.view?.isHidden = self.videoLocation == .withDocuments
-            return
-        }
+        // So why did we do this?  There must have been some reason, some optimization perhaps?
         
-        if self.wkWebView?.url == self.download?.downloadURL, !Globals.shared.settings.cacheDownloads {
-            self.wkWebView?.isHidden = false
-            self.activityIndicator.stopAnimating()
-            self.activityIndicator.isHidden = true
-            Globals.shared.mediaPlayer.view?.isHidden = self.videoLocation == .withDocuments
-            return
-        }
+        // self.wkWebView?.isHidden == true,
+//        if self.wkWebView?.url == self.download?.downloadURL, self.download?.exists == true, Globals.shared.settings.cacheDownloads {
+//            self.wkWebView?.isHidden = false
+//            self.activityIndicator.stopAnimating()
+//            self.activityIndicator.isHidden = true
+//            Globals.shared.mediaPlayer.view?.isHidden = self.videoLocation == .withDocuments
+//            return
+//        }
+        
+//        if self.wkWebView?.url == self.download?.downloadURL, !Globals.shared.settings.cacheDownloads {
+//            self.wkWebView?.isHidden = false
+//            self.activityIndicator.stopAnimating()
+//            self.activityIndicator.isHidden = true
+//            Globals.shared.mediaPlayer.view?.isHidden = self.videoLocation == .withDocuments
+//            return
+//        }
         
         // Belt and suspenders to prevent a new op for long running prior duplicate.
         guard self.webQueue.operations.filter({ (op:Operation) -> Bool in
@@ -893,7 +895,7 @@ class MediaViewController : MediaItemsViewController
             
             Thread.onMain {
                 NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: oldValue)
-                NotificationCenter.default.addObserver(self, selector: #selector(self.updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.selectedMediaItem)
+                NotificationCenter.default.addObserver(self, selector: #selector(self.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.selectedMediaItem)
             }
             
             guard isViewLoaded else {
@@ -2657,10 +2659,14 @@ class MediaViewController : MediaItemsViewController
     @objc func updateView()
     {
         updatingView = true
+        
         if self.selectedMediaItem != Globals.shared.media.selected.detail {
             self.selectedMediaItem = Globals.shared.media.selected.detail
+        } else {
+            updateUI()
         }
-        setupControlView()
+        
+//        setupControlView()
 
 //        tableView.reloadData()
 //
