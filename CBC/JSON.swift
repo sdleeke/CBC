@@ -102,11 +102,13 @@ class JSON
     {
         guard let data = urlString?.url?.data, !data.isEmpty else {
             // completion?(nil) // ???
+            completion?(filename?.fileSystemURL?.data?.json as? [String:Any])
             return
         }
         
         guard let json = data.json as? [String:Any], !json.isEmpty else {
             // completion?(nil) // ???
+            completion?(filename?.fileSystemURL?.data?.json as? [String:Any])
             return
         }
         

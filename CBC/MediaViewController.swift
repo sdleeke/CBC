@@ -426,10 +426,12 @@ class MediaViewController : MediaItemsViewController
         }
     }
 
-    var observerActive = false
-    var observedItem:AVPlayerItem?
+    var observer: NSKeyValueObservation?
 
-    private var PlayerContext = 0
+//    var observerActive = false
+//    var observedItem:AVPlayerItem?
+
+//    private var PlayerContext = 0
     
     var player:AVPlayer?
     
@@ -607,33 +609,33 @@ class MediaViewController : MediaItemsViewController
         Globals.shared.motionEnded(motion,event: event)
     }
     
-    func removePlayerObserver()
-    {
-        if observerActive {
-            if observedItem != player?.currentItem {
-                print("observedItem != player?.currentItem")
-            }
-            if observedItem != nil {
-                print("MVC removeObserver: ",player?.currentItem?.observationInfo as Any)
-                
-                observedItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: &PlayerContext)
-                observedItem = nil
-                observerActive = false
-            } else {
-                print("observedItem == nil!")
-            }
-        }
-    }
+//    func removePlayerObserver()
+//    {
+//        if observerActive {
+//            if observedItem != player?.currentItem {
+//                print("observedItem != player?.currentItem")
+//            }
+//            if observedItem != nil {
+//                print("MVC removeObserver: ",player?.currentItem?.observationInfo as Any)
+//
+//                observedItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: &PlayerContext)
+//                observedItem = nil
+//                observerActive = false
+//            } else {
+//                print("observedItem == nil!")
+//            }
+//        }
+//    }
     
-    func addPlayerObserver()
-    {
-        player?.currentItem?.addObserver(self,
-                                         forKeyPath: #keyPath(AVPlayerItem.status),
-                                         options: [.old, .new],
-                                         context: &PlayerContext)
-        observerActive = true
-        observedItem = player?.currentItem
-    }
+//    func addPlayerObserver()
+//    {
+//        player?.currentItem?.addObserver(self,
+//                                         forKeyPath: #keyPath(AVPlayerItem.status),
+//                                         options: [.old, .new],
+//                                         context: &PlayerContext)
+//        observerActive = true
+//        observedItem = player?.currentItem
+//    }
     
     func playerURL(url: URL?)
     {
@@ -641,11 +643,44 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
-        removePlayerObserver()
+//        removePlayerObserver()
         
+        observer?.invalidate()
+
         player = AVPlayer(url: url)
         
-        addPlayerObserver()
+        observer = player?.currentItem?.observe(\.status, options: [.new]) { [weak self] (currentItem, change) in
+            self?.observer?.invalidate()
+            
+            //            let status: AVPlayerItem.Status
+            //
+            //            guard change.newValue != nil else {
+            //                return
+            //            }
+            //
+            //            status = change.newValue!
+            
+            switch currentItem.status {
+            case .readyToPlay:
+                // Player item is ready to play.
+                break
+                
+            case .failed:
+                // Player item failed. See error.
+                break
+                
+            case .unknown:
+                // Player item is not yet ready.
+                break
+                
+            @unknown default:
+                break
+            }
+            
+            self?.setupSliderAndTimes()
+        }
+        
+//        addPlayerObserver()
     }
     
     @objc func downloaded(_ notification:NSNotification)
@@ -808,7 +843,12 @@ class MediaViewController : MediaItemsViewController
     
     deinit {
         debug(self)
+        
+        observer?.invalidate()
+        
         swapVideoButton?.removeFromSuperview()
+        swapVideoButton = nil
+        
         webQueue.cancelAllOperations()
         mediaQueue.cancelAllOperations()
         operationQueue.cancelAllOperations()
@@ -862,7 +902,8 @@ class MediaViewController : MediaItemsViewController
         
         if let selectedMediaItem = selectedMediaItem, selectedMediaItem.mediaCode != nil {
             if (selectedMediaItem == Globals.shared.mediaPlayer.mediaItem) {
-                removePlayerObserver()
+                observer?.invalidate()
+//                removePlayerObserver()
                 
                 if Globals.shared.mediaPlayer.url != selectedMediaItem.playingURL {
                     updateUI()
@@ -1162,73 +1203,73 @@ class MediaViewController : MediaItemsViewController
         setupDocumentsAndVideo()
     }
     
-    override func observeValue(forKeyPath keyPath: String?,
-                               of object: Any?,
-                               change: [NSKeyValueChangeKey : Any]?,
-                               context: UnsafeMutableRawPointer?)
-    {
-        // Only handle observations for the playerItemContext
-
-//        if keyPath == #keyPath(UINavigationController.isToolbarHidden) {
-//            if self.view.window != nil {
-//                print("TOOLBAR CHANGED")
+//    override func observeValue(forKeyPath keyPath: String?,
+//                               of object: Any?,
+//                               change: [NSKeyValueChangeKey : Any]?,
+//                               context: UnsafeMutableRawPointer?)
+//    {
+//        // Only handle observations for the playerItemContext
+//
+////        if keyPath == #keyPath(UINavigationController.isToolbarHidden) {
+////            if self.view.window != nil {
+////                print("TOOLBAR CHANGED")
+////            }
+////        }
+//
+////        if keyPath == #keyPath(UIView.frame), !isTransitioning {
+////            print(mediaItemNotesAndSlides.frame)
+//////            self.setDocumentZoomScale(self.document)
+//////            self.setDocumentContentOffset(self.document)
+////        }
+//
+////        if keyPath == #keyPath(UISplitViewController.displayMode) {
+////
+////        }
+////
+//
+////        if keyPath == #keyPath(UISplitViewController.isCollapsed) {
+////
+////        }
+//
+//        if keyPath == #keyPath(AVPlayerItem.status) {
+//            guard (context == &PlayerContext) else {
+//                super.observeValue(forKeyPath: keyPath,
+//                                   of: object,
+//                                   change: change,
+//                                   context: context)
+//                return
 //            }
-//        }
-        
-//        if keyPath == #keyPath(UIView.frame), !isTransitioning {
-//            print(mediaItemNotesAndSlides.frame)
-////            self.setDocumentZoomScale(self.document)
-////            self.setDocumentContentOffset(self.document)
-//        }
-        
-//        if keyPath == #keyPath(UISplitViewController.displayMode) {
 //
-//        }
+//            let status: AVPlayerItem.Status
 //
-        
-//        if keyPath == #keyPath(UISplitViewController.isCollapsed) {
+//            // Get the status change from the change dictionary
+//            if let statusNumber = change?[.newKey] as? NSNumber, let playerStatus = AVPlayerItem.Status(rawValue: statusNumber.intValue) {
+//                status = playerStatus
+//            } else {
+//                status = .unknown
+//            }
 //
+//            // Switch over the status
+//            switch status {
+//            case .readyToPlay:
+//                // Player item is ready to play.
+//                break
+//
+//            case .failed:
+//                // Player item failed. See error.
+//                break
+//
+//            case .unknown:
+//                // Player item is not yet ready.
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//
+//            setupSliderAndTimes()
 //        }
-        
-        if keyPath == #keyPath(AVPlayerItem.status) {
-            guard (context == &PlayerContext) else {
-                super.observeValue(forKeyPath: keyPath,
-                                   of: object,
-                                   change: change,
-                                   context: context)
-                return
-            }
-            
-            let status: AVPlayerItem.Status
-            
-            // Get the status change from the change dictionary
-            if let statusNumber = change?[.newKey] as? NSNumber, let playerStatus = AVPlayerItem.Status(rawValue: statusNumber.intValue) {
-                status = playerStatus
-            } else {
-                status = .unknown
-            }
-            
-            // Switch over the status
-            switch status {
-            case .readyToPlay:
-                // Player item is ready to play.
-                break
-                
-            case .failed:
-                // Player item failed. See error.
-                break
-                
-            case .unknown:
-                // Player item is not yet ready.
-                break
-
-            @unknown default:
-                break
-            }
-            
-            setupSliderAndTimes()
-        }
-    }
+//    }
 
     func setupSTVControl()
     {
@@ -2351,6 +2392,92 @@ class MediaViewController : MediaItemsViewController
         }
     }
     
+    @objc func setPlayerViewConstraints()
+    {
+        guard let view = Globals.shared.mediaPlayer.view else {
+            return
+        }
+        
+        guard let mediaItemNotesAndSlides = mediaItemNotesAndSlides else {
+            return
+        }
+        
+        var parentView : UIView!
+        
+        switch videoLocation {
+        case .withDocuments:
+            parentView = mediaItemNotesAndSlides
+            break
+            
+        case .withTableView:
+            parentView = alternateView
+            break
+        }
+        
+        var offset:CGFloat = 0
+        var topView:UIView!
+        
+        if Globals.shared.mediaPlayer.fullScreen {
+            parentView = self.view
+            
+            offset = min(mediaItemNotesAndSlides.frame.minY,controlView.frame.minY - controlViewTop.constant)
+            
+            if offset == mediaItemNotesAndSlides.frame.minY {
+                topView = mediaItemNotesAndSlides
+            }
+            
+            if offset == (controlView.frame.minY - controlViewTop.constant) {
+                topView = controlView
+            }
+            
+            if let prefersStatusBarHidden = navigationController?.prefersStatusBarHidden, prefersStatusBarHidden {
+                offset -= UIApplication.shared.statusBarFrame.height
+            }
+        }
+        
+        view.removeConstraints(view.constraints)
+        
+        view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+        
+        view.frame = parentView.bounds
+        
+        let leading = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.leading, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.leading, multiplier: 1.0, constant: 0.0)
+        view.superview?.addConstraint(leading)
+        
+        let trailing = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.trailing, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.trailing, multiplier: 1.0, constant: 0.0)
+        view.superview?.addConstraint(trailing)
+        
+        let bottom = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0)
+        view.superview?.addConstraint(bottom)
+        
+        if offset == 0 {
+            let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
+            view.superview?.addConstraint(top)
+            
+            let centerY = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerY, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerY, multiplier: 1.0, constant: 0.0)
+            view.superview?.addConstraint(centerY)
+            
+            let height = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.height, multiplier: 1.0, constant: 0) // offset
+            view.superview?.addConstraint(height)
+        } else {
+            if topView != nil {
+                let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: topView, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
+                view.superview?.addConstraint(top)
+            } else {
+                
+            }
+        }
+        
+        let width = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.width, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.width, multiplier: 1.0, constant: 0.0)
+        view.superview?.addConstraint(width)
+        
+        let centerX = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerX, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerX, multiplier: 1.0, constant: 0.0)
+        view.superview?.addConstraint(centerX)
+        
+        view.superview?.setNeedsLayout()
+        view.superview?.layoutIfNeeded()
+    }
+    
     fileprivate func setupPlayerView()
     {
         guard let view = Globals.shared.mediaPlayer.view else {
@@ -2807,79 +2934,120 @@ class MediaViewController : MediaItemsViewController
         
         verticalSplit.isHidden = false
         
-        let hasNotes = selectedMediaItem.hasNotes
-        let hasSlides = selectedMediaItem.hasSlides
-        
         Globals.shared.mediaPlayer.view?.isHidden = true
         
-        if (!hasSlides && !hasNotes) {
+        if documents.count == 0 {
             wkWebView?.isHidden = true
-
-//            if selectedMediaItem.hasPosterImage {
-//                operationQueue.addOperation { [weak self] in
-//                    Thread.onMain { [weak self] in
-//                        guard self?.selectedMediaItem == selectedMediaItem else {
-//                            return
-//                        }
-//
-//                        if let activityIndicator = self?.activityIndicator {
-//                            self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
-//                        }
-//                        self?.activityIndicator.isHidden = false
-//                        self?.activityIndicator.startAnimating()
-//                    }
-//
-//                    if let posterImage = selectedMediaItem.posterImage?.image {
-//                        guard self?.selectedMediaItem == selectedMediaItem else {
-//                            return
-//                        }
-//
-//                        Thread.onMain { [weak self] in
-//                            guard self?.selectedMediaItem == selectedMediaItem else {
-//                                return
-//                            }
-//
-//                            // Need to adjust aspect ratio contraint
-//                            let ratio = posterImage.size.width / posterImage.size.height
-//
-//                            self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
-//                            self?.logo.image = posterImage
-//                        }
-//                    }
-//
-//                    Thread.onMain { [weak self] in
-//                        guard self?.selectedMediaItem == selectedMediaItem else {
-//                            return
-//                        }
-//
-//                        self?.activityIndicator.stopAnimating()
-//                        self?.activityIndicator.isHidden = true
-//                    }
-//                }
-//            }
             
             mediaItemNotesAndSlides.bringSubviewToFront(logo)
             logo.isHidden = false
-
-            if Globals.shared.reachability.isReachable {
-                selectedMediaItem.showing = Showing.none
-            }
-        } else
-        if (hasSlides && !hasNotes) {
-            selectedMediaItem.showing = Showing.slides
-
-            logo.isHidden = !(wkWebView?.isHidden ?? true)
-        } else
-        if (!hasSlides && hasNotes) {
-            selectedMediaItem.showing = Showing.notes
             
-            logo.isHidden = !(wkWebView?.isHidden ?? true)
-        } else
-        if (hasSlides && hasNotes) {
-            selectedMediaItem.showing = selectedMediaItem.wasShowing ?? Showing.slides
-            
+//            if Globals.shared.reachability.isReachable {
+//                selectedMediaItem.showing = Showing.none
+//            }
+        } else {
             logo.isHidden = !(wkWebView?.isHidden ?? true)
         }
+        
+//        let hasNotes = selectedMediaItem.hasNotes
+//        let hasSlides = selectedMediaItem.hasSlides
+//
+//        switch (hasSlides,hasNotes) {
+//        case (false,false):
+//            wkWebView?.isHidden = true
+//
+//            mediaItemNotesAndSlides.bringSubviewToFront(logo)
+//            logo.isHidden = false
+//
+//            if Globals.shared.reachability.isReachable {
+//                selectedMediaItem.showing = Showing.none
+//            }
+//            break
+//
+//        case (true,false):
+//            selectedMediaItem.showing = Showing.slides
+//            logo.isHidden = !(wkWebView?.isHidden ?? true)
+//            break
+//
+//        case (false,true):
+//            selectedMediaItem.showing = Showing.notes
+//            logo.isHidden = !(wkWebView?.isHidden ?? true)
+//            break
+//
+//        case (true,true):
+//            selectedMediaItem.showing = selectedMediaItem.wasShowing ?? Showing.slides
+//            logo.isHidden = !(wkWebView?.isHidden ?? true)
+//            break
+//        }
+        
+//        if (!hasSlides && !hasNotes) {
+//            wkWebView?.isHidden = true
+//
+////            if selectedMediaItem.hasPosterImage {
+////                operationQueue.addOperation { [weak self] in
+////                    Thread.onMain { [weak self] in
+////                        guard self?.selectedMediaItem == selectedMediaItem else {
+////                            return
+////                        }
+////
+////                        if let activityIndicator = self?.activityIndicator {
+////                            self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
+////                        }
+////                        self?.activityIndicator.isHidden = false
+////                        self?.activityIndicator.startAnimating()
+////                    }
+////
+////                    if let posterImage = selectedMediaItem.posterImage?.image {
+////                        guard self?.selectedMediaItem == selectedMediaItem else {
+////                            return
+////                        }
+////
+////                        Thread.onMain { [weak self] in
+////                            guard self?.selectedMediaItem == selectedMediaItem else {
+////                                return
+////                            }
+////
+////                            // Need to adjust aspect ratio contraint
+////                            let ratio = posterImage.size.width / posterImage.size.height
+////
+////                            self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+////                            self?.logo.image = posterImage
+////                        }
+////                    }
+////
+////                    Thread.onMain { [weak self] in
+////                        guard self?.selectedMediaItem == selectedMediaItem else {
+////                            return
+////                        }
+////
+////                        self?.activityIndicator.stopAnimating()
+////                        self?.activityIndicator.isHidden = true
+////                    }
+////                }
+////            }
+//
+//            mediaItemNotesAndSlides.bringSubviewToFront(logo)
+//            logo.isHidden = false
+//
+//            if Globals.shared.reachability.isReachable {
+//                selectedMediaItem.showing = Showing.none
+//            }
+//        } else
+//        if (hasSlides && !hasNotes) {
+//            selectedMediaItem.showing = Showing.slides
+//
+//            logo.isHidden = !(wkWebView?.isHidden ?? true)
+//        } else
+//        if (!hasSlides && hasNotes) {
+//            selectedMediaItem.showing = Showing.notes
+//
+//            logo.isHidden = !(wkWebView?.isHidden ?? true)
+//        } else
+//        if (hasSlides && hasNotes) {
+//            selectedMediaItem.showing = selectedMediaItem.wasShowing ?? Showing.slides
+//
+//            logo.isHidden = !(wkWebView?.isHidden ?? true)
+//        }
     }
     
     @objc func loading(_ timer:Timer?)
@@ -3221,120 +3389,55 @@ class MediaViewController : MediaItemsViewController
 //        }
 
         // Check whether they show what they should
-        
-        switch (selectedMediaItem.hasNotes,selectedMediaItem.hasSlides,selectedMediaItem.hasOutline) {
-        case (true,true,true):
-            if selectedMediaItem.showing == Showing.none {
-                selectedMediaItem.showing = selectedMediaItem.wasShowing ?? Showing.slides
-            }
-            break
-            
-        case (true,false,false):
-            if selectedMediaItem.showing == Showing.none {
-                selectedMediaItem.showing = Showing.notes
-            }
-            break
-            
-        case (false,true,false):
-            if selectedMediaItem.showing == Showing.none {
-                selectedMediaItem.showing = Showing.slides
-            }
-            break
-            
-        case (false,false,true):
-            if selectedMediaItem.showing == Showing.none {
-                selectedMediaItem.showing = Showing.outline
-            }
-            break
-            
-        case (false,false,false):
-            if selectedMediaItem.hasVideo {
-                if (selectedMediaItem.showing != Showing.none) && (selectedMediaItem.showing != Showing.video) {
-                    print("ERROR")
-                }
-            } else {
-                if (selectedMediaItem.showing != Showing.none) {
-                    print("ERROR")
-                }
-            }
-            break
-            
-        case (false,true,true):
-            if selectedMediaItem.showing == Showing.none {
-                selectedMediaItem.showing = Showing.slides
-            }
-            break
-            
-        case (true,false,true):
-            if selectedMediaItem.showing == Showing.none {
-                selectedMediaItem.showing = Showing.notes
-            }
-            break
-            
-        case (true,true,false):
-            if selectedMediaItem.showing == Showing.none {
-                selectedMediaItem.showing = Showing.slides
-            }
-            break
-        }
+        selectedMediaItem.setShowing()
         
         // Check whether they can or should show what they claim to show
+        selectedMediaItem.verifyShowing()
         
-        if let showing = selectedMediaItem.showing {
+        // document?.fetchData.result could take a lot of time.
+        if !Globals.shared.reachability.isReachable, let showing = selectedMediaItem.showing, document?.fetchData.useCache == false, !Globals.shared.settings.cacheDownloads || (download?.exists == false) {
             switch showing {
-            case Showing.notes:
-                if !selectedMediaItem.hasNotes {
-                    selectedMediaItem.showing = Showing.none
-                }
+            case Showing.slides:
+                Alerts.shared.alert(title: "Slides Not Available")
                 break
                 
-            case Showing.slides:
-                if !selectedMediaItem.hasSlides {
-                    selectedMediaItem.showing = Showing.none
-                }
+            case Showing.notes:
+                Alerts.shared.alert(title: "Transcript Not Available")
                 break
                 
             case Showing.outline:
-                if !selectedMediaItem.hasOutline {
-                    selectedMediaItem.showing = Showing.none
-                }
+                Alerts.shared.alert(title: "Outline Not Available")
                 break
                 
-            case Showing.video:
-                if !selectedMediaItem.hasVideo {
-                    selectedMediaItem.showing = Showing.none
-                }
-                break
-
             default:
                 break
             }
+            
+            selectedMediaItem.showing = Showing.none
         }
         
-        if var showing = selectedMediaItem.showing {            
-            if !Globals.shared.reachability.isReachable {
-                if document?.fetchData.result == nil, !Globals.shared.settings.cacheDownloads || (download?.exists == false) {
-                    switch showing {
-                    case Showing.slides:
-                        Alerts.shared.alert(title: "Slides Not Available")
-                        break
-                        
-                    case Showing.notes:
-                        Alerts.shared.alert(title: "Transcript Not Available")
-                        break
-                        
-                    case Showing.outline:
-                        Alerts.shared.alert(title: "Outline Not Available")
-                        break
-
-                    default:
-                        break
-                    }
-                    
-                    showing = Showing.none
-                }
-            }
+        if document?.fetchData.useCache == false, document?.fetchData.fetch == nil, document?.fetchData.retrieve == nil {
+//            switch showing {
+//            case Showing.slides:
+//                Alerts.shared.alert(title: "Slides Not Available")
+//                break
+//
+//            case Showing.notes:
+//                Alerts.shared.alert(title: "Transcript Not Available")
+//                break
+//
+//            case Showing.outline:
+//                Alerts.shared.alert(title: "Outline Not Available")
+//                break
+//
+//            default:
+//                break
+//            }
             
+            selectedMediaItem.showing = Showing.none
+        }
+        
+        if let showing = selectedMediaItem.showing {
             switch showing {
             case Showing.outline:
                 fallthrough
@@ -3432,6 +3535,11 @@ class MediaViewController : MediaItemsViewController
                 break
             }
         }
+        
+        // Doesn't work.  Gesture recognizer doesn't work.
+//        if document?.fetchData.fetch == nil, document?.fetchData.retrieve == nil {
+//            selectedMediaItem.showing = Showing.none
+//        }
         
         if selectedMediaItem.showing == Showing.none {
             mediaItemNotesAndSlides.gestureRecognizers = nil
@@ -3787,6 +3895,8 @@ class MediaViewController : MediaItemsViewController
 
             self.setupSwapVideoButton()
             
+//            self.setupPlayerView()
+            
             self.isTransitioning = false
         }
     }
@@ -4074,18 +4184,26 @@ class MediaViewController : MediaItemsViewController
         }
     }
     
-    var swapVideoButton : UIButton!
-
+    var swapVideoButton:UIButton!
+    {
+        get {
+            return Globals.shared.mediaPlayer.swapVideoButton
+        }
+        set {
+            Globals.shared.mediaPlayer.swapVideoButton = newValue
+        }
+    }
     func setupSwapVideoButton()
     {
 //        let swapVideoButton = UIBarButtonItem(title: Constants.Strings.Swap_Video_Location, style: UIBarButtonItem.Style.plain, target: self, action: #selector(swapVideoLocation))
 //        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
 //
 //        var barButtons = [UIBarButtonItem]()
+
+        swapVideoButton?.removeFromSuperview()
+        swapVideoButton = nil
         
         guard canSwapVideo else {
-            swapVideoButton?.removeFromSuperview()
-            swapVideoButton = nil
             return
         }
         
@@ -4520,6 +4638,8 @@ class MediaViewController : MediaItemsViewController
     {
         NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
         
+        NotificationCenter.default.addObserver(self, selector: #selector(setPlayerViewConstraints), name: NSNotification.Name(rawValue: "Setup Player View"), object: nil)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
         
@@ -4775,6 +4895,9 @@ class MediaViewController : MediaItemsViewController
     {
         super.viewWillDisappear(animated)
         
+        swapVideoButton?.removeFromSuperview()
+        swapVideoButton = nil
+        
         if selectedMediaItem == Globals.shared.mediaPlayer.mediaItem {
             Globals.shared.mediaPlayer.view?.removeFromSuperview()
         }
@@ -4787,6 +4910,8 @@ class MediaViewController : MediaItemsViewController
             selectedMediaItem?.showing = Showing.video
         }
 
+        observer?.invalidate()
+        
         loadTimer?.invalidate()
         
         if let document = document, let wkWebView = wkWebView {
@@ -4797,8 +4922,10 @@ class MediaViewController : MediaItemsViewController
         }
 
         removeSliderTimer()
-        removePlayerObserver()
-        
+//        removePlayerObserver()
+
+        observer?.invalidate()
+
         // Need to get notifications when pushed.
 //        NotificationCenter.default.removeObserver(self) // Catch-all.
         
@@ -4827,6 +4954,7 @@ class MediaViewController : MediaItemsViewController
         wkWebView?.isHidden = true
         setupWKWebView(wkWebView)
         
+        // Kill the document from reloading
         document?.fetchData.retrieve = nil
         document?.fetchData.fetch = nil
 
@@ -4879,10 +5007,25 @@ class MediaViewController : MediaItemsViewController
             }
         }
 
-        if selectedMediaItem?.showing == Showing.slides {
-            logo.isHidden = false
-            if let logo = logo {
-                mediaItemNotesAndSlides.bringSubviewToFront(logo)
+        if let showing = selectedMediaItem?.showing {
+            switch showing {
+            case Showing.slides:
+                fallthrough
+            case Showing.notes:
+                fallthrough
+            case Showing.outline:
+                logo.isHidden = false
+                if let logo = logo {
+                    mediaItemNotesAndSlides.bringSubviewToFront(logo)
+                }
+                selectedMediaItem?.showing = Showing.none
+                mediaItemNotesAndSlides.gestureRecognizers = nil
+                let pan = UIPanGestureRecognizer(target: self, action: #selector(changeVerticalSplit(_:)))
+                mediaItemNotesAndSlides.addGestureRecognizer(pan)
+                break
+                
+            default:
+                break
             }
         }
         
@@ -5664,7 +5807,7 @@ class MediaViewController : MediaItemsViewController
             wkWebView?.removeFromSuperview()
             wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
             setupWKWebView(wkWebView)
-            document?.download?.cancelOrDelete()
+            document?.download?.cancelOrDelete() // This assumes caching.
             setupDocumentsAndVideo()
             break
             

@@ -3130,6 +3130,12 @@ class MediaTableViewController : MediaItemsViewController
 
                         if key == Constants.Strings.Playing {
                             self?.popover?["LIVE"]?.dismiss(animated: true, completion: {
+//
+//                                // For debugging live - just show the first event.
+//                                if let key = Globals.shared.media.stream.streamEntryIndex?.keys.first, let streamEntry = StreamEntry(Globals.shared.media.stream.streamEntryIndex?[key]?[indexPath.row]) {
+//                                    self?.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: streamEntry)
+//                                }
+//                                
                                 if indexPath.row < Globals.shared.media.stream.streamEntryIndex?[key]?.count {
                                     if let streamEntry = StreamEntry(Globals.shared.media.stream.streamEntryIndex?[key]?[indexPath.row]) {
                                         self?.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: streamEntry)

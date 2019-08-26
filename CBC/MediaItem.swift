@@ -214,6 +214,101 @@ class MediaItem : NSObject //, Downloader
         }
     }
     
+    func setShowing()
+    {
+        switch (hasNotes,hasSlides,hasOutline) {
+        case (true,true,true):
+            if showing == Showing.none {
+                showing = wasShowing ?? Showing.slides
+            }
+            break
+            
+        case (true,false,false):
+            if showing == Showing.none {
+                showing = Showing.notes
+            }
+            break
+            
+        case (false,true,false):
+            if showing == Showing.none {
+                showing = Showing.slides
+            }
+            break
+            
+        case (false,false,true):
+            if showing == Showing.none {
+                showing = Showing.outline
+            }
+            break
+            
+        case (false,false,false):
+            if hasVideo {
+                if (showing != Showing.none) && (showing != Showing.video) {
+                    print("ERROR")
+                }
+            } else {
+                if (showing != Showing.none) {
+                    print("ERROR")
+                }
+            }
+            break
+            
+        case (false,true,true):
+            if showing == Showing.none {
+                showing = Showing.slides
+            }
+            break
+            
+        case (true,false,true):
+            if showing == Showing.none {
+                showing = Showing.notes
+            }
+            break
+            
+        case (true,true,false):
+            if showing == Showing.none {
+                showing = Showing.slides
+            }
+            break
+        }
+    }
+    
+    func verifyShowing()
+    {
+        guard let showing = showing else {
+            return
+        }
+        
+        switch showing {
+        case Showing.notes:
+            if !hasNotes {
+                self.showing = Showing.none
+            }
+            break
+            
+        case Showing.slides:
+            if !hasSlides {
+                self.showing = Showing.none
+            }
+            break
+            
+        case Showing.outline:
+            if !hasOutline {
+                self.showing = Showing.none
+            }
+            break
+            
+        case Showing.video:
+            if !hasVideo {
+                self.showing = Showing.none
+            }
+            break
+            
+        default:
+            break
+        }
+    }
+
     var _multiPartMediaItems:[MediaItem?]?
     {
         didSet {

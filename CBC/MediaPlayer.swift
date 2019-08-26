@@ -150,6 +150,8 @@ enum PIP {
 
 class MediaPlayer : NSObject
 {
+    var swapVideoButton : UIButton!
+    
     var isSeeking = false
     {
         didSet {
@@ -168,9 +170,12 @@ class MediaPlayer : NSObject
     
 //    var sliderTimerReturn:Any? = nil
     var playerTimerReturn:Any? = nil
-    
-    var observerActive = false
-    var observedItem:AVPlayerItem?
+
+    var observer: NSKeyValueObservation?
+    var videoObserver : NSKeyValueObservation?
+
+//    var observerActive = false
+//    var observedItem:AVPlayerItem?
     
     var playerObserverTimer:Timer?
     
@@ -227,187 +232,196 @@ class MediaPlayer : NSObject
     }
     
     var isVideoFullScreen = false
-
-    override func observeValue(forKeyPath keyPath: String?,
-                               of object: Any?,
-                               change: [NSKeyValueChangeKey : Any]?,
-                               context: UnsafeMutableRawPointer?)
     {
-        // Only handle observations for the playerItemContext
-        //        guard context == &GlobalPlayerContext else {
-        //            super.observeValue(forKeyPath: keyPath,
-        //                               of: object,
-        //                               change: change,
-        //                               context: context)
-        //            return
-        //        }
-        
-        guard (url != URL(string: Constants.URL.LIVE_STREAM)) else {
-            return
-        }
-        
-        if keyPath == #keyPath(UIView.frame) {
-            if let rect = change?[.newKey] as? CGRect {
-                isVideoFullScreen = rect.size == UIScreen.main.bounds.size
-            }
-        }
-
-//        if #available(iOS 10.0, *) {
-//            if keyPath == #keyPath(AVPlayer.timeControlStatus) {
-//                if  let statusNumber = change?[.newKey] as? NSNumber,
-//                    let status = AVPlayer.TimeControlStatus(rawValue: statusNumber.intValue) {
-//                    switch status {
-//                    case .waitingToPlayAtSpecifiedRate:
-//                        if let reason = player?.reasonForWaitingToPlay {
-//                            print("waitingToPlayAtSpecifiedRate: ",reason)
-//                        } else {
-//                            print("waitingToPlayAtSpecifiedRate: no reason")
-//                        }
-//                        break
-//
-//                    case .paused:
-//                        if let state = state {
-//                            switch state {
-//                            case .none:
-//                                break
-//
-//                            case .paused:
-//                                break
-//
-//                            case .playing:
-//                                pause() // coming back from true full screen to MVC fullScreen while playing triggers this pause.  Why???
-//                                // didPlayToEnd observer doesn't always work.  This seemds to catch the cases where it doesn't.
-//                                checkPlayToEnd()
-//                                break
-//
-//                            case .seekingBackward:
-//                                pause()
-//                                break
-//
-//                            case .seekingForward:
-//                                pause()
-//                                break
-//
-//                            case .stopped:
-//                                break
-//                            }
-//                        }
-//                        break
-//
-//                    case .playing:
-//                        if let state = state {
-//                            switch state {
-//                            case .none:
-//                                break
-//
-//                            case .paused:
-//                                play() // "fullScreen" (in MVC) then touch causes this play.  Why???
-//                                break
-//
-//                            case .playing:
-//                                break
-//
-//                            case .seekingBackward:
-//                                play()
-//                                break
-//
-//                            case .seekingForward:
-//                                play()
-//                                break
-//
-//                            case .stopped:
-//                                break
-//                            }
-//                        }
-//                        break
-//
-//                    @unknown default:
-//                        break
-//                    }
-//                }
-//            }
-//        } else {
-//            // Fallback on earlier versions
-//        }
-        
-        if keyPath == #keyPath(AVPlayerItem.status) {
-            let status: AVPlayerItem.Status
-            
-            // Get the status change from the change dictionary
-            if let statusNumber = change?[.newKey] as? NSNumber, let playerStatus = AVPlayerItem.Status(rawValue: statusNumber.intValue) {
-                status = playerStatus
-            } else {
-                status = .unknown
-            }
-            
-            // Switch over the status
-            switch status {
-            case .readyToPlay:
-                // Player item is ready to play.
-                if !loaded, let mediaItem = mediaItem {
-                    loaded = true
-                    
-                    if (mediaItem.playing == Playing.video) {
-                        if mediaItem.showing == Showing.none {
-                            mediaItem.showing = Showing.video
-                        }
-                    }
-                    
-                    if mediaItem.hasCurrentTime {
-                        if mediaItem.atEnd {
-                            if let duration = duration {
-                                seek(to: duration.seconds)
-                            }
-                        } else {
-                            if let currentTime = mediaItem.currentTime, !currentTime.isEmpty, let time = Double(currentTime) {
-                                seek(to: time)
-                            }
-                        }
-                    } else {
-                        mediaItem.currentTime = Constants.ZERO
-                        seek(to: 0)
-                    }
-                    
-                    // Why only audio?
-                    if (self.mediaItem?.playing == Playing.audio) {
-                        if playOnLoad {
-                            if mediaItem.atEnd {
-                                seek(to: 0)
-                                mediaItem.atEnd = false
-                            }
-                            
-                            playOnLoad = false
-                            play()
-                        }
-                    }
-                    
-                    Thread.onMain { [weak self] in 
-                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil) // why isn't the object mediaItem
-                    }
+        didSet {
+            if !isVideoFullScreen && oldValue {
+                Thread.onMain { [weak self] in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: "Setup Player View"), object: nil)
                 }
-
-                setupPlayingInfoCenter()
-                break
-                
-            case .failed:
-                // Player item failed. See error.
-                failedToLoad()
-                break
-                
-            case .unknown:
-                // Player item is not yet ready.
-                if #available(iOS 10.0, *) {
-                    print(player?.reasonForWaitingToPlay as Any)
-                } else {
-                    // Fallback on earlier versions
-                }
-                break
-                
-            @unknown default:
-                break
             }
         }
     }
+
+//    override func observeValue(forKeyPath keyPath: String?,
+//                               of object: Any?,
+//                               change: [NSKeyValueChangeKey : Any]?,
+//                               context: UnsafeMutableRawPointer?)
+//    {
+//        // Only handle observations for the playerItemContext
+//        //        guard context == &GlobalPlayerContext else {
+//        //            super.observeValue(forKeyPath: keyPath,
+//        //                               of: object,
+//        //                               change: change,
+//        //                               context: context)
+//        //            return
+//        //        }
+//
+//        guard (url != URL(string: Constants.URL.LIVE_STREAM)) else {
+//            return
+//        }
+//
+//        if keyPath == #keyPath(UIView.frame) {
+//            if let rect = change?[.newKey] as? CGRect {
+//                isVideoFullScreen = rect.size == UIScreen.main.bounds.size
+//            }
+//        }
+//
+////        if #available(iOS 10.0, *) {
+////            if keyPath == #keyPath(AVPlayer.timeControlStatus) {
+////                if  let statusNumber = change?[.newKey] as? NSNumber,
+////                    let status = AVPlayer.TimeControlStatus(rawValue: statusNumber.intValue) {
+////                    switch status {
+////                    case .waitingToPlayAtSpecifiedRate:
+////                        if let reason = player?.reasonForWaitingToPlay {
+////                            print("waitingToPlayAtSpecifiedRate: ",reason)
+////                        } else {
+////                            print("waitingToPlayAtSpecifiedRate: no reason")
+////                        }
+////                        break
+////
+////                    case .paused:
+////                        if let state = state {
+////                            switch state {
+////                            case .none:
+////                                break
+////
+////                            case .paused:
+////                                break
+////
+////                            case .playing:
+////                                pause() // coming back from true full screen to MVC fullScreen while playing triggers this pause.  Why???
+////                                // didPlayToEnd observer doesn't always work.  This seemds to catch the cases where it doesn't.
+////                                checkPlayToEnd()
+////                                break
+////
+////                            case .seekingBackward:
+////                                pause()
+////                                break
+////
+////                            case .seekingForward:
+////                                pause()
+////                                break
+////
+////                            case .stopped:
+////                                break
+////                            }
+////                        }
+////                        break
+////
+////                    case .playing:
+////                        if let state = state {
+////                            switch state {
+////                            case .none:
+////                                break
+////
+////                            case .paused:
+////                                play() // "fullScreen" (in MVC) then touch causes this play.  Why???
+////                                break
+////
+////                            case .playing:
+////                                break
+////
+////                            case .seekingBackward:
+////                                play()
+////                                break
+////
+////                            case .seekingForward:
+////                                play()
+////                                break
+////
+////                            case .stopped:
+////                                break
+////                            }
+////                        }
+////                        break
+////
+////                    @unknown default:
+////                        break
+////                    }
+////                }
+////            }
+////        } else {
+////            // Fallback on earlier versions
+////        }
+//
+//        if keyPath == #keyPath(AVPlayerItem.status) {
+//            let status: AVPlayerItem.Status
+//
+//            // Get the status change from the change dictionary
+//            if let statusNumber = change?[.newKey] as? NSNumber, let playerStatus = AVPlayerItem.Status(rawValue: statusNumber.intValue) {
+//                status = playerStatus
+//            } else {
+//                status = .unknown
+//            }
+//
+//            // Switch over the status
+//            switch status {
+//            case .readyToPlay:
+//                // Player item is ready to play.
+//                if !loaded, let mediaItem = mediaItem {
+//                    loaded = true
+//
+//                    if (mediaItem.playing == Playing.video) {
+//                        if mediaItem.showing == Showing.none {
+//                            mediaItem.showing = Showing.video
+//                        }
+//                    }
+//
+//                    if mediaItem.hasCurrentTime {
+//                        if mediaItem.atEnd {
+//                            if let duration = duration {
+//                                seek(to: duration.seconds)
+//                            }
+//                        } else {
+//                            if let currentTime = mediaItem.currentTime, !currentTime.isEmpty, let time = Double(currentTime) {
+//                                seek(to: time)
+//                            }
+//                        }
+//                    } else {
+//                        mediaItem.currentTime = Constants.ZERO
+//                        seek(to: 0)
+//                    }
+//
+//                    // Why only audio?
+//                    if (self.mediaItem?.playing == Playing.audio) {
+//                        if playOnLoad {
+//                            if mediaItem.atEnd {
+//                                seek(to: 0)
+//                                mediaItem.atEnd = false
+//                            }
+//
+//                            playOnLoad = false
+//                            play()
+//                        }
+//                    }
+//
+//                    Thread.onMain { [weak self] in
+//                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil) // why isn't the object mediaItem
+//                    }
+//                }
+//
+//                setupPlayingInfoCenter()
+//                break
+//
+//            case .failed:
+//                // Player item failed. See error.
+//                failedToLoad()
+//                break
+//
+//            case .unknown:
+//                // Player item is not yet ready.
+//                if #available(iOS 10.0, *) {
+//                    print(player?.reasonForWaitingToPlay as Any)
+//                } else {
+//                    // Fallback on earlier versions
+//                }
+//                break
+//
+//            @unknown default:
+//                break
+//            }
+//        }
+//    }
     
     func setupAtEnd(_ mediaItem:MediaItem?)
     {
@@ -435,12 +449,17 @@ class MediaPlayer : NSObject
 
         // Crashes on iOS 10.3
 //        controller?.contentOverlayView?.removeObserver(self, forKeyPath: #keyPath(UIView.frame))
-        
+        videoObserver?.invalidate()
+
         controller = AVPlayerViewController()
 
 //        controller?.videoGravity = AVLayerVideoGravity.resizeAspectFill.rawValue
 
-        controller?.contentOverlayView?.addObserver(self, forKeyPath: #keyPath(UIView.frame), options: NSKeyValueObservingOptions.new, context: nil)
+//        controller?.contentOverlayView?.addObserver(self, forKeyPath: #keyPath(UIView.frame), options: NSKeyValueObservingOptions.new, context: nil)
+
+        videoObserver = controller?.contentOverlayView?.observe(\.frame, options: [.new]) { [weak self] (view, change) in
+            self?.isVideoFullScreen = view.frame.size == UIScreen.main.bounds.size
+        }
 
         controller?.delegate = Globals.shared
         
@@ -458,9 +477,11 @@ class MediaPlayer : NSObject
             // Fallback on earlier versions
         }
         
+        observer?.invalidate()
+
         // Just replacing the item will not cause a timeout when the player can't load.
         player = AVPlayer(url: url)
-
+        
         if #available(iOS 10.0, *) {
             player?.automaticallyWaitsToMinimizeStalling = (mediaItem?.playing != Playing.audio)
         } else {
@@ -580,7 +601,9 @@ class MediaPlayer : NSObject
             if loaded {
                 if (pip == .started) || fullScreen {
                     // System caused
-
+                    if player?.rate > 0 {
+                        play()
+                    }
                 } else {
                     // What would cause this?
 
@@ -796,6 +819,8 @@ class MediaPlayer : NSObject
             return
         }
         
+        observer?.invalidate()
+        
         playerObserverTimer?.invalidate()
         playerObserverTimer = nil
         
@@ -804,27 +829,27 @@ class MediaPlayer : NSObject
             self.playerTimerReturn = nil
         }
         
-        if observerActive {
-            if observedItem != currentItem {
-                print("observedItem != currentPlayer!")
-            }
-            
-            if observedItem != nil {
-                print("GLOBAL removeObserver: ",observedItem?.observationInfo as Any)
-                
-                observedItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: nil) // &GlobalPlayerContext
-                
-//                if #available(iOS 10.0, *) {
-//                    player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), context: nil) // &GlobalPlayerContext
-//                }
-                
-                observedItem = nil
-                
-                observerActive = false
-            } else {
-                print("mediaPlayer.observedItem == nil!")
-            }
-        }
+//        if observerActive {
+//            if observedItem != currentItem {
+//                print("observedItem != currentPlayer!")
+//            }
+//
+//            if observedItem != nil {
+//                print("GLOBAL removeObserver: ",observedItem?.observationInfo as Any)
+//
+//                observedItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: nil) // &GlobalPlayerContext
+//
+////                if #available(iOS 10.0, *) {
+////                    player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), context: nil) // &GlobalPlayerContext
+////                }
+//
+//                observedItem = nil
+//
+//                observerActive = false
+//            } else {
+//                print("mediaPlayer.observedItem == nil!")
+//            }
+//        }
         
         NotificationCenter.default.removeObserver(self)
     }
@@ -850,8 +875,78 @@ class MediaPlayer : NSObject
         unobserve()
         
         // Timer that runs all the time.  Is this still needed?
-        self.playerObserverTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(playerObserver), userInfo: nil, repeats: true)
+        playerObserverTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(playerObserver), userInfo: nil, repeats: true)
         
+        observer = player?.currentItem?.observe(\.status, options: [.new]) { [weak self] (currentItem, change) in
+            self?.observer?.invalidate()
+            
+            switch currentItem.status {
+            case .readyToPlay:
+                // Player item is ready to play.
+                if self?.loaded == false, let mediaItem = self?.mediaItem {
+                    self?.loaded = true
+                    
+                    if (mediaItem.playing == Playing.video) {
+                        if mediaItem.showing == Showing.none {
+                            mediaItem.showing = Showing.video
+                        }
+                    }
+                    
+                    if mediaItem.hasCurrentTime {
+                        if mediaItem.atEnd {
+                            if let duration = self?.duration {
+                                self?.seek(to: duration.seconds)
+                            }
+                        } else {
+                            if let currentTime = mediaItem.currentTime, !currentTime.isEmpty, let time = Double(currentTime) {
+                                self?.seek(to: time)
+                            }
+                        }
+                    } else {
+                        mediaItem.currentTime = Constants.ZERO
+                        self?.seek(to: 0)
+                    }
+                    
+                    // Why only audio?
+                    if (self?.mediaItem?.playing == Playing.audio) {
+                        if self?.playOnLoad == true {
+                            if mediaItem.atEnd {
+                                self?.seek(to: 0)
+                                mediaItem.atEnd = false
+                            }
+                            
+                            self?.playOnLoad = false
+                            self?.play()
+                        }
+                    }
+                    
+                    Thread.onMain { [weak self] in
+                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil) // why isn't the object mediaItem
+                    }
+                }
+                
+                self?.setupPlayingInfoCenter()
+                break
+                
+            case .failed:
+                // Player item failed. See error.
+                self?.failedToLoad()
+                break
+                
+            case .unknown:
+                // Player item is not yet ready.
+                if #available(iOS 10.0, *) {
+                    print(self?.player?.reasonForWaitingToPlay as Any)
+                } else {
+                    // Fallback on earlier versions
+                }
+                break
+                
+            @unknown default:
+                break
+            }
+        }
+
         // Causes problems with remote control events from lock screen (and presumably accessories)
 //        if #available(iOS 10.0, *) {
 //            // Observer when media is playing
@@ -862,12 +957,12 @@ class MediaPlayer : NSObject
 //        }
         
         // Observer when media changes
-        currentItem?.addObserver(self,
-                                 forKeyPath: #keyPath(AVPlayerItem.status),
-                                 options: [.old, .new],
-                                 context: nil) // &GlobalPlayerContext
-        observerActive = true
-        observedItem = currentItem
+//        currentItem?.addObserver(self,
+//                                 forKeyPath: #keyPath(AVPlayerItem.status),
+//                                 options: [.old, .new],
+//                                 context: nil) // &GlobalPlayerContext
+//        observerActive = true
+//        observedItem = currentItem
         
         // Timer when media is playing
         playerTimerReturn = player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,preferredTimescale: Constants.CMTime_Resolution), queue: DispatchQueue.global(qos: .background), using: { [weak self] (time:CMTime) in //
@@ -1029,6 +1124,8 @@ class MediaPlayer : NSObject
 
     deinit {
         debug(self)
+        observer?.invalidate()
+        videoObserver?.invalidate()
         operationQueue.cancelAllOperations()
     }
     
