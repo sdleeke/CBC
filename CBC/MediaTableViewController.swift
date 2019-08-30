@@ -3302,9 +3302,9 @@ class MediaTableViewController : MediaItemsViewController
                         }
                         
                         self?.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
-                            if  let date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
-                                let date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
-                                return Date(string: date0) < Date(string: date1)
+                            if  let date0 = (lhs["dateCreated"] as? String), // ?.components(separatedBy: "\n").first
+                                let date1 = (rhs["dateCreated"] as? String) { // ?.components(separatedBy: "\n").first
+                                return Date(mdyhm: date0) < Date(mdyhm: date1)
                             } else {
                                 return false // arbitrary
                             }
@@ -3355,9 +3355,9 @@ class MediaTableViewController : MediaItemsViewController
                     }
                     
                     self?.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
-                        if  let date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first,
-                            let date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first {
-                            return Date(string: date0) < Date(string: date1)
+                        if  let date0 = (lhs["dateCreated"] as? String), // ?.components(separatedBy: "\n").first
+                            let date1 = (rhs["dateCreated"] as? String) { // ?.components(separatedBy: "\n").first
+                            return Date(mdyhm: date0) < Date(mdyhm: date1)
                         } else {
                             return false // arbitrary
                         }

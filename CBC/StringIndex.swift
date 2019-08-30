@@ -56,7 +56,7 @@ class StringIndex : NSObject
         for dk in keys {
             if let values = storage?[dk] {
                 for value in values {
-                    if let string = value[key] as? String {
+                    if let string = (value[key] as? String)?.removingPercentEncoding {
                         if stringIndex[dk] == nil {
                             stringIndex[dk] = [string]
                         } else {

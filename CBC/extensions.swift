@@ -7964,14 +7964,45 @@ extension Date
     //MARK: Date extension
     
     // VERY Computationally Expensive
-    init?(dateString:String)
+    init?(y_m_d:String)
     {
         let dateStringFormatter = DateFormatter()
         
         dateStringFormatter.dateFormat = "yyyy-MM-dd"
         dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
         
-        guard let d = dateStringFormatter.date(from: dateString) else {
+        guard let d = dateStringFormatter.date(from: y_m_d) else {
+            return nil
+        }
+        
+        self = Date(timeInterval:0, since:d)
+    }
+
+    init?(m_d_y:String)
+    {
+        let dateStringFormatter = DateFormatter()
+        
+        dateStringFormatter.dateFormat = "MMM-dd-yyyy" // yyyy-MM-dd"
+        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+        
+        guard let d = dateStringFormatter.date(from: m_d_y) else {
+            return nil
+        }
+        
+        self = Date(timeInterval:0, since:d)
+    }
+    
+    init?(mdyhm:String)
+    {
+        let dateStringFormatter = DateFormatter()
+        
+        dateStringFormatter.dateFormat = "MMMM d, yyyy 'at' h:mm a" // yyyy-MM-dd"
+        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+        
+        dateStringFormatter.amSymbol = "AM"
+        dateStringFormatter.pmSymbol = "PM"
+        
+        guard let d = dateStringFormatter.date(from: mdyhm) else {
             return nil
         }
         
@@ -7979,34 +8010,63 @@ extension Date
     }
     
     // VERY Computationally Expensive
-    init?(string:String)
+    init?(mdy:String)
     {
         let dateStringFormatter = DateFormatter()
-
+        
         dateStringFormatter.dateFormat = "MMM dd, yyyy"
-
-        var text = string
         
-        if let range = string.range(of: " AM"), string.endIndex == range.upperBound {
-            text = String(string[..<range.lowerBound])
+        var text = mdy
+        
+        if let range = mdy.range(of: " AM"), mdy.endIndex == range.upperBound {
+            text = String(mdy[..<range.lowerBound])
         }
         
-        if let range = string.range(of: " PM"), string.endIndex == range.upperBound {
-            text = String(string[..<range.lowerBound])
+        if let range = mdy.range(of: " PM"), mdy.endIndex == range.upperBound {
+            text = String(mdy[..<range.lowerBound])
         }
-
+        
         dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
         
         guard var d = dateStringFormatter.date(from: text) else {
             return nil
         }
-
-        if let range = string.range(of: " PM"), string.endIndex == range.upperBound {
+        
+        if let range = mdy.range(of: " PM"), mdy.endIndex == range.upperBound {
             d += 12*60*60
         }
-
+        
         self = Date(timeInterval:0, since:d)
     }
+    
+//    init?(string:String)
+//    {
+//        let dateStringFormatter = DateFormatter()
+//
+//        dateStringFormatter.dateFormat = "MMM dd, yyyy"
+//
+//        var text = string
+//
+//        if let range = string.range(of: " AM"), string.endIndex == range.upperBound {
+//            text = String(string[..<range.lowerBound])
+//        }
+//
+//        if let range = string.range(of: " PM"), string.endIndex == range.upperBound {
+//            text = String(string[..<range.lowerBound])
+//        }
+//
+//        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+//
+//        guard var d = dateStringFormatter.date(from: text) else {
+//            return nil
+//        }
+//
+//        if let range = string.range(of: " PM"), string.endIndex == range.upperBound {
+//            d += 12*60*60
+//        }
+//
+//        self = Date(timeInterval:0, since:d)
+//    }
     
     func format(_ format:String?) -> String
     {

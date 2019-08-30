@@ -2893,7 +2893,7 @@ class MediaItem : NSObject //, Downloader
     {
         get {
             if let date = date {
-                return Date(dateString:date)
+                return Date(y_m_d:date)
             } else {
                 return nil
             }

@@ -2392,90 +2392,113 @@ class MediaViewController : MediaItemsViewController
         }
     }
     
-    @objc func setPlayerViewConstraints()
+    @objc func setPlayerView()
     {
         guard let view = Globals.shared.mediaPlayer.view else {
             return
         }
         
-        guard let mediaItemNotesAndSlides = mediaItemNotesAndSlides else {
-            return
-        }
-        
-        var parentView : UIView!
-        
-        switch videoLocation {
-        case .withDocuments:
-            parentView = mediaItemNotesAndSlides
-            break
-            
-        case .withTableView:
-            parentView = alternateView
-            break
-        }
-        
-        var offset:CGFloat = 0
-        var topView:UIView!
-        
-        if Globals.shared.mediaPlayer.fullScreen {
-            parentView = self.view
-            
-            offset = min(mediaItemNotesAndSlides.frame.minY,controlView.frame.minY - controlViewTop.constant)
-            
-            if offset == mediaItemNotesAndSlides.frame.minY {
-                topView = mediaItemNotesAndSlides
-            }
-            
-            if offset == (controlView.frame.minY - controlViewTop.constant) {
-                topView = controlView
-            }
-            
-            if let prefersStatusBarHidden = navigationController?.prefersStatusBarHidden, prefersStatusBarHidden {
-                offset -= UIApplication.shared.statusBarFrame.height
+        // If the video is RUNNING in fullScreen when rotated from landscape to portrait and then zoomed out to true FULL SCREEN and then rotated back to landscape
+        // in a vertically compact environment, i.e. iPHone SE, where prefersStatusBarHidden == true, and returned from FULL SCREEn to fullScreen, then the frame is correct.
+        //
+        // BUT if the same thing is done w/ the video paused it is off by the delta.
+        //
+        if prefersStatusBarHidden, let navigationController = navigationController {
+            let delta = -(navigationController.navigationBar.frame.origin.y + navigationController.navigationBar.frame.height)
+            if let frame = view.superview?.frame {
+                print(view.superview?.frame)
+                view.superview?.frame = CGRect(x: frame.origin.x, y: frame.origin.y - delta, width: frame.width, height: frame.height + delta)
+                print(view.superview?.frame)
             }
         }
-        
-        view.removeConstraints(view.constraints)
-        
-        view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-        
-        view.frame = parentView.bounds
-        
-        let leading = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.leading, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.leading, multiplier: 1.0, constant: 0.0)
-        view.superview?.addConstraint(leading)
-        
-        let trailing = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.trailing, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.trailing, multiplier: 1.0, constant: 0.0)
-        view.superview?.addConstraint(trailing)
-        
-        let bottom = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0)
-        view.superview?.addConstraint(bottom)
-        
-        if offset == 0 {
-            let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
-            view.superview?.addConstraint(top)
-            
-            let centerY = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerY, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerY, multiplier: 1.0, constant: 0.0)
-            view.superview?.addConstraint(centerY)
-            
-            let height = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.height, multiplier: 1.0, constant: 0) // offset
-            view.superview?.addConstraint(height)
-        } else {
-            if topView != nil {
-                let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: topView, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
-                view.superview?.addConstraint(top)
-            } else {
-                
-            }
-        }
-        
-        let width = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.width, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.width, multiplier: 1.0, constant: 0.0)
-        view.superview?.addConstraint(width)
-        
-        let centerX = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerX, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerX, multiplier: 1.0, constant: 0.0)
-        view.superview?.addConstraint(centerX)
-        
-        view.superview?.setNeedsLayout()
-        view.superview?.layoutIfNeeded()
+
+////        guard let mediaItemNotesAndSlides = mediaItemNotesAndSlides else {
+////            return
+////        }
+//
+////        var parentView : UIView!
+////
+////        switch videoLocation {
+////        case .withDocuments:
+////            parentView = mediaItemNotesAndSlides
+////            break
+////
+////        case .withTableView:
+////            parentView = alternateView
+////            break
+////        }
+//
+////        var offset:CGFloat = 0
+////        var topView:UIView!
+//
+////        if Globals.shared.mediaPlayer.fullScreen {
+////            parentView = self.view
+////
+//////            offset = min(mediaItemNotesAndSlides.frame.minY,controlView.frame.minY - controlViewTop.constant)
+//////
+//////            if offset == mediaItemNotesAndSlides.frame.minY {
+//////                topView = mediaItemNotesAndSlides
+//////            }
+//////
+//////            if offset == (controlView.frame.minY - controlViewTop.constant) {
+//////                topView = controlView
+//////            }
+//////
+//////            if let prefersStatusBarHidden = navigationController?.prefersStatusBarHidden, prefersStatusBarHidden {
+//////                offset -= UIApplication.shared.statusBarFrame.height
+//////            }
+////        }
+//
+//        view.removeConstraints(view.constraints)
+//
+//        view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+//
+////        view.frame = parentView.bounds
+//
+//        let leading = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.leading, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.leading, multiplier: 1.0, constant: 0.0)
+//        view.superview?.addConstraint(leading)
+//
+//        let trailing = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.trailing, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.trailing, multiplier: 1.0, constant: 0.0)
+//        view.superview?.addConstraint(trailing)
+//
+//        let bottom = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0)
+//        view.superview?.addConstraint(bottom)
+//
+//        let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
+//        view.superview?.addConstraint(top)
+//
+////        let centerY = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerY, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerY, multiplier: 1.0, constant: 0.0)
+////        view.superview?.addConstraint(centerY)
+//
+////        let height = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.height, multiplier: 1.0, constant: 0) // offset
+////        view.superview?.addConstraint(height)
+//
+////        if offset == 0 {
+////            let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
+////            view.superview?.addConstraint(top)
+////
+////            let centerY = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerY, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerY, multiplier: 1.0, constant: 0.0)
+////            view.superview?.addConstraint(centerY)
+////
+////            let height = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.height, multiplier: 1.0, constant: 0) // offset
+////            view.superview?.addConstraint(height)
+////        } else {
+////            if topView != nil {
+////                let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: topView, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
+////                view.superview?.addConstraint(top)
+////            } else {
+////
+////            }
+////        }
+////
+////        let width = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.width, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.width, multiplier: 1.0, constant: 0.0)
+////        view.superview?.addConstraint(width)
+////
+////        let centerX = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerX, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerX, multiplier: 1.0, constant: 0.0)
+////        view.superview?.addConstraint(centerX)
+//
+//        view.superview?.setNeedsLayout()
+//        view.superview?.layoutIfNeeded()
     }
     
     fileprivate func setupPlayerView()
@@ -2503,25 +2526,25 @@ class MediaViewController : MediaItemsViewController
             break
         }
         
-        var offset:CGFloat = 0
-        var topView:UIView!
+//        var offset:CGFloat = 0
+//        var topView:UIView!
 
         if Globals.shared.mediaPlayer.fullScreen {
             parentView = self.view
 
-            offset = min(mediaItemNotesAndSlides.frame.minY,controlView.frame.minY - controlViewTop.constant)
-            
-            if offset == mediaItemNotesAndSlides.frame.minY {
-                topView = mediaItemNotesAndSlides
-            }
-            
-            if offset == (controlView.frame.minY - controlViewTop.constant) {
-                topView = controlView
-            }
-            
-            if let prefersStatusBarHidden = navigationController?.prefersStatusBarHidden, prefersStatusBarHidden {
-                offset -= UIApplication.shared.statusBarFrame.height
-            }
+//            offset = min(mediaItemNotesAndSlides.frame.minY,controlView.frame.minY - controlViewTop.constant)
+//
+//            if offset == mediaItemNotesAndSlides.frame.minY {
+//                topView = mediaItemNotesAndSlides
+//            }
+//
+//            if offset == (controlView.frame.minY - controlViewTop.constant) {
+//                topView = controlView
+//            }
+//
+//            if let prefersStatusBarHidden = navigationController?.prefersStatusBarHidden, prefersStatusBarHidden {
+//                offset -= UIApplication.shared.statusBarFrame.height
+//            }
         }
         
         view.isHidden = true
@@ -2583,29 +2606,38 @@ class MediaViewController : MediaItemsViewController
         let bottom = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0)
         view.superview?.addConstraint(bottom)
 
-        if offset == 0 {
-            let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
-            view.superview?.addConstraint(top)
-
-            let centerY = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerY, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerY, multiplier: 1.0, constant: 0.0)
-            view.superview?.addConstraint(centerY)
-
-            let height = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.height, multiplier: 1.0, constant: 0) // offset
-            view.superview?.addConstraint(height)
-        } else {
-            if topView != nil {
-                let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: topView, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
-                view.superview?.addConstraint(top)
-            } else {
-
-            }
-        }
-
-        let width = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.width, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.width, multiplier: 1.0, constant: 0.0)
-        view.superview?.addConstraint(width)
-
-        let centerX = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerX, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerX, multiplier: 1.0, constant: 0.0)
-        view.superview?.addConstraint(centerX)
+        let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
+        view.superview?.addConstraint(top)
+        
+//        let centerY = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerY, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerY, multiplier: 1.0, constant: 0.0)
+//        view.superview?.addConstraint(centerY)
+//
+//        let height = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.height, multiplier: 1.0, constant: 0) // offset
+//        view.superview?.addConstraint(height)
+//
+//        if offset == 0 {
+//            let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
+//            view.superview?.addConstraint(top)
+//
+//            let centerY = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerY, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerY, multiplier: 1.0, constant: 0.0)
+//            view.superview?.addConstraint(centerY)
+//
+//            let height = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.height, multiplier: 1.0, constant: 0) // offset
+//            view.superview?.addConstraint(height)
+//        } else {
+//            if topView != nil {
+//                let top = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: topView, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0)
+//                view.superview?.addConstraint(top)
+//            } else {
+//
+//            }
+//        }
+//
+//        let width = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.width, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.width, multiplier: 1.0, constant: 0.0)
+//        view.superview?.addConstraint(width)
+//
+//        let centerX = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerX, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerX, multiplier: 1.0, constant: 0.0)
+//        view.superview?.addConstraint(centerX)
 
         view.superview?.setNeedsLayout()
         view.superview?.layoutIfNeeded()
@@ -4009,7 +4041,7 @@ class MediaViewController : MediaItemsViewController
         } else {
             // Fallback on earlier versions
             // This assumes the view goes under top bars, incl. opaque.
-            height -= navigationController!.navigationBar.frame.height + UIApplication.shared.statusBarFrame.height
+//            height -= navigationController!.navigationBar.frame.height + UIApplication.shared.statusBarFrame.height
         }
         
         let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(bounds.height)
@@ -4636,9 +4668,9 @@ class MediaViewController : MediaItemsViewController
     
     func addNotifications()
     {
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(setPlayerViewConstraints), name: NSNotification.Name(rawValue: "Setup Player View"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(setPlayerView), name: NSNotification.Name(rawValue: "Setup Player View"), object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
