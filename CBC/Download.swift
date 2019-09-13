@@ -165,8 +165,14 @@ extension Download : URLSessionDownloadDelegate
                 
                 try fileManager.copyItem(at: location, to: fileSystemURL)
                 
-                location.delete(block:true)
+//                location.delete(block:true)
                 
+                do {
+                    try FileManager.default.removeItem(at: location)
+                } catch let error {
+                    print("failed to delete \(location.absoluteString): \(error.localizedDescription)")
+                }
+
                 state = .downloaded
             } else {
                 // Nothing was downloaded

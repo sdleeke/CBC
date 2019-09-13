@@ -373,7 +373,14 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                     
                     do {
                         try fileManager.copyItem(at: location, to: destinationURL)
-                        location.delete(block:true)
+                        
+//                        location.delete(block:true)
+                        
+                        do {
+                            try FileManager.default.removeItem(at: location)
+                        } catch let error {
+                            print("failed to delete \(location.absoluteString): \(error.localizedDescription)")
+                        }
                     } catch let error {
                         print("failed to copy new json file to Documents: \(error.localizedDescription)")
                     }

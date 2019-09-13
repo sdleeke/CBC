@@ -4978,6 +4978,12 @@ class MediaViewController : MediaItemsViewController
         print("didReceiveMemoryWarning: \(String(describing: selectedMediaItem?.title))")
         Globals.shared.freeMemory()
         
+        guard isViewLoaded else {
+            return
+        }
+        
+//        return
+        
         self.data = nil
         wkWebView?.isHidden = true
 

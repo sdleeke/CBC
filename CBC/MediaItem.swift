@@ -1257,7 +1257,11 @@ class MediaItem : NSObject //, Downloader
             if let seriesDict = self[Field.series] as? [String:Any], let id = Series(seriesDict)?.id {
                 return id.description
             }
-            
+
+            if hasMultipleParts, let multiPartName = multiPartName {
+                return multiPartName
+            }
+
             // Potential crash if nil
             return mediaCode
         }

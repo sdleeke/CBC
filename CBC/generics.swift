@@ -807,11 +807,22 @@ class Fetch<T>
         operationQueue.cancelAllOperations()
     }
     
+    @objc func freeMemory()
+    {
+        cache = nil
+    }
+    
     init(name:String? = nil, useCache:Bool = false, fetch:(()->(T?))? = nil)
     {
         self.name = name
         self.useCache = useCache
         self.fetch = fetch
+        
+        if useCache {
+            Thread.onMain { // [weak self] in
+                NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+            }
+        }
     }
 
     var useCache = false

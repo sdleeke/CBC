@@ -1312,78 +1312,79 @@ class VoiceBase
 
     var metadata : String?
     {
-        guard let mediaItem = mediaItem else {
-            return nil
-        }
-        
-        guard mediaItem.mediaCode != nil else {
-            return nil
-        }
-
-        guard let title = mediaItem.title?.replacingOccurrences(of: "'s", with: Constants.RIGHT_SINGLE_QUOTE + "s").replacingOccurrences(of: "\r", with: "").replacingOccurrences(of: "\t", with: "").replacingOccurrences(of: "\n", with: "").trimmingCharacters(in: CharacterSet(charactersIn: "\"")) else {
-            return nil
-        }
-        
-        var mediaItemString = "{"
-        
+        get {
+            guard let mediaItem = mediaItem else {
+                return nil
+            }
+            
+            guard mediaItem.mediaCode != nil else {
+                return nil
+            }
+            
+            guard let title = mediaItem.title?.replacingOccurrences(of: "'s", with: Constants.RIGHT_SINGLE_QUOTE + "s").replacingOccurrences(of: "\r", with: "").replacingOccurrences(of: "\t", with: "").replacingOccurrences(of: "\n", with: "").trimmingCharacters(in: CharacterSet(charactersIn: "\"")) else {
+                return nil
+            }
+            
+            var mediaItemString = "{"
+            
             if let mediaID = mediaID {
                 mediaItemString += "\"title\":\"\(title) (\(transcriptPurpose))\n\(mediaID)\","
             } else {
                 mediaItemString += "\"title\":\"\(title) (\(transcriptPurpose))\","
             }
-
+            
             mediaItemString += "\"extended\":{" // mediaItem
-
-                if let category = mediaItem.category {
-                    mediaItemString += "\"category\":\"\(category)\","
-                }
-        
-                if let id = mediaItem.mediaCode {
-                    mediaItemString += "\"id\":\"\(id)\","
-                }
-        
-                if let date = mediaItem.date {
-                    mediaItemString += "\"date\":\"\(date)\","
-                }
-
-                if let service = mediaItem.service {
-                    mediaItemString += "\"service\":\"\(service)\","
-                }
-
-                //
-                mediaItemString += "\"title\":\"\(title)\","
-
-//                if let text = mediaItem.text {
-//                    mediaItemString += "\"text\":\"\(text) (\(transcriptPurpose))\","
-//                }
-
-                if let scripture = mediaItem.scripture {
-                    mediaItemString += "\"scripture\":\"\(scripture.description)\","
-                }
-
-                if let speaker = mediaItem.speaker {
-                    mediaItemString += "\"speaker\":\"\(speaker)\","
-                }
-
-                mediaItemString += "\"purpose\":\"\(transcriptPurpose)\","
-
-                mediaItemString += "\"device\":{"
-        
-                    mediaItemString += "\"name\":\"\(UIDevice.current.name)\","
-        
-                    mediaItemString += "\"model\":\"\(UIDevice.current.localizedModel)\","
-        
-                    if let uuid = UIDevice.current.identifierForVendor?.description {
-                        mediaItemString += "\"UUID\":\"\(uuid)\""
-                    }
-        
-                mediaItemString += "}"
-        
+            
+            if let category = mediaItem.category {
+                mediaItemString += "\"category\":\"\(category)\","
+            }
+            
+            if let id = mediaItem.mediaCode {
+                mediaItemString += "\"id\":\"\(id)\","
+            }
+            
+            if let date = mediaItem.date {
+                mediaItemString += "\"date\":\"\(date)\","
+            }
+            
+            if let service = mediaItem.service {
+                mediaItemString += "\"service\":\"\(service)\","
+            }
+            
+            //
+            mediaItemString += "\"title\":\"\(title)\","
+            
+            //                if let text = mediaItem.text {
+            //                    mediaItemString += "\"text\":\"\(text) (\(transcriptPurpose))\","
+            //                }
+            
+            if let scripture = mediaItem.scripture {
+                mediaItemString += "\"scripture\":\"\(scripture.description)\","
+            }
+            
+            if let speaker = mediaItem.speaker {
+                mediaItemString += "\"speaker\":\"\(speaker)\","
+            }
+            
+            mediaItemString += "\"purpose\":\"\(transcriptPurpose)\","
+            
+            mediaItemString += "\"device\":{"
+            
+            mediaItemString += "\"name\":\"\(UIDevice.current.name)\","
+            
+            mediaItemString += "\"model\":\"\(UIDevice.current.localizedModel)\","
+            
+            if let uuid = UIDevice.current.identifierForVendor?.description {
+                mediaItemString += "\"UUID\":\"\(uuid)\""
+            }
+            
             mediaItemString += "}"
-
-        mediaItemString += "}"
-
-        return mediaItemString
+            
+            mediaItemString += "}"
+            
+            mediaItemString += "}"
+            
+            return mediaItemString        }
     }
     
     var mediaID:String?
@@ -1685,21 +1686,7 @@ class VoiceBase
     private var _transcript:String?
     {
         didSet {
-            guard let mediaItem = mediaItem else {
-                return
-            }
-
-//            if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-//                return transcript._transcript != nil // self._
-//            }).count == 0
             
-            if _transcript == nil {
-                // This blocks this thread until it finishes. NO IT DOESN'T.
-                mediaItem.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
-            } else {
-                // This blocks this thread until it finishes. NO IT DOESN'T.
-                mediaItem.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
-            }
         }
     }
     var transcript:String?
@@ -1799,14 +1786,34 @@ class VoiceBase
             _transcript = newValue
 
             if _transcript != nil {
+                mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+                
                 fileQueue.addOperation { [weak self] in
                     self?._transcript?.save16(filename: self?.filename) // Keep in mind that this is being saved in the cache folder where it could disappear.
                 }
             } else {
+                mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+                
                 fileQueue.addOperation { [weak self] in
                     self?.filename?.fileSystemURL?.delete(block:true)
                 }
             }
+
+//            guard let mediaItem = mediaItem else {
+//                return
+//            }
+            
+            //            if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+            //                return transcript._transcript != nil // self._
+            //            }).count == 0
+            
+//            if newValue == nil {
+//                // This blocks this thread until it finishes. NO IT DOESN'T.
+//                mediaItem?.removeTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+//            } else {
+//                // This blocks this thread until it finishes. NO IT DOESN'T.
+//                mediaItem?.addTag(Constants.Strings.Transcript + " - " + Constants.Strings.Machine_Generated + " - " + transcriptPurpose)
+//            }
         }
     }
     
@@ -1881,29 +1888,7 @@ class VoiceBase
     private var _mediaJSON : [String:Any]?
     {
         didSet {
-            guard let filename = filename else {
-                print("failed to get filename")
-                return
-            }
             
-            guard let destinationURL = (filename + Constants.FILENAME_EXTENSION.media).fileSystemURL else {
-                print("failed to get destinationURL")
-                return
-            }
-            
-            fileQueue.addOperation { [weak self] in
-                if self?._mediaJSON != nil {
-                    let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
-                    
-                    do {
-                        try mediaPropertyList?.write(to: destinationURL)
-                    } catch let error {
-                        print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
-                    }
-                } else {
-                    destinationURL.delete(block:true)
-                }
-            }
         }
     }
     var mediaJSON: [String:Any]?
@@ -1926,25 +1911,29 @@ class VoiceBase
             }
             
             if let url = ("\(filename).media").fileSystemURL, let data = url.data {
-                do {
-                    _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-                } catch let error {
-                    print("failed to load machine generated media for \(mediaItem.description): \(error.localizedDescription)")
-                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
-//                    if completed && !aligning {
-//                        remove()
-//                    }
-                }
+                _mediaJSON = data.json as? [String:Any]
+
+//                do {
+//                    _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
+//                } catch let error {
+//                    print("failed to load machine generated media for \(mediaItem.description): \(error.localizedDescription)")
+//                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
+////                    if completed && !aligning {
+////                        remove()
+////                    }
+//                }
             } else {
                 print("failed to get data for \(mediaItem.description)")
                 
                 // Legacy
                 if let oldFilename = oldFilename, let url = ("\(oldFilename).media").fileSystemURL, let data = url.data {
-                    do {
-                        _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-                    } catch let error {
-                        print("failed to open machine generated media (again) for \(mediaItem.description)",error.localizedDescription)
-                    }
+                    _mediaJSON = data.json as? [String:Any]
+                    
+//                    do {
+//                        _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
+//                    } catch let error {
+//                        print("failed to open machine generated media (again) for \(mediaItem.description)",error.localizedDescription)
+//                    }
                 }
                 
                 // Not sure I want to do this since it only removes keywords
@@ -1955,9 +1944,50 @@ class VoiceBase
         }
         set {
             _mediaJSON = newValue
+
+            guard let filename = filename else {
+                print("failed to get filename")
+                return
+            }
+            
+            guard let destinationURL = (filename + Constants.FILENAME_EXTENSION.media).fileSystemURL else {
+                print("failed to get destinationURL")
+                return
+            }
+            
+            fileQueue.addOperation { [weak self] in
+                if newValue != nil {
+                    do {
+                        try JSONSerialization.data(withJSONObject: newValue, options: .sortedKeys).string8?.save8(filename: filename + Constants.FILENAME_EXTENSION.media)
+                    } catch let error {
+                        print("failed to save mediaJSON: \(error.localizedDescription)")
+                    }
+                    
+                    //                if self?._mediaJSON != nil {
+                    //                    let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
+                    //
+                    //                    do {
+                    //                        try mediaPropertyList?.write(to: destinationURL)
+                    //                    } catch let error {
+                    //                        print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
+                    //                    }
+                    //                } else {
+                    //                    destinationURL.delete(block:true)
+                    //                }
+                    
+                } else {
+                    destinationURL.delete(block:true)
+                }
+            }
         }
     }
 
+    @objc func freeMemory()
+    {
+        _mediaJSON = nil
+        _transcript = nil
+    }
+    
     init?(mediaItem:MediaItem?,purpose:String?)
     {
         guard let mediaItem = mediaItem else {
@@ -1998,6 +2028,10 @@ class VoiceBase
 //
 //                }
 //            }
+        }
+        
+        Thread.onMain { // [weak self] in
+            NotificationCenter.default.addObserver(self, selector: #selector(self.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
     }
     

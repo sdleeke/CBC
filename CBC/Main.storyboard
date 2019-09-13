@@ -255,7 +255,7 @@
                                 <rect key="frame" x="0.0" y="44" width="383" height="244"/>
                                 <subviews>
                                     <imageView hidden="YES" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="Ay8-yt-A6W">
-                                        <rect key="frame" x="52" y="86" width="279" height="72"/>
+                                        <rect key="frame" x="160.5" y="114" width="62" height="16"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
