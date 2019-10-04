@@ -114,6 +114,7 @@ class LiveViewController: CBCViewController
     
     @objc func done()
     {
+        Globals.shared.mediaPlayer.stop()
         if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SHOW_LAST_SEGUE), object: nil)
         }
@@ -164,13 +165,14 @@ class LiveViewController: CBCViewController
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
+        
     }
     
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
         
-        Globals.shared.mediaPlayer.stop()
+//        Globals.shared.mediaPlayer.stop()
         
         NotificationCenter.default.removeObserver(self)
     }
@@ -237,9 +239,9 @@ class LiveViewController: CBCViewController
         view.isHidden = false
 
         // So UI operates as expected
-        DispatchQueue.global(qos: .background).async { [weak self] in
-            Thread.sleep(forTimeInterval: 0.1) // apparently a delay is needed to get it to play correctly?
-            Globals.shared.mediaPlayer.play()
-        }
+//        DispatchQueue.global(qos: .background).async { [weak self] in
+//            Thread.sleep(forTimeInterval: 2) // apparently a delay is needed to get it to play correctly?
+//            Globals.shared.mediaPlayer.play()
+//        }
     }
 }

@@ -2433,6 +2433,12 @@ class MediaTableViewController : MediaItemsViewController
     {
         super.viewWillAppear(animated)
 
+        if splitViewController?.isCollapsed == true, Globals.shared.mediaPlayer.url == Globals.shared.streamingURL {
+            Globals.shared.mediaPlayer.stop()
+        }
+
+        didBecomeActive()
+        
         addNotifications()
         
         searchBar.showsSearchResultsButton = true
@@ -2527,7 +2533,11 @@ class MediaTableViewController : MediaItemsViewController
         if let navCon = dvc as? UINavigationController, let visibleViewController = navCon.visibleViewController {
             dvc = visibleViewController
         }
-        
+
+        if Globals.shared.mediaPlayer.url == Globals.shared.streamingURL {
+            Globals.shared.mediaPlayer.stop()
+        }
+
         if let identifier = segue.identifier {
             switch identifier {
             case Constants.SEGUE.SHOW_SETTINGS:
@@ -2605,6 +2615,10 @@ class MediaTableViewController : MediaItemsViewController
             self?.setupTitle()
             if popover != nil, let showButton = self?.showButton {
                 self?.show(showButton)
+            }
+
+            if self?.splitViewController?.isCollapsed == true, Globals.shared.mediaPlayer.url == Globals.shared.streamingURL {
+                Globals.shared.mediaPlayer.stop()
             }
         }
     }

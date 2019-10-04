@@ -1280,7 +1280,7 @@ class VoiceBase
                 return false
             }
             
-            return transcriptString == transcriptFromWordsString
+            return transcriptString.lowercased() == transcriptFromWordsString.lowercased()
         }
     }
     

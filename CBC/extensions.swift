@@ -5201,19 +5201,20 @@ extension UIViewController
         
         let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: lineHeight)
         
+        // .usesLineFragmentOrigin
         if let title = self.navigationItem.title, !title.isEmpty {
             let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
             
-            width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width + 20
+            width = ceil(string.boundingRect(with: widthSize, options: [], attributes: Constants.Fonts.Attributes.bold, context: nil).width) + 20
             
             if let left = navigationItem.leftBarButtonItem?.title {
                 let string = left.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
+                width += ceil(string.boundingRect(with: widthSize, options: [], attributes: Constants.Fonts.Attributes.body, context: nil).width) + 20
             }
             
             if let right = navigationItem.rightBarButtonItem?.title {
                 let string = right.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil).width + 20
+                width += ceil(string.boundingRect(with: widthSize, options: [], attributes: Constants.Fonts.Attributes.body, context: nil).width) + 20
             }
         }
         

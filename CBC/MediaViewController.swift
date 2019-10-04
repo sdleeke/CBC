@@ -122,24 +122,25 @@ extension MediaViewController : WKNavigationDelegate
                 }
             }
             
-            if let purpose = document?.purpose {
-                switch purpose {
-                case Purpose.slides:
-                    self.networkUnavailable("Slides not available.")
-                    break
-                    
-                case Purpose.notes:
-                    self.networkUnavailable("Transcript not available.")
-                    break
-                    
-                case Purpose.outline:
-                    self.networkUnavailable("Outline not available.")
-                    break
-                    
-                default:
-                    break
-                }
-            }
+            notAvailable(document?.purpose)
+//            if let purpose = document?.purpose {
+//                switch purpose {
+//                case Purpose.slides:
+//                    self.networkUnavailable("Slides not available.")
+//                    break
+//
+//                case Purpose.notes:
+//                    self.networkUnavailable("Transcript not available.")
+//                    break
+//
+//                case Purpose.outline:
+//                    self.networkUnavailable("Outline not available.")
+//                    break
+//
+//                default:
+//                    break
+//                }
+//            }
 
             decisionHandler(WKNavigationResponsePolicy.cancel)
         } else {
@@ -252,24 +253,25 @@ extension MediaViewController : WKNavigationDelegate
             self?.logo.isHidden = false
         }
         
-        if let purpose = self.document?.download?.purpose {
-            switch purpose {
-            case Purpose.notes:
-                self.networkUnavailable("Transcript not available.")
-                break
-                
-            case Purpose.slides:
-                self.networkUnavailable("Slides not available.")
-                break
-                
-            case Purpose.outline:
-                self.networkUnavailable("Outline not available.")
-                break
-                
-            default:
-                break
-            }
-        }
+        notAvailable(self.document?.download?.purpose)
+//        if let purpose = self.document?.download?.purpose {
+//            switch purpose {
+//            case Purpose.notes:
+//                self.networkUnavailable("Transcript not available.")
+//                break
+//
+//            case Purpose.slides:
+//                self.networkUnavailable("Slides not available.")
+//                break
+//
+//            case Purpose.outline:
+//                self.networkUnavailable("Outline not available.")
+//                break
+//
+//            default:
+//                break
+//            }
+//        }
     }
 }
 
@@ -3366,6 +3368,30 @@ class MediaViewController : MediaItemsViewController
 ////        }
     }
     
+    func notAvailable(_ showing:String?)
+    {
+        guard let showing = showing else {
+            return
+        }
+        
+        switch showing {
+        case Showing.slides:
+            Alerts.shared.alert(title: "Slides Not Available")
+            break
+            
+        case Showing.notes:
+            Alerts.shared.alert(title: "Transcript Not Available")
+            break
+            
+        case Showing.outline:
+            Alerts.shared.alert(title: "Outline Not Available")
+            break
+            
+        default:
+            break
+        }
+    }
+    
     fileprivate func setupDocumentsAndVideo()
     {
         guard self.isViewLoaded else {
@@ -3427,24 +3453,8 @@ class MediaViewController : MediaItemsViewController
         selectedMediaItem.verifyShowing()
         
         // document?.fetchData.result could take a lot of time.
-        if !Globals.shared.reachability.isReachable, let showing = selectedMediaItem.showing, document?.fetchData.useCache == false, !Globals.shared.settings.cacheDownloads || (download?.exists == false) {
-            switch showing {
-            case Showing.slides:
-                Alerts.shared.alert(title: "Slides Not Available")
-                break
-                
-            case Showing.notes:
-                Alerts.shared.alert(title: "Transcript Not Available")
-                break
-                
-            case Showing.outline:
-                Alerts.shared.alert(title: "Outline Not Available")
-                break
-                
-            default:
-                break
-            }
-            
+        if !Globals.shared.reachability.isReachable, document?.fetchData.useCache == false, !Globals.shared.settings.cacheDownloads || (download?.exists == false) {
+            notAvailable(selectedMediaItem.showing)
             selectedMediaItem.showing = Showing.none
         }
         
@@ -4102,6 +4112,10 @@ class MediaViewController : MediaItemsViewController
         }
         
         guard let isCollapsed = splitViewController?.isCollapsed, (traitCollection.verticalSizeClass != .compact) || !isCollapsed else {
+            return
+        }
+        
+        guard view.frame.height <= splitViewController?.view.bounds.height else {
             return
         }
         
@@ -4978,121 +4992,119 @@ class MediaViewController : MediaItemsViewController
         print("didReceiveMemoryWarning: \(String(describing: selectedMediaItem?.title))")
         Globals.shared.freeMemory()
         
-        guard isViewLoaded else {
-            return
-        }
-        
-//        return
-        
-        self.data = nil
-        wkWebView?.isHidden = true
-
-        wkWebView?.removeFromSuperview()
-        wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
-        wkWebView?.isHidden = true
-        setupWKWebView(wkWebView)
-        
-        // Kill the document from reloading
-        document?.fetchData.retrieve = nil
-        document?.fetchData.fetch = nil
-
-//        document?.download?.downloadURL = nil
-        
-        activityIndicator.stopAnimating()
-        activityIndicator.isHidden = true
-        
-        if let selectedMediaItem = selectedMediaItem, selectedMediaItem.hasPosterImage {
-            operationQueue.addOperation { [weak self] in
-                Thread.onMain { [weak self] in
-                    guard self?.selectedMediaItem == selectedMediaItem else {
-                        return
-                    }
-
-                    if let activityIndicator = self?.activityIndicator {
-                        self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
-                    }
-                    self?.activityIndicator.isHidden = false
-                    self?.activityIndicator.startAnimating()
-                }
-
-                if let posterImage = selectedMediaItem.posterImage?.image {
-                    self?.setImage(posterImage,mediaItem: selectedMediaItem)
+//        guard isViewLoaded else {
+//            return
+//        }
+//        
+//        self.data = nil
+//        wkWebView?.isHidden = true
+//
+//        wkWebView?.removeFromSuperview()
+//        wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
+//        wkWebView?.isHidden = true
+//        setupWKWebView(wkWebView)
+//
+//        // Kill the document from reloading
+//        document?.fetchData.retrieve = nil
+//        document?.fetchData.fetch = nil
+//
+////        document?.download?.downloadURL = nil
+//
+//        activityIndicator.stopAnimating()
+//        activityIndicator.isHidden = true
+//
+//        if let selectedMediaItem = selectedMediaItem, selectedMediaItem.hasPosterImage {
+//            operationQueue.addOperation { [weak self] in
+//                Thread.onMain { [weak self] in
 //                    guard self?.selectedMediaItem == selectedMediaItem else {
 //                        return
 //                    }
 //
-//                    Thread.onMain { [weak self] in
-//                        guard self?.selectedMediaItem == selectedMediaItem else {
-//                            return
-//                        }
-//
-//                        // Need to adjust aspect ratio contraint
-//                        let ratio = posterImage.size.width / posterImage.size.height
-//
-//                        self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
-//                        self?.logo.image = posterImage
+//                    if let activityIndicator = self?.activityIndicator {
+//                        self?.mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
 //                    }
-                }
-
-                Thread.onMain { [weak self] in
-                    guard self?.selectedMediaItem == selectedMediaItem else {
-                        return
-                    }
-
-                    self?.activityIndicator.stopAnimating()
-                    self?.activityIndicator.isHidden = true
-                }
-            }
-        }
-
-        if let showing = selectedMediaItem?.showing {
-            switch showing {
-            case Showing.slides:
-                fallthrough
-            case Showing.notes:
-                fallthrough
-            case Showing.outline:
-                logo.isHidden = false
-                if let logo = logo {
-                    mediaItemNotesAndSlides.bringSubviewToFront(logo)
-                }
-                selectedMediaItem?.showing = Showing.none
-                mediaItemNotesAndSlides.gestureRecognizers = nil
-                let pan = UIPanGestureRecognizer(target: self, action: #selector(changeVerticalSplit(_:)))
-                mediaItemNotesAndSlides.addGestureRecognizer(pan)
-                break
-                
-            default:
-                break
-            }
-        }
-        
-//        if selectedMediaItem?.showing == Showing.video, let view = Globals.shared.mediaPlayer.view {
-//            mediaItemNotesAndSlides.bringSubviewToFront(view)
+//                    self?.activityIndicator.isHidden = false
+//                    self?.activityIndicator.startAnimating()
+//                }
+//
+//                if let posterImage = selectedMediaItem.posterImage?.image {
+//                    self?.setImage(posterImage,mediaItem: selectedMediaItem)
+////                    guard self?.selectedMediaItem == selectedMediaItem else {
+////                        return
+////                    }
+////
+////                    Thread.onMain { [weak self] in
+////                        guard self?.selectedMediaItem == selectedMediaItem else {
+////                            return
+////                        }
+////
+////                        // Need to adjust aspect ratio contraint
+////                        let ratio = posterImage.size.width / posterImage.size.height
+////
+////                        self?.layoutAspectRatio = self?.layoutAspectRatio.setMultiplier(multiplier: ratio)
+////                        self?.logo.image = posterImage
+////                    }
+//                }
+//
+//                Thread.onMain { [weak self] in
+//                    guard self?.selectedMediaItem == selectedMediaItem else {
+//                        return
+//                    }
+//
+//                    self?.activityIndicator.stopAnimating()
+//                    self?.activityIndicator.isHidden = true
+//                }
+//            }
 //        }
-        
-        let title = "Insufficient Memory"
-        
-        switch purpose {
-        case Purpose.slides:
-            Alerts.shared.alert(title:title,message:"Slides not available.")
-            break
-            
-        case Purpose.notes:
-            if let name = selectedMediaItem?.notesName {
-                Alerts.shared.alert(title:title,message:name + " not available.")
-            } else {
-                Alerts.shared.alert(title:title)
-            }
-            break
-            
-        case Purpose.outline:
-            Alerts.shared.alert(title:title,message:"Outline not available.")
-            break
-            
-        default:
-            break
-        }
+//
+//        if let showing = selectedMediaItem?.showing {
+//            switch showing {
+//            case Showing.slides:
+//                fallthrough
+//            case Showing.notes:
+//                fallthrough
+//            case Showing.outline:
+//                logo.isHidden = false
+//                if let logo = logo {
+//                    mediaItemNotesAndSlides.bringSubviewToFront(logo)
+//                }
+//                selectedMediaItem?.showing = Showing.none
+//                mediaItemNotesAndSlides.gestureRecognizers = nil
+//                let pan = UIPanGestureRecognizer(target: self, action: #selector(changeVerticalSplit(_:)))
+//                mediaItemNotesAndSlides.addGestureRecognizer(pan)
+//                break
+//
+//            default:
+//                break
+//            }
+//        }
+//
+////        if selectedMediaItem?.showing == Showing.video, let view = Globals.shared.mediaPlayer.view {
+////            mediaItemNotesAndSlides.bringSubviewToFront(view)
+////        }
+//
+//        let title = "Insufficient Memory"
+//
+//        switch purpose {
+//        case Purpose.slides:
+//            Alerts.shared.alert(title:title,message:"Slides not available.")
+//            break
+//
+//        case Purpose.notes:
+//            if let name = selectedMediaItem?.notesName {
+//                Alerts.shared.alert(title:title,message:name + " not available.")
+//            } else {
+//                Alerts.shared.alert(title:title)
+//            }
+//            break
+//
+//        case Purpose.outline:
+//            Alerts.shared.alert(title:title,message:"Outline not available.")
+//            break
+//
+//        default:
+//            break
+//        }
     }
     
     /*

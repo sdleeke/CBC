@@ -18,7 +18,9 @@ class PopoverTableViewCell: UITableViewCell
     }
     
     @IBOutlet weak var title: UILabel!
-
+    @IBOutlet weak var titleToBottom: NSLayoutConstraint!
+    @IBOutlet weak var titleToTop: NSLayoutConstraint!
+    
     override func awakeFromNib()
     {
         super.awakeFromNib()

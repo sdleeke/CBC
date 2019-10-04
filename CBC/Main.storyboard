@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Xai-Yi-pif">
-    <device id="retina4_0" orientation="landscape">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14868" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Xai-Yi-pif">
+    <device id="retina4_0" orientation="landscape" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14824"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="Stack View standard spacing" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -58,19 +56,19 @@
                                     <outlet property="delegate" destination="aFI-YW-IUs" id="JYV-bl-aPp"/>
                                 </connections>
                             </searchBar>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="VIx-eq-98g">
+                            <tableView opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="VIx-eq-98g">
                                 <rect key="frame" x="0.0" y="96" width="568" height="192"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="MediaItem" id="a5x-WU-NNC" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="22" width="568" height="100"/>
+                                    <tableViewCell opaque="NO" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="MediaItem" id="a5x-WU-NNC" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="568" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="a5x-WU-NNC" id="A01-fJ-FMH">
-                                            <rect key="frame" x="0.0" y="0.0" width="568" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="568" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xkb-5P-JA1">
-                                                    <rect key="frame" x="20" y="4" width="544" height="61.5"/>
+                                                    <rect key="frame" x="20" y="4" width="544" height="62"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="YuD-lX-SbJ"/>
                                                     </constraints>
@@ -83,21 +81,19 @@
                                                         </mask>
                                                     </variation>
                                                 </label>
-                                                <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zia-hB-2Dv" userLabel="DetailText">
-                                                    <rect key="frame" x="16" y="65.5" width="548" height="30"/>
-                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <textView opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zia-hB-2Dv" userLabel="DetailText">
+                                                    <rect key="frame" x="16" y="66" width="548" height="30"/>
                                                     <attributedString key="attributedText"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IWS-RY-DB5">
-                                                    <rect key="frame" x="20" y="67.5" width="544" height="22"/>
+                                                    <rect key="frame" x="20" y="68" width="544" height="22"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <label userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eA8-mK-b7w">
-                                                    <rect key="frame" x="566" y="97.5" width="0.0" height="0.0"/>
-                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eA8-mK-b7w">
+                                                    <rect key="frame" x="566" y="98" width="0.0" height="0.0"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="12" id="Y74-HO-YFP"/>
                                                     </constraints>
@@ -111,7 +107,7 @@
                                                     </variation>
                                                 </label>
                                                 <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="IgM-pT-w8s" userLabel="Progress Bar">
-                                                    <rect key="frame" x="20" y="97.5" width="548" height="2"/>
+                                                    <rect key="frame" x="20" y="98" width="548" height="2"/>
                                                 </progressView>
                                             </subviews>
                                             <constraints>
@@ -255,7 +251,7 @@
                                 <rect key="frame" x="0.0" y="44" width="383" height="244"/>
                                 <subviews>
                                     <imageView hidden="YES" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="Ay8-yt-A6W">
-                                        <rect key="frame" x="160.5" y="114" width="62" height="16"/>
+                                        <rect key="frame" x="-0.5" y="72.5" width="384" height="99"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -459,20 +455,20 @@
                                 </constraints>
                                 <viewLayoutGuide key="safeArea" id="Byw-bg-6b9"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="MultiPartMediaItem" id="pos-sk-GNz" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="1" width="284" height="100"/>
+                                    <tableViewCell opaque="NO" contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="MultiPartMediaItem" id="pos-sk-GNz" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="284" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="pos-sk-GNz" id="fzr-9D-Qsi">
-                                            <rect key="frame" x="0.0" y="0.0" width="284" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="284" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Spt-3A-E9i">
-                                                    <rect key="frame" x="20" y="4" width="260" height="61.5"/>
+                                                    <rect key="frame" x="20" y="4" width="260" height="62"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="n46-8i-ALt"/>
                                                     </constraints>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
-                                                    <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                     <variation key="default">
                                                         <mask key="constraints">
@@ -480,25 +476,24 @@
                                                         </mask>
                                                     </variation>
                                                 </label>
-                                                <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="i7O-sS-l83" userLabel="DetailText">
-                                                    <rect key="frame" x="20" y="65.5" width="260" height="30"/>
-                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <textView opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="i7O-sS-l83" userLabel="DetailText">
+                                                    <rect key="frame" x="20" y="66" width="260" height="30"/>
                                                     <attributedString key="attributedText"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4uZ-39-i9r">
-                                                    <rect key="frame" x="20" y="67.5" width="260" height="22"/>
+                                                    <rect key="frame" x="20" y="68" width="260" height="22"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                                    <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L9x-Xt-BKK" userLabel="Icons">
-                                                    <rect key="frame" x="282" y="97.5" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="282" y="98" width="0.0" height="0.0"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="12" id="dUn-mj-LYh"/>
                                                     </constraints>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
-                                                    <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                     <variation key="default">
                                                         <mask key="constraints">
@@ -507,7 +502,7 @@
                                                     </variation>
                                                 </label>
                                                 <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="nxS-ta-D6R">
-                                                    <rect key="frame" x="20" y="97.5" width="264" height="2"/>
+                                                    <rect key="frame" x="20" y="98" width="264" height="2"/>
                                                 </progressView>
                                             </subviews>
                                             <constraints>
@@ -770,7 +765,7 @@
             <objects>
                 <viewController title="About" automaticallyAdjustsScrollViewInsets="NO" id="lBu-Wa-0uM" customClass="AboutViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="oQh-5Y-6Pd">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="716"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="736"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tom Pennington" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aaG-AL-gpM">
@@ -907,11 +902,11 @@ Email: cbcstaff@countrysidebible.org</string>
             <objects>
                 <viewController title="About 2" automaticallyAdjustsScrollViewInsets="NO" id="c87-tQ-6Ls" customClass="AboutViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="t0B-Id-nSB">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="1148"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="1168"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ndK-6H-sCB">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="1148"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="1168"/>
                                 <subviews>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="tom_pennington" translatesAutoresizingMaskIntoConstraints="NO" id="GJp-uH-K13">
                                         <rect key="frame" x="172" y="20" width="256" height="256"/>
@@ -1707,14 +1702,14 @@ Web site: www.countrysidebible.org</string>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="IndexMediaItem" id="O5D-zW-cLl" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="1" width="284" height="100"/>
+                                        <rect key="frame" x="0.0" y="28" width="284" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="O5D-zW-cLl" id="t9J-qH-ixG">
-                                            <rect key="frame" x="0.0" y="0.0" width="284" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="284" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qyy-zD-jgt">
-                                                    <rect key="frame" x="20" y="4" width="260" height="61.5"/>
+                                                    <rect key="frame" x="20" y="4" width="260" height="62"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="RNJ-QR-xJ9"/>
                                                     </constraints>
@@ -1727,26 +1722,25 @@ Web site: www.countrysidebible.org</string>
                                                         </mask>
                                                     </variation>
                                                 </label>
-                                                <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CW5-2J-de4" userLabel="DetailText">
-                                                    <rect key="frame" x="20" y="65.5" width="260" height="30"/>
-                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <textView opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CW5-2J-de4" userLabel="DetailText">
+                                                    <rect key="frame" x="20" y="66" width="260" height="30"/>
                                                     <attributedString key="attributedText"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Detail" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="e1j-7E-JH8">
-                                                    <rect key="frame" x="20" y="67.5" width="260" height="30"/>
+                                                    <rect key="frame" x="20" y="68" width="260" height="30"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xii-Pk-dwa">
-                                                    <rect key="frame" x="282" y="97.5" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="282" y="98" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="a84-WN-2lC">
-                                                    <rect key="frame" x="20" y="97.5" width="264" height="2"/>
+                                                    <rect key="frame" x="20" y="98" width="264" height="2"/>
                                                 </progressView>
                                             </subviews>
                                             <constraints>
@@ -1913,10 +1907,10 @@ Web site: www.countrysidebible.org</string>
                                         </constraints>
                                     </stackView>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6zZ-au-Mkc">
-                                        <rect key="frame" x="0.0" y="31" width="270" height="28"/>
+                                        <rect key="frame" x="0.0" y="31" width="270" height="31"/>
                                         <subviews>
                                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="elp-RX-cvB">
-                                                <rect key="frame" x="4" y="0.0" width="262" height="29"/>
+                                                <rect key="frame" x="4" y="0.0" width="262" height="32"/>
                                                 <segments>
                                                     <segment title="Vertical"/>
                                                     <segment title="Horizontal"/>
@@ -1936,7 +1930,7 @@ Web site: www.countrysidebible.org</string>
                                         </constraints>
                                     </view>
                                     <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="f2R-wz-Uiq">
-                                        <rect key="frame" x="0.0" y="60" width="270" height="228"/>
+                                        <rect key="frame" x="0.0" y="63" width="270" height="225"/>
                                         <connections>
                                             <segue destination="XK5-KT-b8P" kind="embed" identifier="Show Word List" id="qdL-rt-Y5i"/>
                                         </connections>
@@ -2005,11 +1999,11 @@ Web site: www.countrysidebible.org</string>
             <objects>
                 <viewController automaticallyAdjustsScrollViewInsets="NO" id="XK5-KT-b8P" customClass="PopoverTableViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="vtO-3p-c8v">
-                        <rect key="frame" x="0.0" y="0.0" width="270" height="228"/>
+                        <rect key="frame" x="0.0" y="0.0" width="568" height="288"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <searchBar contentMode="redraw" verticalHuggingPriority="249" translatesAutoresizingMaskIntoConstraints="NO" id="iFe-Ke-XMe">
-                                <rect key="frame" x="0.0" y="0.0" width="270" height="56"/>
+                                <rect key="frame" x="0.0" y="0.0" width="568" height="56"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="44" id="6cd-1S-roS"/>
                                 </constraints>
@@ -2024,7 +2018,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </searchBar>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" verticalCompressionResistancePriority="749" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="oEH-nM-WQf">
-                                <rect key="frame" x="8" y="64" width="254" height="29"/>
+                                <rect key="frame" x="8" y="64" width="552" height="32"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="26" id="xgj-MP-DUA"/>
                                 </constraints>
@@ -2042,18 +2036,18 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </segmentedControl>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="35" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="g8w-6P-vre">
-                                <rect key="frame" x="0.0" y="100" width="270" height="128"/>
+                                <rect key="frame" x="0.0" y="103" width="568" height="185"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="checkmark" indentationWidth="10" reuseIdentifier="PopoverCell" id="gxN-j6-OUN" customClass="PopoverTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="22" width="270" height="35"/>
+                                        <rect key="frame" x="0.0" y="28" width="568" height="35"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="gxN-j6-OUN" id="G1M-4g-45e">
-                                            <rect key="frame" x="0.0" y="0.0" width="231" height="35"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="529" height="35"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gxs-R4-h4B">
-                                                    <rect key="frame" x="8" y="8" width="222" height="18.5"/>
+                                                    <rect key="frame" x="15" y="11" width="506" height="13"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -2068,6 +2062,8 @@ Web site: www.countrysidebible.org</string>
                                         </tableViewCellContentView>
                                         <connections>
                                             <outlet property="title" destination="gxs-R4-h4B" id="rVs-HL-3nQ"/>
+                                            <outlet property="titleToBottom" destination="IzC-CH-6U6" id="9Zs-NZ-4CB"/>
+                                            <outlet property="titleToTop" destination="l7O-df-VMA" id="gkg-Om-UMh"/>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>
@@ -2077,7 +2073,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </tableView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="69l-jj-b4O">
-                                <rect key="frame" x="116.5" y="145.5" width="37" height="37"/>
+                                <rect key="frame" x="265.5" y="177" width="37" height="37"/>
                                 <color key="color" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </activityIndicatorView>
                         </subviews>
@@ -2497,14 +2493,14 @@ Web site: www.countrysidebible.org</string>
                                 </constraints>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="IndexMediaItem" id="Lb7-Td-pZZ" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="1" width="284" height="100"/>
+                                        <rect key="frame" x="0.0" y="28" width="284" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Lb7-Td-pZZ" id="GgB-Ff-LPp">
-                                            <rect key="frame" x="0.0" y="0.0" width="284" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="284" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalCompressionResistancePriority="751" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Q0U-i7-ChV">
-                                                    <rect key="frame" x="20" y="4" width="260" height="61.5"/>
+                                                    <rect key="frame" x="20" y="4" width="260" height="62"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="Js2-n8-Mgq"/>
                                                     </constraints>
@@ -2517,29 +2513,28 @@ Web site: www.countrysidebible.org</string>
                                                         </mask>
                                                     </variation>
                                                 </label>
-                                                <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OXz-ER-jY2" userLabel="DetailText">
-                                                    <rect key="frame" x="20" y="65.5" width="260" height="30"/>
-                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <textView opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" editable="NO" usesAttributedText="YES" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OXz-ER-jY2" userLabel="DetailText">
+                                                    <rect key="frame" x="20" y="66" width="260" height="30"/>
                                                     <attributedString key="attributedText"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Detail" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mqs-L6-uck">
-                                                    <rect key="frame" x="20" y="67.5" width="260" height="30"/>
+                                                    <rect key="frame" x="20" y="68" width="260" height="30"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a6p-xn-ies">
-                                                    <rect key="frame" x="282" y="97.5" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="282" y="98" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="R0F-oJ-ptu">
-                                                    <rect key="frame" x="20" y="97.5" width="264" height="2"/>
+                                                    <rect key="frame" x="20" y="98" width="264" height="2"/>
                                                 </progressView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZqQ-Jh-Doi" userLabel="Count">
-                                                    <rect key="frame" x="20" y="97.5" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="20" y="98" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -2795,8 +2790,8 @@ Web site: www.countrysidebible.org</string>
     <inferredMetricsTieBreakers>
         <segue reference="Ssd-jc-3ar"/>
         <segue reference="aB1-TK-hgY"/>
-        <segue reference="qdL-rt-Y5i"/>
+        <segue reference="29o-8N-w4i"/>
         <segue reference="viU-Ce-4kR"/>
-        <segue reference="lht-fN-efO"/>
+        <segue reference="UKU-pu-csh"/>
     </inferredMetricsTieBreakers>
 </document>

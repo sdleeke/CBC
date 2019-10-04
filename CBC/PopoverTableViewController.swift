@@ -981,7 +981,7 @@ class PopoverTableViewController : CBCViewController
         preferredContentSize = CGSize(width: 0, height: 0)
 
         let margins:CGFloat = 2
-        let marginSpace:CGFloat = 20
+        var marginSpace:CGFloat = 4
         
         let checkmarkSpace:CGFloat = 38
         let indexSpace:CGFloat = 40
@@ -990,8 +990,6 @@ class PopoverTableViewController : CBCViewController
         var width:CGFloat = 0.0
         
         var deducts:CGFloat = 0
-        
-        deducts += margins * marginSpace
         
         if section.showIndex {
             deducts += indexSpace
@@ -1007,12 +1005,15 @@ class PopoverTableViewController : CBCViewController
                 fallthrough
             case .selectingSorting:
                 deducts += checkmarkSpace
+                marginSpace = 15
                 break
                 
             default:
                 break
             }
         }
+        
+        deducts += margins * marginSpace
         
         let heightSize: CGSize = CGSize(width: viewWidth - deducts, height: .greatestFiniteMagnitude)
         let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: Constants.Fonts.body.lineHeight)
@@ -1022,17 +1023,25 @@ class PopoverTableViewController : CBCViewController
         for string in strings {
             if let strings = parser != nil ? parser?(string) : [string] {
                 for stringInStrings in strings {
-                    let maxHeight = stringInStrings.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil)
-                    let maxWidth = stringInStrings.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.body, context: nil)
+                    let maxHeight = stringInStrings.replacingOccurrences(of: " ", with: Constants.UNBREAKABLE_SPACE).boundingRect(with: heightSize, options: [], attributes: Constants.Fonts.Attributes.body, context: nil)
+                    let maxWidth = stringInStrings.replacingOccurrences(of: " ", with: Constants.UNBREAKABLE_SPACE).boundingRect(with: widthSize, options: [], attributes: Constants.Fonts.Attributes.body, context: nil)
                     
-                    if maxWidth.width > width {
-                        width = maxWidth.width
+                    if (ceil(maxWidth.width) + 25) > width {
+                        width = ceil(maxWidth.width) + 25
                     }
                     
                     if tableView.rowHeight != -1 {
                         height += tableView.rowHeight
                     } else {
-                        height += 2*8 + maxHeight.height // - baseHeight
+                        var spacing:CGFloat = 8
+                        
+                        if #available(iOS 13.0, *) {
+                            spacing = 12
+                        } else {
+                            // Fallback on earlier versions
+                        }
+
+                        height += 2*spacing + ceil(maxHeight.height) // - baseHeight
                     }
                 }
             }
@@ -1040,9 +1049,9 @@ class PopoverTableViewController : CBCViewController
         
         if self.section.showIndex || self.section.showHeaders, let headers = self.section.headers {
             for header in headers {
-                let maxWidth = header.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width // + 20
-                if maxWidth > width {
-                    width = maxWidth
+                let maxWidth = header.replacingOccurrences(of: " ", with: Constants.UNBREAKABLE_SPACE).boundingRect(with: widthSize, options: [], attributes: Constants.Fonts.Attributes.bold, context: nil) // + 20
+                if ceil(maxWidth.width) > width {
+                    width = ceil(maxWidth.width)
                 }
             }
         }
@@ -1971,7 +1980,7 @@ extension PopoverTableViewController : UITableViewDelegate
         
         let heightSize: CGSize = CGSize(width: tableView.frame.width - 20, height: .greatestFiniteMagnitude)
         
-        let height = title.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).height + 20
+        let height = title.boundingRect(with: heightSize, options: [], attributes: Constants.Fonts.Attributes.bold, context: nil).height + 20
         
         return height
     }

@@ -1343,6 +1343,19 @@ class TextViewController : CBCViewController
 //        searchQueue.addOperation(searchOp)
     }
     
+    var unchanged : Bool
+    {
+        get {
+            let transcriptString = self.textView.attributedText.string.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            
+            let transcriptFromWordsString = self.transcript?.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            
+            print(prettyFirstDifferenceBetweenStrings(transcriptString as NSString, transcriptFromWordsString as! NSString))
+            
+            return transcriptString.lowercased() == transcriptFromWordsString?.lowercased()
+        }
+    }
+
     @objc func autoEdit()
     {
         guard !searchActive else {
@@ -1360,9 +1373,7 @@ class TextViewController : CBCViewController
                 return
             }
 
-            if  let transcriptString = self?.textView.attributedText.string.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                let transcriptFromWordsString = self?.transcript?.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                transcriptString == transcriptFromWordsString {
+            if self?.unchanged == true {
                 var actions = [AlertAction]()
                 
                 actions.append(AlertAction(title: "Paragraph Breaks", style: .default, handler: { [weak self] in
@@ -1554,9 +1565,7 @@ class TextViewController : CBCViewController
                 return
             }
             
-            if  let transcriptString = self?.textView.attributedText.string.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                let transcriptFromWordsString = self?.transcript?.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                transcriptString == transcriptFromWordsString {
+            if self?.unchanged == true {
                 var actions = [AlertAction]()
                 
                 actions.append(AlertAction(title: "Paragraph Breaks", style: .default, handler: { [weak self] in

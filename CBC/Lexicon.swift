@@ -194,6 +194,113 @@ class Lexicon : NSObject // Why an NSObject?
         }
     }
     
+    var totalWordCount : Int?
+    {
+        get {
+            return words?.storage.reduce(0, { (result, kv:(key: String, value: Any)) -> Int in
+                guard let appearances = (kv.value as? [MediaItem:Int]) else {
+                    return result
+                }
+                
+                return result + appearances.values.reduce(0, { (result, count) -> Int in
+                    return result + count
+                })
+            })
+        }
+    }
+    
+    func transcriptWordCount(_ mediaItem:MediaItem?) -> Int?
+    {
+        return words?.storage.reduce(0, { (result, kv:(key: String, value: Any)) -> Int in
+            guard let mediaItem = mediaItem else {
+                return result
+            }
+            
+            guard let appearances = (kv.value as? [MediaItem:Int])?[mediaItem] else {
+                return result
+            }
+            
+            return result + appearances
+        })
+    }
+    
+    func transcriptFrequency(_ word:String?) -> Int?
+    {
+        guard let word = word else {
+            return nil
+        }
+        
+        return words?[word]?.count
+    }
+    
+    func wordFrequency(_ word:String?) -> Int?
+    {
+        guard let word = word else {
+            return nil
+        }
+        
+        return words?[word]?.reduce(0, { (result, kv:(key: MediaItem, value: Int)) -> Int in
+            return result + kv.value
+        })
+    }
+    
+    func tf(word:String?, mediaItem:MediaItem?) -> Double?
+    {
+        guard let word = word else {
+            return nil
+        }
+        
+        guard let mediaItem = mediaItem else {
+            return nil
+        }
+        
+        guard let frequency = words?[word]?[mediaItem] else {
+            return nil
+        }
+
+        guard let transcriptWordCount = transcriptWordCount(mediaItem) else {
+            return nil
+        }
+        
+//        guard let transcriptWordCount = words?.storage.reduce(0, { (result, kv:(key: String, value: Any)) -> Int in
+//            guard let transcriptWordCount = transcriptWordCount(mediaItem) else {
+//                return result
+//            }
+//
+//            return result + transcriptWordCount
+//        }), transcriptWordCount > 0 else {
+//            return nil
+//        }
+        
+        return Double(frequency) / Double(transcriptWordCount)
+    }
+        
+    func idf(word:String?) -> Double?
+    {
+        guard let transcriptCount = entries?.count else {
+            return nil
+        }
+        
+        guard let transcriptFrequency = transcriptFrequency(word), transcriptFrequency > 0 else {
+            return nil
+        }
+        
+        return log(Double(transcriptCount) / Double(transcriptFrequency))
+    }
+    
+    func tfidf(word:String?, mediaItem:MediaItem?) -> Double?
+    {
+        guard let tf = tf(word:word, mediaItem:mediaItem) else {
+            return nil
+        }
+    
+        guard let idf = idf(word:word) else {
+            return nil
+        }
+        
+        return tf * idf
+    }
+    
     var building:Bool
     {
         get {

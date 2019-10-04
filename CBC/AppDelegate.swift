@@ -541,6 +541,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             return UISplitViewController.DisplayMode.automatic
         }
         
+        guard Globals.shared.mediaPlayer.url != Globals.shared.streamingURL else {
+            return UISplitViewController.DisplayMode.automatic
+        }
+        
         Thread.onMain { [weak self] in 
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
         }
