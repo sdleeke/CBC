@@ -213,11 +213,15 @@ class LiveViewController: CBCViewController
                 
         view.isHidden = true
         view.removeFromSuperview()
+        Globals.shared.mediaPlayer.controller?.removeFromParent()
         
         view.frame = webView.bounds
         
         view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
         
+        if let avPlayerViewController = Globals.shared.mediaPlayer.controller {
+            self.addChild(avPlayerViewController)
+        }
         webView.addSubview(view)
         
         let centerX = NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.centerX, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview, attribute: NSLayoutConstraint.Attribute.centerX, multiplier: 1.0, constant: 0.0)

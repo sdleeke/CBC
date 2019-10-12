@@ -1184,7 +1184,7 @@ class TextViewController : CBCViewController
 //                    beforeAttr.append(afterAttr)
                     
                     let attributedText = NSMutableAttributedString(string: changedText, attributes:Constants.Fonts.Attributes.body)
-                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.lightGray],
+                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: Constants.Fonts.marking],
                                                  range: NSRange(location: range.lowerBound.utf16Offset(in: changedText), length: text.count))
                     textView.attributedText = attributedText
 

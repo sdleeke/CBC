@@ -612,6 +612,10 @@ enum Constants {
     }
     
     enum Fonts {
+        static let highlighting = UIColor.yellow.withAlphaComponent(0.5)
+        static let marking = UIColor.lightGray // .withAlphaComponent(0.5)
+        static let destructive = UIColor.red // .withAlphaComponent(0.5)
+
         static let callout = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.callout)
         
         static let footnote = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.footnote)
@@ -629,16 +633,16 @@ enum Constants {
             
             static let bold = [ NSAttributedString.Key.font: Fonts.bold ]
             
-            static let marked = [ NSAttributedString.Key.backgroundColor: UIColor.lightGray,
+            static let marked = [ NSAttributedString.Key.backgroundColor: Fonts.marking,
                                        NSAttributedString.Key.font: Fonts.body ]
             
-            static let highlighted = [ NSAttributedString.Key.backgroundColor: UIColor.yellow,
+            static let highlighted = [ NSAttributedString.Key.backgroundColor: Fonts.highlighting,
                                        NSAttributedString.Key.font: Fonts.body ]
             
-            static let destructive = [ NSAttributedString.Key.foregroundColor: UIColor.red,
+            static let destructive = [ NSAttributedString.Key.foregroundColor: Fonts.destructive,
                                        NSAttributedString.Key.font: Fonts.body ]
             
-            static let boldHighlighted = [ NSAttributedString.Key.backgroundColor: UIColor.yellow,
+            static let boldHighlighted = [ NSAttributedString.Key.backgroundColor: Fonts.highlighting,
                                            NSAttributedString.Key.font: Fonts.bold ]
         }
     }
@@ -655,7 +659,7 @@ enum Constants {
             enum Attributes {
                 static let icons = [ NSAttributedString.Key.font: Fonts.icons ]
                 
-                static let highlightedIcons = [ NSAttributedString.Key.backgroundColor: UIColor.yellow,
+                static let highlightedIcons = [ NSAttributedString.Key.backgroundColor: Constants.Fonts.highlighting,
                                                 NSAttributedString.Key.font: Fonts.icons ]
                 
                 static let tags = [ NSAttributedString.Key.font: Fonts.tags ]

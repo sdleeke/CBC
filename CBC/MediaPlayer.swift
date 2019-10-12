@@ -1011,13 +1011,12 @@ class MediaPlayer : NSObject
         player?.pause()
         playOnLoad = false
 
-        switch url.absoluteString {
-        case Constants.URL.LIVE_STREAM:
-            break
-            
-        default:
-            killPIP = true
-            
+        killPIP = true
+
+        view?.removeFromSuperview()
+        controller?.removeFromParent()
+
+        if url != Globals.shared.streamingURL {
             updateCurrentTimeExact()
             
             if mediaItem?.showing == Showing.video {
@@ -1028,8 +1027,15 @@ class MediaPlayer : NSObject
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self?.mediaItem)
             }
-            break
         }
+
+//        switch url.absoluteString {
+//        case Constants.URL.LIVE_STREAM:
+//            break
+//
+//        default:
+//            break
+//        }
         
         // This is unique to stop()
         unload()

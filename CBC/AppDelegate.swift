@@ -296,6 +296,11 @@ extension AppDelegate : UISplitViewControllerDelegate
         if let navigationController = splitViewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
             let mvc = navigationController.viewControllers[0] as? MediaViewController {
             // MUST be an actual dispatch as it relies on the delay since we are already on the main thread.
+            
+            if Globals.shared.mediaPlayer.url == Globals.shared.streamingURL {
+                Globals.shared.mediaPlayer.stop()
+            }
+
             return navigationController
         }
         
@@ -545,9 +550,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
             return UISplitViewController.DisplayMode.automatic
         }
         
-        Thread.onMain { [weak self] in 
-            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
-        }
+        // This causes havoc.  I expect it was put here to fix a PDF problem.  Not sure why.
+//        Thread.onMain { [weak self] in 
+//            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
+//        }
         
         return UISplitViewController.DisplayMode.automatic
     }

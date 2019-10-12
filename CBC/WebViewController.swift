@@ -487,6 +487,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             }
             
         case Constants.Strings.Word_Index:
+            let title = self.navigationItem.title?.qualifier(Constants.Strings.Word_Index)
             self.process(work: { [weak self] (test:(()->(Bool))?) -> (Any?) in
                 return self?.bodyHTML?.html2String?.tokensAndCounts?.map({ [weak self] (word:String,count:Int) -> String in
                     // By using cache this only looks at mismatches if they are loaded
@@ -504,7 +505,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //                    } else {
                         return "\(word) (\(count))"
 //                    }
-                }).sorted().tableHTML(title:self?.navigationItem.title?.qualifier(Constants.Strings.Word_Index), test:test)
+                }).sorted().tableHTML(title:title, test:test)
             }, completion: { [weak self] (data:Any?,test:(()->(Bool))?) in
                 self?.presentHTMLModal(mediaItem: nil, style: .overCurrentContext, title: self?.navigationItem.title?.qualifier(Constants.Strings.Word_Index), htmlString: data as? String)
             })

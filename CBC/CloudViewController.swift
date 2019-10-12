@@ -737,7 +737,7 @@ class CloudViewController : CBCViewController
     {
         cloudColors = CloudColors.GreenBlue
         
-        cloudView.backgroundColor = UIColor.white
+//        cloudView.backgroundColor = UIColor.white
         
         if let cloudWordDicts = cloudWordDicts?.filter({ (dict:[String:Any]) -> Bool in
             return (dict["selected"] as? Bool) ?? false

@@ -2551,7 +2551,8 @@ class MediaViewController : MediaItemsViewController
         
         view.isHidden = true
         view.removeFromSuperview()
-        
+        Globals.shared.mediaPlayer.controller?.removeFromParent()
+
         view.removeConstraints(view.constraints)
 
         view.gestureRecognizers = nil
@@ -2569,6 +2570,9 @@ class MediaViewController : MediaItemsViewController
 
         view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
 
+        if let avPlayerViewController = Globals.shared.mediaPlayer.controller {
+            self.addChild(avPlayerViewController)
+        }
         parentView.addSubview(view)
 
 //        if let contain = parentView?.subviews.contains(view), !contain {
@@ -4659,6 +4663,7 @@ class MediaViewController : MediaItemsViewController
     @objc func willEnterForeground()
     {
         // Player is refreshed in AppDelegate
+        wkWebView?.isHidden = true
     }
     
     @objc func didBecomeActive()
@@ -4702,6 +4707,8 @@ class MediaViewController : MediaItemsViewController
         
         NotificationCenter.default.addObserver(self, selector: #selector(stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
         
+//        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: UIApplication.willResignActiveNotification, object: nil)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
 
@@ -4709,6 +4716,11 @@ class MediaViewController : MediaItemsViewController
             NotificationCenter.default.addObserver(self, selector: #selector(updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
         }
+    }
+    
+    @objc func willResignActive()
+    {
+        wkWebView?.isHidden = true
     }
     
     override func viewWillAppear(_ animated: Bool)
@@ -5634,6 +5646,19 @@ class MediaViewController : MediaItemsViewController
 
     func setDocumentZoomScale(_ document:Document?)
     {
+        guard isViewLoaded else {
+            return
+        }
+        
+        guard UIApplication.shared.applicationState == .active else {
+            return
+        }
+        
+        guard view.frame.height <= splitViewController?.view.bounds.height else {
+//            wkWebView?.scrollView.setZoomScale(1.0, animated: false)
+            return
+        }
+        
         guard let wkWebView = wkWebView else {
             return
         }
@@ -5690,7 +5715,20 @@ class MediaViewController : MediaItemsViewController
     
     func setDocumentContentOffset(_ document:Document?)
     {
+        guard isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
+            return
+        }
+        
+        guard UIApplication.shared.applicationState == .active else {
+            return
+        }
+        
+        guard view.frame.height <= splitViewController?.view.bounds.height else {
+            wkWebView?.scrollView.setContentOffset(CGPoint.zero,animated: false)
             return
         }
         
@@ -5744,7 +5782,11 @@ class MediaViewController : MediaItemsViewController
             self?.activityIndicator.stopAnimating()
             self?.activityIndicator.isHidden = true
             
-            wkWebView.isHidden = false
+            DispatchQueue.global(qos: .background).async {
+                Thread.onMain {
+                    wkWebView.isHidden = false
+                }
+            }
         }
     }
     

@@ -4766,7 +4766,12 @@ extension UIAlertController
     {
         if  let subView = view.subviews.first,
             let alertContentView = subView.subviews.first {
-            alertContentView.backgroundColor = UIColor.white
+            if #available(iOS 13.0, *) {
+                alertContentView.backgroundColor = UIColor.systemBackground
+            } else {
+                // Fallback on earlier versions
+                alertContentView.backgroundColor = UIColor.white
+            }
             alertContentView.layer.cornerRadius = 10
             alertContentView.layer.masksToBounds = true
         }
@@ -5236,7 +5241,12 @@ extension UIViewController
                     loadingContainer.frame = self.view.frame
                     loadingContainer.center = CGPoint(x: self.view.bounds.width / 2, y: self.view.bounds.height / 2)
                     
-                    loadingContainer.backgroundColor = UIColor.white.withAlphaComponent(0.5)
+                    if #available(iOS 13.0, *) {
+                        loadingContainer.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.5)
+                    } else {
+                        // Fallback on earlier versions
+                        loadingContainer.backgroundColor = UIColor.white.withAlphaComponent(0.5)
+                    }
                     
                     self.view.addSubview(loadingContainer)
 
@@ -5450,7 +5460,7 @@ extension String
                     if matches.count > 0 {
                         for match in matches {
                             if match.range.upperBound == workingString.endIndex.utf16Offset(in: workingString) {
-                                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: Constants.Fonts.highlighting],
                                                              range: match.range)
                                 found = true
                                 break
@@ -5475,7 +5485,7 @@ extension String
                         list.removeLast()
                         let first = list.joined(separator: " ") + " "
                         if let firstRange = workingString.range(of: first) {
-                            attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                            attributedText.addAttributes([NSAttributedString.Key.backgroundColor: Constants.Fonts.highlighting],
                                                          range: NSRange(location: firstRange.upperBound.utf16Offset(in: workingString), length: last.count))
                             found = true
                         }
@@ -5512,7 +5522,7 @@ extension String
                     
                 if matches.count > 0 {
                     matches.forEach {
-                        attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                        attributedText.addAttributes([NSAttributedString.Key.backgroundColor: Constants.Fonts.highlighting],
                                                      range: $0.range)
                     }
                 } else {
@@ -5532,7 +5542,7 @@ extension String
             
             if matches.count > 0 {
                 matches.forEach {
-                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                    attributedText.addAttributes([NSAttributedString.Key.backgroundColor: Constants.Fonts.highlighting],
                                                  range: $0.range)
                 }
             } else {
@@ -5558,7 +5568,7 @@ extension String
         
         if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
             regex.matches(in: self, options: .withTransparentBounds, range: range).forEach {
-                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: Constants.Fonts.highlighting],
                                              range: $0.range)
             }
         }
@@ -5581,7 +5591,7 @@ extension String
 
         if let regex = try? NSRegularExpression(pattern: searchText, options: .caseInsensitive) {
             regex.matches(in: self, options: .withTransparentBounds, range: range).forEach {
-                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: UIColor.yellow],
+                attributedText.addAttributes([NSAttributedString.Key.backgroundColor: Constants.Fonts.highlighting],
                                              range: $0.range)
             }
         }

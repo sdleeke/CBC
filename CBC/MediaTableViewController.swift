@@ -1788,7 +1788,7 @@ class MediaTableViewController : MediaItemsViewController
         }
         
         return strings.count > 0 ? strings.sorted(by: {
-            return $0.withoutPrefixes < $1.withoutPrefixes
+            return $0.withoutPrefixes.trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES)) < $1.withoutPrefixes.trimmingCharacters(in: CharacterSet(charactersIn: Constants.QUOTES))
         }) : nil
     }
     
@@ -2617,7 +2617,7 @@ class MediaTableViewController : MediaItemsViewController
                 self?.show(showButton)
             }
 
-            if self?.splitViewController?.isCollapsed == true, Globals.shared.mediaPlayer.url == Globals.shared.streamingURL {
+            if self?.navigationController?.visibleViewController == self, self?.splitViewController?.isCollapsed == true, Globals.shared.mediaPlayer.url == Globals.shared.streamingURL {
                 Globals.shared.mediaPlayer.stop()
             }
         }
