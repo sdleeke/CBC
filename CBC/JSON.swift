@@ -98,7 +98,7 @@ class JSON
         }
     }
     
-    func loadURL(urlString:String?, filename:String?, completion:(([String:Any]?)->())?)
+    func load(urlString:String?, filename:String?, completion:(([String:Any]?)->())?)
     {
         guard let data = urlString?.url?.data, !data.isEmpty else {
             // completion?(nil) // ???
@@ -119,35 +119,36 @@ class JSON
         completion?(json)
     }
     
-    func load(urlString:String?, filename:String?, completion:(([String:Any]?)->())?)
-    {
-        if Globals.shared.isRefreshing {
-            if Globals.shared.reachability.isReachable {
-                loadURL(urlString:urlString, filename:filename, completion:completion)
-            } else {
-                if let data = filename?.fileSystemURL?.data, let json = data.json as? [String:Any] { // , !data.isEmpty // ???
-                    completion?(json) // json could be empty, but not nil
-                }
-            }
-        } else {
-            // FileSystem first unless we're moving to the newAPI
-            guard Globals.shared.newAPI else {
-                loadURL(urlString:urlString, filename:filename, completion:completion)
-                return
-            }
-            
-            guard let json = filename?.fileSystemURL?.data?.json as? [String:Any] else {
-                loadURL(urlString:urlString, filename:filename, completion:completion)
-                return
-            }
-
-            completion?(json)
-            
-            operationQueue.addOperation {
-                self.loadURL(urlString:urlString, filename:filename, completion:nil)
-            }
-        }
-    }
+//    func load(urlString:String?, filename:String?, completion:(([String:Any]?)->())?)
+//    {
+//        if Globals.shared.isRefreshing {
+//            if Globals.shared.reachability.isReachable {
+//                loadURL(urlString:urlString, filename:filename, completion:completion)
+//            } else {
+//                if let data = filename?.fileSystemURL?.data, let json = data.json as? [String:Any] { // , !data.isEmpty // ???
+//                    completion?(json) // json could be empty, but not nil
+//                }
+//            }
+//        } else {
+//            // FileSystem first unless we're moving to the newAPI
+////            guard Globals.shared.newAPI else {
+////                loadURL(urlString:urlString, filename:filename, completion:completion)
+////                return
+////            }
+//
+////            guard let json = filename?.fileSystemURL?.data?.json as? [String:Any] else {
+////                loadURL(urlString:urlString, filename:filename, completion:completion)
+////                return
+////            }
+//
+////            completion?(json)
+//
+//            self.loadURL(urlString:urlString, filename:filename, completion:completion)
+//
+////            operationQueue.addOperation {
+////            }
+//        }
+//    }
     
 //    func load(urlString:String?, key:String, filename:String?) -> [[String:Any]]?
 //    {

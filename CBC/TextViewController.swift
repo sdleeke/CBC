@@ -989,12 +989,13 @@ class TextViewController : CBCViewController
             }
             
             if let segment = closest {
+                lastIndex = nil
+                
                 if (oldTextRange == nil) || (oldTextRange != range) {
                     if  let start = segment["start"] as? Double,
                         let end = segment["end"] as? Double,
                         let lowerBound = segment["lowerBound"] as? Int,
                         let upperBound = segment["upperBound"] as? Int {
-                        lastIndex = nil
                         let ratio = Double(range.lowerBound - lowerBound)/Double(upperBound - lowerBound)
                         Globals.shared.mediaPlayer.seek(to: start + (ratio * (end - start)))
                     }
@@ -1951,7 +1952,7 @@ class TextViewController : CBCViewController
             return
         }
         
-        guard let keyboardFrame = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue else {
+        guard let keyboardFrame = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue else {
             return
         }
         

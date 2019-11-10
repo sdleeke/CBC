@@ -899,7 +899,8 @@ enum Constants {
         static let Remove_All_From_Favorites = Remove_All_From + SINGLE_SPACE + Favorites
 
         static let Machine_Generated = "Machine Generated"
-        
+        static let Machine_Generated_Transcripts = Machine_Generated + " " + Transcript + "s"
+
         static let New = "New"
         static let All = "All"
         static let None = "None"

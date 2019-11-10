@@ -758,7 +758,8 @@ class MediaViewController : MediaItemsViewController
                 }
                 
                 self?.logo.isHidden = true
-                
+                self?.label?.isHidden = true
+
                 self?.activityIndicator.isHidden = false
                 self?.activityIndicator.startAnimating()
             }
@@ -863,7 +864,8 @@ class MediaViewController : MediaItemsViewController
 
         //            webData = nil
         logo.isHidden = true // Critical.
-        
+//        label?.isHidden = true
+
         if selectedMediaItem != oldValue {
             Thread.onMain { [weak self] in
                 self?.wkWebView?.isHidden = true
@@ -2505,6 +2507,10 @@ class MediaViewController : MediaItemsViewController
     
     fileprivate func setupPlayerView()
     {
+        guard Globals.shared.mediaPlayer.mediaItem == selectedMediaItem else {
+            return
+        }
+        
         guard let view = Globals.shared.mediaPlayer.view else {
             return
         }
@@ -2875,14 +2881,61 @@ class MediaViewController : MediaItemsViewController
     
     @IBOutlet weak var layoutAspectRatio: NSLayoutConstraint!
     
-    func setImage(_ image:UIImage? = nil, mediaItem:MediaItem? = nil)
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?)
     {
-        guard let image = image ?? UIImage(named:"CBC_logo") else {
-            self.logo.image = nil
+        guard shouldShowLogo() else {
             return
         }
         
+        setupLogo()
+    }
+
+    var label : UILabel?
+
+    func setImage(_ image:UIImage? = nil, mediaItem:MediaItem? = nil)
+    {
+//        guard let image = image ?? UIImage(named:"CBC_logo") else {
+//            self.logo.image = nil
+//            return
+//        }
+        
         Thread.onMain { [weak self] in
+            self?.label?.removeFromSuperview()
+
+            guard let image = image ?? UIImage(named:"CBC_logo") else {
+                self?.logo.image = nil
+                
+//                guard self?.activityIndicator.isAnimating == false else {
+//                    return
+//                }
+                
+                if self?.label == nil {
+                    self?.label = UILabel()
+                }
+                
+                var frame = self?.mediaItemNotesAndSlides.frame
+                
+                if self?.selectedMediaItem == nil {
+                    frame = self?.view.bounds
+                }
+                
+                self?.label?.textAlignment = .center
+                self?.label?.frame = frame ?? CGRect.zero
+                self?.label?.numberOfLines = 3
+                self?.label?.text =
+                """
+                Countryside Bible Church
+                High View of God
+                High View of Scripture
+                """
+                
+                if let label = self?.label {
+                    self?.view.addSubview(label)
+                }
+
+                return
+            }
+
             if mediaItem != nil, mediaItem != self?.selectedMediaItem {
                 return
             }
@@ -3208,7 +3261,8 @@ class MediaViewController : MediaItemsViewController
         // Download
         
         self.logo.isHidden = true
-        
+        self.label?.isHidden = true
+
         mediaItemNotesAndSlides.bringSubviewToFront(activityIndicator)
         self.activityIndicator.isHidden = false
         self.activityIndicator.startAnimating()
@@ -3566,8 +3620,10 @@ class MediaViewController : MediaItemsViewController
                                 self.mediaItemNotesAndSlides.bringSubviewToFront(self.logo)
                             }
                         } else {
-                            Globals.shared.mediaPlayer.view?.isHidden = true
-                            setupDefaultDocuments()
+                            if Globals.shared.mediaPlayer.url != Globals.shared.streamingURL {
+                                Globals.shared.mediaPlayer.view?.isHidden = true
+                                setupDefaultDocuments()
+                            }
                         }
                         break
                         
@@ -4375,6 +4431,10 @@ class MediaViewController : MediaItemsViewController
         setupActionAndTagsButtons()
         
         scrollToMediaItem(selectedMediaItem, select: true, position: .none)
+        
+        if selectedMediaItem == nil {
+            activityIndicator.stopAnimating()
+        }
     }
 
     func setupControlView()
@@ -4723,9 +4783,16 @@ class MediaViewController : MediaItemsViewController
         wkWebView?.isHidden = true
     }
     
+    var frameObserver : NSKeyValueObservation?
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
+        
+        frameObserver?.invalidate()
+        frameObserver = self.mediaItemNotesAndSlides.observe(\.bounds, options: [.new,.old]) { (view, change) in
+            self.label?.frame = change.newValue ?? CGRect.zero
+        }
         
         setupLogo()
 
@@ -4748,6 +4815,21 @@ class MediaViewController : MediaItemsViewController
 
         if mediaList != nil {
             updateUI()
+        }
+
+        if selectedMediaItem == nil, Globals.shared.media.selected.detail != nil {
+            selectedMediaItem = Globals.shared.media.selected.detail
+            updateUI()
+
+            tableView.reloadData()
+
+            //Without this background/main dispatching there isn't time to scroll correctly after a reload.
+            // Delay so UI works as desired.
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                Thread.onMain { [weak self] in
+                    self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableView.ScrollPosition.none)
+                }
+            }
         }
 
 //        //Without this background/main dispatching there isn't time to scroll correctly after a reload.

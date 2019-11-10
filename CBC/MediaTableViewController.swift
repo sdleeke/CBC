@@ -1655,6 +1655,9 @@ class MediaTableViewController : MediaItemsViewController
     
     func addNotifications()
     {
+        NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
+
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
         
@@ -2404,6 +2407,28 @@ class MediaTableViewController : MediaItemsViewController
     @objc func willEnterForeground()
     {
         
+    }
+    
+    @objc func reachableTransition()
+    {
+        guard Globals.shared.reachability.isReachable else {
+            return
+        }
+        
+        guard !Globals.shared.isLoading else {
+            return
+        }
+        
+        guard Globals.shared.media.repository.list == nil else {
+            return
+        }
+                
+        tableView.isHidden = true
+        
+        loadMediaItems()
+        {
+            self.loadCompletion()
+        }
     }
     
     @objc func didBecomeActive()

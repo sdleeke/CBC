@@ -3804,7 +3804,7 @@ class MediaItem : NSObject //, Downloader
             }
         }
         
-        voiceBase = AlertAction(title: Constants.Strings.VoiceBase, style: .default) { [weak self] in
+        voiceBase = AlertAction(title: Constants.Strings.Machine_Generated_Transcripts, style: .default) { [weak self] in
             var alertActions = [AlertAction]()
             
             if let actions = self?.audioTranscript?.alertActions(viewController:viewController) {
@@ -3832,14 +3832,17 @@ class MediaItem : NSObject //, Downloader
                 }
             }
             
-            var message = Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript
+            var message = "" //Constants.Strings.Machine_Generated + " " + Constants.Strings.Transcript
             
             if let text = self?.text {
-                message += "\n\n\(text)"
+                if !message.isEmpty {
+                    message += "\n\n"
+                }
+                message += text
             }
             
             if alertActions.count > 1 {
-                Alerts.shared.alertActionsCancel( title: Constants.Strings.VoiceBase,
+                Alerts.shared.alertActionsCancel( title: Constants.Strings.Machine_Generated_Transcripts,
                                                    message: message,
                                                    alertActions: alertActions,
                                                    cancelAction: nil)
