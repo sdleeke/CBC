@@ -744,7 +744,9 @@ class MediaViewController : MediaItemsViewController
 //            return
 //        }
         
-        Globals.shared.mediaPlayer.view?.isHidden = self.videoLocation == .withDocuments
+        if Globals.shared.mediaPlayer.mediaItem == selectedMediaItem {
+            Globals.shared.mediaPlayer.view?.isHidden = self.videoLocation == .withDocuments
+        }
 
         self.webQueue.cancelAllOperations()
         self.webQueue.addCancelableOperation(tag: self.download?.downloadURL?.absoluteString) { [weak self] (test:(() -> Bool)?) in
@@ -802,7 +804,10 @@ class MediaViewController : MediaItemsViewController
                     //                    }
                     //
                     self?.wkWebView?.isHidden = true
-                    Globals.shared.mediaPlayer.view?.isHidden = self?.videoLocation == .withDocuments
+                    
+                    if Globals.shared.mediaPlayer.mediaItem == self?.selectedMediaItem {
+                        Globals.shared.mediaPlayer.view?.isHidden = self?.videoLocation == .withDocuments
+                    }
                     
                     if let url = self?.download?.downloadURL {
                         self?.data = data
@@ -2508,6 +2513,8 @@ class MediaViewController : MediaItemsViewController
     fileprivate func setupPlayerView()
     {
         guard Globals.shared.mediaPlayer.mediaItem == selectedMediaItem else {
+            Globals.shared.mediaPlayer.view?.isHidden = true
+            Globals.shared.mediaPlayer.view?.removeFromSuperview()
             return
         }
         
@@ -3020,12 +3027,12 @@ class MediaViewController : MediaItemsViewController
         guard let selectedMediaItem = selectedMediaItem else {
             return
         }
-        
+
         setupLogo()
         
         verticalSplit.isHidden = false
         
-        Globals.shared.mediaPlayer.view?.isHidden = true
+//        Globals.shared.mediaPlayer.view?.isHidden = true
         
         if documents.count == 0 {
             wkWebView?.isHidden = true
@@ -3466,7 +3473,7 @@ class MediaViewController : MediaItemsViewController
             
             wkWebView?.isHidden = true
 
-            Globals.shared.mediaPlayer.view?.isHidden = true
+            Globals.shared.mediaPlayer.view?.isHidden = navigationController?.topViewController == self
             
             logo.isHidden = !shouldShowLogo() // && roomForLogo()
             
@@ -3597,7 +3604,11 @@ class MediaViewController : MediaItemsViewController
                 if let playing = selectedMediaItem.playing {
                     switch playing {
                     case Playing.audio:
-                        Globals.shared.mediaPlayer.view?.isHidden = true
+                        if Globals.shared.mediaPlayer.url != Globals.shared.streamingURL {
+                            Globals.shared.mediaPlayer.view?.isHidden = true
+                        } else {
+
+                        }
                         setupDefaultDocuments()
                         break
                         
@@ -5040,6 +5051,7 @@ class MediaViewController : MediaItemsViewController
         
         if selectedMediaItem == Globals.shared.mediaPlayer.mediaItem {
             Globals.shared.mediaPlayer.view?.removeFromSuperview()
+            Globals.shared.mediaPlayer.controller?.removeFromParent()
         }
         
         // WHY WAS THIS HERE?
@@ -5066,7 +5078,7 @@ class MediaViewController : MediaItemsViewController
 
         observer?.invalidate()
 
-        // Need to get notifications when pushed.
+        // Need to get notifications when pushed. (Only happens w/ MGT's.)
 //        NotificationCenter.default.removeObserver(self) // Catch-all.
         
         sliderTimer?.invalidate()
@@ -5622,7 +5634,8 @@ class MediaViewController : MediaItemsViewController
         Globals.shared.mediaPlayer.stop() // IfPlaying
         
         Globals.shared.mediaPlayer.view?.removeFromSuperview()
-        
+        Globals.shared.mediaPlayer.controller?.removeFromParent()
+
         guard (mediaItem.hasVideo || mediaItem.hasAudio) else {
             return
         }

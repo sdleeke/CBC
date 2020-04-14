@@ -495,9 +495,9 @@ class MediaPlayer : NSObject
         pause() // affects playOnLoad
         self.playOnLoad = playOnLoad
         
-        MPRemoteCommandCenter.shared().playCommand.isEnabled = (player != nil) && (url != URL(string: Constants.URL.LIVE_STREAM))
-        MPRemoteCommandCenter.shared().skipForwardCommand.isEnabled = (player != nil) && (url != URL(string: Constants.URL.LIVE_STREAM))
-        MPRemoteCommandCenter.shared().skipBackwardCommand.isEnabled = (player != nil) && (url != URL(string: Constants.URL.LIVE_STREAM))
+        MPRemoteCommandCenter.shared().playCommand.isEnabled = (player != nil) && (url != Globals.shared.streamingURL) // URL(string: Constants.URL.LIVE_STREAM)
+        MPRemoteCommandCenter.shared().skipForwardCommand.isEnabled = (player != nil) && (url != Globals.shared.streamingURL) // URL(string: Constants.URL.LIVE_STREAM)
+        MPRemoteCommandCenter.shared().skipBackwardCommand.isEnabled = (player != nil) && (url != Globals.shared.streamingURL) // URL(string: Constants.URL.LIVE_STREAM)
     }
     
     func setup(_ mediaItem:MediaItem?,playOnLoad:Bool)
@@ -683,7 +683,8 @@ class MediaPlayer : NSObject
             return
         }
         
-        guard url != URL(string: Constants.URL.LIVE_STREAM) else {
+        // URL(string: Constants.URL.LIVE_STREAM)
+        guard url != Globals.shared.streamingURL else {
             return
         }
         
@@ -721,8 +722,8 @@ class MediaPlayer : NSObject
         }
         
         switch url.absoluteString {
-        case Constants.URL.LIVE_STREAM:
-            stateTime = PlayerStateTime(state:.playing)
+        case Globals.shared.streamingURL?.absoluteString ?? "": // Constants.URL.LIVE_STREAM
+//            stateTime = PlayerStateTime(state:.playing)
             player?.play()
             break
             
@@ -758,7 +759,7 @@ class MediaPlayer : NSObject
         playOnLoad = false
 
         switch url.absoluteString {
-        case Constants.URL.LIVE_STREAM:
+        case Globals.shared.streamingURL?.absoluteString ?? "": // Constants.URL.LIVE_STREAM
             break
             
         default:
@@ -869,6 +870,37 @@ class MediaPlayer : NSObject
         }
         
         guard url != Globals.shared.streamingURL else { // URL(string:Constants.URL.LIVE_STREAM))
+//            observer = player?.currentItem?.observe(\.status, options: [.new]) { [weak self] (currentItem, change) in
+//                self?.observer?.invalidate()
+//
+//                switch currentItem.status {
+//                case .readyToPlay:
+//                    // Player item is ready to play.
+//                    if self?.loaded == false {
+//                        self?.loaded = true
+//                    }
+//
+//                    self?.setupPlayingInfoCenter()
+//                    break
+//
+//                case .failed:
+//                    // Player item failed. See error.
+//                    self?.failedToLoad()
+//                    break
+//
+//                case .unknown:
+//                    // Player item is not yet ready.
+//                    if #available(iOS 10.0, *) {
+//                        print(self?.player?.reasonForWaitingToPlay as Any)
+//                    } else {
+//                        // Fallback on earlier versions
+//                    }
+//                    break
+//
+//                @unknown default:
+//                    break
+//                }
+//            }
             return
         }
         
@@ -1152,7 +1184,7 @@ class MediaPlayer : NSObject
         }
         
         switch url.absoluteString {
-        case Constants.URL.LIVE_STREAM:
+        case Globals.shared.streamingURL?.absoluteString: // Constants.URL.LIVE_STREAM
             break
             
         default:
@@ -1328,7 +1360,7 @@ class MediaPlayer : NSObject
     
     func setupPlayingInfoCenter()
     {
-        if url == URL(string: Constants.URL.LIVE_STREAM) {
+        if url == Globals.shared.streamingURL { // URL(string: Constants.URL.LIVE_STREAM)
             var nowPlayingInfo = [String:Any]()
             
             nowPlayingInfo[MPMediaItemPropertyTitle]         = "Live Broadcast"

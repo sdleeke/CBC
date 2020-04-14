@@ -744,7 +744,8 @@ class MediaTableViewController : MediaItemsViewController
             if (Globals.shared.mediaPlayer.mediaItem != nil) {
                 var show:String = Constants.EMPTY_STRING
                 
-                if Globals.shared.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM), let state = Globals.shared.mediaPlayer.state {
+                // URL(string: Constants.URL.LIVE_STREAM)
+                if Globals.shared.mediaPlayer.url != Globals.shared.streamingURL, let state = Globals.shared.mediaPlayer.state {
                     switch state {
                     case .paused:
                         show = Constants.Strings.Media_Paused
@@ -1530,7 +1531,7 @@ class MediaTableViewController : MediaItemsViewController
             return
         }
         
-        if Globals.shared.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM) {
+        if Globals.shared.mediaPlayer.url == Globals.shared.streamingURL { // URL(string: Constants.URL.LIVE_STREAM)
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
         }
         
@@ -2595,7 +2596,8 @@ class MediaTableViewController : MediaItemsViewController
                 break
                 
             case Constants.SEGUE.SHOW_MEDIAITEM:
-                if Globals.shared.mediaPlayer.url == URL(string:Constants.URL.LIVE_STREAM) && (Globals.shared.mediaPlayer.pip == .stopped) {
+                // URL(string:Constants.URL.LIVE_STREAM)
+                if (Globals.shared.mediaPlayer.url == Globals.shared.streamingURL) && (Globals.shared.mediaPlayer.pip == .stopped) {
                     Globals.shared.mediaPlayer.pause() // DO NOT USE STOP HERE AS STOP SETS Globals.shared.mediaPlayer.mediaItem (used below) to nil
                     Globals.shared.mediaPlayer.playOnLoad = false
                 }

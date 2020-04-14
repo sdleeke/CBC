@@ -605,7 +605,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate //, AVAudioSessionDelegate
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
 
         // Do we need to do this for audio? NO.
-        if Globals.shared.mediaPlayer.mediaItem?.playing == Playing.video, Globals.shared.mediaPlayer.rate == 0, Globals.shared.mediaPlayer.isPaused, Globals.shared.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM) {
+        if Globals.shared.mediaPlayer.mediaItem?.playing == Playing.video, Globals.shared.mediaPlayer.rate == 0, Globals.shared.mediaPlayer.isPaused, Globals.shared.mediaPlayer.url != Globals.shared.streamingURL { // URL(string:Constants.URL.LIVE_STREAM)
             // Is this the way to solve the dropped connection after an extended pause?  Might not since the app might stay in the foreground, but this will probably cover teh vast majority of the cases.
             
             if (Globals.shared.mediaPlayer.mediaItem != nil) { // && Globals.shared.mediaPlayer.mediaItem!.hasVideo && (Globals.shared.mediaPlayer.mediaItem!.playing == Playing.video)

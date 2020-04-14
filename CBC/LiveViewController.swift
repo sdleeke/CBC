@@ -131,10 +131,40 @@ class LiveViewController: CBCViewController
         }
     }
     
+    @objc func willResignActive()
+    {
+        // URL(string:Constants.URL.LIVE_STREAM)
+        guard Globals.shared.mediaPlayer.url == streamingURL else {
+            return
+        }
+        
+        guard Globals.shared.mediaPlayer.pip != .started else {
+            return
+        }
+        
+        Globals.shared.mediaPlayer.pause()
+    }
+
+    @objc func didBecomeActive()
+    {
+        guard Globals.shared.mediaPlayer.url == streamingURL else {
+            return
+        }
+        
+        guard Globals.shared.mediaPlayer.pip != .started else {
+            return
+        }
+        
+        Globals.shared.mediaPlayer.play()
+    }
+
     func addNotifications()
     {
         NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
         
+        NotificationCenter.default.addObserver(self, selector: #selector(willResignActive), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(didBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
+
         NotificationCenter.default.addObserver(self, selector: #selector(clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
     }
@@ -198,11 +228,17 @@ class LiveViewController: CBCViewController
     
     fileprivate func setupLivePlayerView()
     {
+        guard Globals.shared.mediaPlayer.pip == .stopped else {
+            return
+        }
+        
         if (Globals.shared.mediaPlayer.url != streamingURL) { // URL(string:Constants.URL.LIVE_STREAM)
             Globals.shared.mediaPlayer.stop() // IfPlaying
 
             Globals.shared.mediaPlayer.setup(url: streamingURL, playOnLoad:true) //  ?? URL(string:Constants.URL.LIVE_STREAM)
             Globals.shared.mediaPlayer.setupPlayingInfoCenter()
+        } else {
+            return
         }
         
         guard let view = Globals.shared.mediaPlayer.view else {
