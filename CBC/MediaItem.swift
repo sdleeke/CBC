@@ -3491,7 +3491,7 @@ class MediaItem : NSObject //, Downloader
     {
         var actions = [AlertAction]()
         
-        var scripture:AlertAction!
+//        var scripture:AlertAction!
         var share:AlertAction!
         var openOnCBC:AlertAction!
         var favorites:AlertAction!
@@ -3777,32 +3777,32 @@ class MediaItem : NSObject //, Downloader
 //            }
         }
 
-        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) { [weak self] in
-            guard let reference = self?.scriptureReference else {
-                return
-            }
-            
-            if self?.scripture?.html?[reference] != nil {
-                viewController.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:self?.scripture?.html?[reference], search:false)
-            } else {
-                guard Globals.shared.reachability.isReachable else {
-                    viewController.networkUnavailable("Scripture text unavailable.")
-                    return
-                }
-                
-                // test:(()->(Bool))?
-                viewController.process(work: { [weak self] () -> (Any?) in
-                    self?.scripture?.load()
-                    return self?.scripture?.html?[reference]
-                }, completion: { [weak self] (data:Any?) in
-                    if let htmlString = data as? String {
-                        viewController.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:false)
-                    } else {
-                        Alerts.shared.alert(title:"Scripture Unavailable")
-                    }
-                })
-            }
-        }
+//        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) { [weak self] in
+//            guard let reference = self?.scriptureReference else {
+//                return
+//            }
+//
+//            if self?.scripture?.html?[reference] != nil {
+//                viewController.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:self?.scripture?.html?[reference], search:false)
+//            } else {
+//                guard Globals.shared.reachability.isReachable else {
+//                    viewController.networkUnavailable("Scripture text unavailable.")
+//                    return
+//                }
+//
+//                // test:(()->(Bool))?
+//                viewController.process(work: { [weak self] () -> (Any?) in
+//                    self?.scripture?.load()
+//                    return self?.scripture?.html?[reference]
+//                }, completion: { [weak self] (data:Any?) in
+//                    if let htmlString = data as? String {
+//                        viewController.popoverHTML(title:reference, bodyHTML:self?.scripture?.text(reference), sourceView:viewController.view, sourceRectView:viewController.view, htmlString:htmlString, search:false)
+//                    } else {
+//                        Alerts.shared.alert(title:"Scripture Unavailable")
+//                    }
+//                })
+//            }
+//        }
         
         voiceBase = AlertAction(title: Constants.Strings.Machine_Generated_Transcripts, style: .default) { [weak self] in
             var alertActions = [AlertAction]()
@@ -3879,9 +3879,9 @@ class MediaItem : NSObject //, Downloader
             }
         }
         
-        if self.scripture?.books != nil {
-            actions.append(scripture)
-        }
+//        if self.scripture?.books != nil {
+//            actions.append(scripture)
+//        }
 
         if (viewController as? MediaTableViewController) != nil {
             if hasTags {

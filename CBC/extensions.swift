@@ -1557,6 +1557,27 @@ extension Array where Element == MediaItem
     }
 }
 
+extension UIView {
+    func containsBelow(_ view:UIView) -> Bool
+    {
+        guard !self.subviews.isEmpty else {
+            return false
+        }
+        
+        for subview in self.subviews {
+            if view == subview {
+                return true
+            }
+            
+            if subview.containsBelow(view) == true {
+                return true
+            }
+        }
+        
+        return false
+    }
+}
+
 extension Array where Element == UIViewController
 {
     /**

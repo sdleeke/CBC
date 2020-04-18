@@ -1955,9 +1955,9 @@ class MediaViewController : MediaItemsViewController
         
         var actionMenu = [String]()
         
-        if Globals.shared.reachability.isReachable {
-            actionMenu.append(Constants.Strings.Scripture_Viewer)
-        }
+//        if Globals.shared.reachability.isReachable {
+//            actionMenu.append(Constants.Strings.Scripture_Viewer)
+//        }
         
         if mediaItems.count > 1 {
             var favoriteMediaItems = 0
@@ -2526,6 +2526,8 @@ class MediaViewController : MediaItemsViewController
             return
         }
         
+        self.label?.isHidden = true
+        
         var parentView : UIView!
 
         switch videoLocation {
@@ -2587,7 +2589,7 @@ class MediaViewController : MediaItemsViewController
             self.addChild(avPlayerViewController)
         }
         parentView.addSubview(view)
-
+        
 //        if let contain = parentView?.subviews.contains(view), !contain {
 //            parentView.addSubview(view)
 //        } else {
@@ -2920,6 +2922,8 @@ class MediaViewController : MediaItemsViewController
                     self?.label = UILabel()
                 }
                 
+                self?.label?.isHidden = false
+                
                 var frame = self?.mediaItemNotesAndSlides.frame
                 
                 if self?.selectedMediaItem == nil {
@@ -2937,7 +2941,11 @@ class MediaViewController : MediaItemsViewController
                 """
                 
                 if let label = self?.label {
-                    self?.view.addSubview(label)
+                    if let playerView = Globals.shared.mediaPlayer.view {
+                        if self?.mediaItemNotesAndSlides?.subviews.contains(playerView) == false {
+                            self?.view.addSubview(label)
+                        }
+                    }
                 }
 
                 return
@@ -5913,27 +5921,27 @@ class MediaViewController : MediaItemsViewController
             mediaList?.list?.removeAllFromFavorites()
             break
             
-        case Constants.Strings.Scripture_Viewer:
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
-                
-                popover.scripture = self.scripture
-                popover.mediaItem = self.selectedMediaItem
-                
-                // MUST OCCUR BEFORE PPC DELEGATE IS SET.
-                navigationController.modalPresentationStyle = self.preferredModalPresentationStyle
-                
-                if navigationController.modalPresentationStyle == .popover {
-                    
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                    navigationController.popoverPresentationController?.delegate = self
-                }
-                
-                popover.navigationController?.isNavigationBarHidden = false
-                
-                present(navigationController, animated: true, completion: nil)
-            }
-            break
+//        case Constants.Strings.Scripture_Viewer:
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
+//
+//                popover.scripture = self.scripture
+//                popover.mediaItem = self.selectedMediaItem
+//
+//                // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+//                navigationController.modalPresentationStyle = self.preferredModalPresentationStyle
+//
+//                if navigationController.modalPresentationStyle == .popover {
+//
+//                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                    navigationController.popoverPresentationController?.delegate = self
+//                }
+//
+//                popover.navigationController?.isNavigationBarHidden = false
+//
+//                present(navigationController, animated: true, completion: nil)
+//            }
+//            break
             
         case Constants.Strings.Download_All_Audio:
             mediaList?.downloadAllAudio()
